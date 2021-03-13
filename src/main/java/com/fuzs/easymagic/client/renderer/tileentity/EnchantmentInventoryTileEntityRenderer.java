@@ -30,7 +30,7 @@ public class EnchantmentInventoryTileEntityRenderer extends EnchantmentTableTile
 
         super.render(tileEntityIn, partialTicks, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
         EasyEnchantingElement element = (EasyEnchantingElement) EasyMagic.EASY_ENCHANTING;
-        if (!element.isEnabled() || !element.extension.displayContents || !(tileEntityIn instanceof IInventory)) {
+        if (!element.isEnabled() || !element.extension.renderContents || !(tileEntityIn instanceof IInventory)) {
 
             return;
         }

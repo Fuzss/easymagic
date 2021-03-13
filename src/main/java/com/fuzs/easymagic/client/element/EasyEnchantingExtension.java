@@ -10,7 +10,7 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 public class EasyEnchantingExtension extends ElementExtension<EasyEnchantingElement> implements IClientElement {
 
     public boolean allEnchantments;
-    public boolean displayContents;
+    public boolean renderContents;
 
     public EasyEnchantingExtension(EasyEnchantingElement parent) {
 
@@ -18,7 +18,7 @@ public class EasyEnchantingExtension extends ElementExtension<EasyEnchantingElem
     }
 
     @Override
-    public void loadClient() {
+    public void initClient() {
 
         ClientRegistry.bindTileEntityRenderer(EasyEnchantingElement.ENCHANTING_TABLE_TILE_ENTITY, EnchantmentInventoryTileEntityRenderer::new);
     }
@@ -26,8 +26,8 @@ public class EasyEnchantingExtension extends ElementExtension<EasyEnchantingElem
     @Override
     public void setupClientConfig(ForgeConfigSpec.Builder builder) {
 
-        addToConfig(builder.comment("When hovering over an enchanting option show the complete outcome on the tooltip.").define("Show All Enchantments", false), v -> this.allEnchantments = v);
-        addToConfig(builder.comment("Show contents of an enchantment table lying on top of the block.").define("Display Contents", true), v -> this.displayContents = v);
+        addToConfig(builder.comment("When hovering over an enchanting option show the complete outcome on the tooltip instead of only a single enchantment.").define("Show All Enchantments", false), v -> this.allEnchantments = v);
+        addToConfig(builder.comment("Render item contents of an enchantment table lying on top of the block.").define("Render Table Contents", true), v -> this.renderContents = v);
     }
 
 }

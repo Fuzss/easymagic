@@ -10,7 +10,6 @@
     "accessor.IEnchantmentContainerAccessor"
   ],
   "client": [
-    "client.EnchantmentScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

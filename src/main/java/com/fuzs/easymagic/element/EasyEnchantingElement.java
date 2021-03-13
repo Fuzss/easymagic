@@ -1,16 +1,15 @@
 package com.fuzs.easymagic.element;
 
-import com.fuzs.puzzleslib_em.PuzzlesLib;
-import com.fuzs.puzzleslib_em.element.extension.ClientExtensibleElement;
 import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.client.element.EasyEnchantingExtension;
+import com.fuzs.easymagic.network.message.SEnchantingInfoMessage;
 import com.fuzs.easymagic.tileentity.EnchantingTableInventoryTileEntity;
+import com.fuzs.puzzleslib_em.PuzzlesLib;
+import com.fuzs.puzzleslib_em.element.extension.ClientExtensibleElement;
 import net.minecraft.block.Blocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.Rarity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.registries.ObjectHolder;
 
 public class EasyEnchantingElement extends ClientExtensibleElement<EasyEnchantingExtension> {
@@ -40,34 +39,16 @@ public class EasyEnchantingElement extends ClientExtensibleElement<EasyEnchantin
     }
 
     @Override
-    public void setupCommonConfig(ForgeConfigSpec.Builder builder) {
+    public void initCommon() {
 
-        addToConfig(builder.comment("Inventory contents stay in their slot after closing the enchanting screen. Also makes hoppers able to input and output items.").define("Contents Stay", true), v -> this.itemsStay = v);
-        addToConfig(builder.comment("Reroll possible enchantments in an enchanting table every time an item is placed into the enchanting slot.").define("Reroll Enchantments", true), v -> this.rerollEnchantments = v);
+        PuzzlesLib.getNetworkHandler().registerMessage(SEnchantingInfoMessage::new, LogicalSide.CLIENT);
     }
 
-    public static Rarity getFutureRarity(ItemStack stack) {
+    @Override
+    public void setupCommonConfig(ForgeConfigSpec.Builder builder) {
 
-        if (stack.getItem() == Items.BOOK) {
-
-            return Rarity.UNCOMMON;
-        } else {
-
-            switch (stack.getRarity()) {
-
-                case COMMON:
-                case UNCOMMON:
-
-                    return Rarity.RARE;
-                case RARE:
-
-                    return Rarity.EPIC;
-                case EPIC:
-                default:
-
-                    return stack.getRarity();
-            }
-        }
+        addToConfig(builder.comment("Inventory contents stay in their slot after closing the enchanting screen. Also makes hoppers able to input and output items.").define("Inventory Contents Stay", true), v -> this.itemsStay = v);
+        addToConfig(builder.comment("Re-roll possible enchantments in an enchanting table every time an item is placed into the enchanting slot.").define("Re-Roll Enchantments", true), v -> this.rerollEnchantments = v);
     }
 
 }

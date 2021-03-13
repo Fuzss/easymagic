@@ -44,7 +44,7 @@ public class AnvilTweaksElement extends AbstractElement implements ICommonElemen
     }
 
     @Override
-    public void loadCommon() {
+    public void initCommon() {
 
         PuzzlesLib.getNetworkHandler().registerMessage(SAnvilRepairMessage::new, LogicalSide.CLIENT);
     }
