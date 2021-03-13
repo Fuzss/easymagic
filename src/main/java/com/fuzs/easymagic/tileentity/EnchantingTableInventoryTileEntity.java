@@ -1,7 +1,7 @@
 package com.fuzs.easymagic.tileentity;
 
 import com.fuzs.easymagic.element.EasyEnchantingElement;
-import com.fuzs.easymagic.inventory.container.IEnchantmentContainer;
+import com.fuzs.easymagic.inventory.container.EnchantmentInventoryContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -9,7 +9,6 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.EnchantmentContainer;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -214,17 +213,15 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
 
     @Nullable
     @Override
-    public Container createMenu(int p_createMenu_1_, PlayerInventory p_createMenu_2_, PlayerEntity p_createMenu_3_) {
+    public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity player) {
 
-        return this.canOpen(p_createMenu_3_) ? this.createMenu(p_createMenu_1_, p_createMenu_2_) : null;
+        return this.canOpen(player) ? this.createMenu(id, playerInventory) : null;
     }
 
     @SuppressWarnings("ConstantConditions")
-    protected Container createMenu(int id, PlayerInventory player) {
+    protected Container createMenu(int id, PlayerInventory playerInventory) {
 
-        EnchantmentContainer container = new EnchantmentContainer(id, player, IWorldPosCallable.of(this.world, this.pos));
-        ((IEnchantmentContainer) container).updateInventory(this, player);
-        return container;
+        return new EnchantmentInventoryContainer(id, playerInventory, this, IWorldPosCallable.of(this.world, this.pos));
     }
 
     @Override

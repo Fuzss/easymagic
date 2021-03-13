@@ -20,9 +20,9 @@ import javax.annotation.Nonnull;
 
 public class EnchantmentInventoryTileEntityRenderer extends EnchantmentTableTileEntityRenderer {
 
-    public EnchantmentInventoryTileEntityRenderer(TileEntityRendererDispatcher p_i226010_1_) {
+    public EnchantmentInventoryTileEntityRenderer(TileEntityRendererDispatcher tileEntityRendererDispatcher) {
 
-        super(p_i226010_1_);
+        super(tileEntityRendererDispatcher);
     }
 
     @Override
@@ -37,24 +37,24 @@ public class EnchantmentInventoryTileEntityRenderer extends EnchantmentTableTile
 
         // randomise item placement via position
         BlockPos pos = tileEntityIn.getPos();
-        int direction = (pos.getX() + pos.getZ()) % 4;
+        int direction = Math.abs(pos.getX() + pos.getZ()) % 4;
 
         // get inventory contents from two slots
         ItemStack itemToEnchant = ((IInventory) tileEntityIn).getStackInSlot(0);
-        ItemStack enchantingCatalyst = ((IInventory) tileEntityIn).getStackInSlot(1);
-        NonNullList<ItemStack> nonnulllist = NonNullList.withSize(4, ItemStack.EMPTY);
-        nonnulllist.set(0, itemToEnchant);
+        ItemStack catalyst = ((IInventory) tileEntityIn).getStackInSlot(1);
+        NonNullList<ItemStack> renderingList = NonNullList.withSize(4, ItemStack.EMPTY);
+        renderingList.set(0, itemToEnchant);
 
         // rendering catalyst depends on amount
-        for (int i = 1; i <= Math.min(enchantingCatalyst.getCount(), 3); i++) {
+        for (int i = 1; i <= Math.min(catalyst.getCount(), 3); i++) {
 
-            nonnulllist.set(i, enchantingCatalyst);
+            renderingList.set(i, catalyst);
         }
 
         // render everything just like the campfire does
-        for (int i = 0; i < nonnulllist.size(); ++i) {
+        for (int i = 0; i < renderingList.size(); ++i) {
 
-            ItemStack itemstack = nonnulllist.get(i);
+            ItemStack itemstack = renderingList.get(i);
             if (itemstack != ItemStack.EMPTY) {
 
                 matrixStackIn.push();

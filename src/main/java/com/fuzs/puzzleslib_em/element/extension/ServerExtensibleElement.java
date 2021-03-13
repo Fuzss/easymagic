@@ -27,9 +27,21 @@ public abstract class ServerExtensibleElement<T extends ElementExtension<?> & IS
     }
 
     @Override
+    public void initServer() {
+
+        this.extension.initServer();
+    }
+
+    @Override
     public void loadServer() {
 
         this.extension.loadServer();
+    }
+
+    @Override
+    public void unloadServer() {
+
+        this.extension.unloadServer();
     }
 
     @Override

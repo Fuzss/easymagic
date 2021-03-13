@@ -5,7 +5,6 @@
   "package": "com.fuzs.easymagic.mixin",
   "refmap": "easymagic.refmap.json",
   "mixins": [
-    "EnchantmentContainerMixin",
     "EnchantingTableBlockMixin",
     "accessor.IEnchantmentContainerAccessor"
   ],

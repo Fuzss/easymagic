@@ -1,15 +1,15 @@
 package com.fuzs.easymagic.client.gui.screen;
 
-import com.fuzs.easymagic.EasyMagic;
-import com.fuzs.easymagic.element.EasyEnchantingElement;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.EnchantmentScreen;
 import net.minecraft.enchantment.EnchantmentData;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.EnchantmentContainer;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.util.text.*;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -32,11 +32,10 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
         super.render(matrixStack, mouseX, mouseY, partialTicks);
 
         // rendering of vanilla tooltip is canceled in #isPointInRegion when this is true
-        EasyEnchantingElement element = (EasyEnchantingElement) EasyMagic.EASY_ENCHANTING;
-        if (element.extension.allEnchantments) {
+        if (this.showAllEnchantments()) {
 
             int slot = this.getEnchantingSlot(mouseX, mouseY);
-            if (slot != -1) {
+            if (slot != -1 && !this.slotTooltips.get(slot).isEmpty()) {
 
                 this.func_243308_b(matrixStack, this.slotTooltips.get(slot), mouseX, mouseY);
             }
@@ -46,14 +45,38 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
     @Override
     protected boolean isPointInRegion(int x, int y, int width, int height, double mouseX, double mouseY) {
 
-        // small hack to prevent EnchantmentScreen::render from rendering enchanting tooltips
-        EasyEnchantingElement element = (EasyEnchantingElement) EasyMagic.EASY_ENCHANTING;
-        if (!element.extension.allEnchantments) {
+        // small hack to prevent EnchantmentScreen::render from rendering vanilla enchanting tooltips
+        if (!this.showAllEnchantments() || this.getSelectedSlot(mouseX, mouseY) != null) {
 
             return super.isPointInRegion(x, y, width, height, mouseX, mouseY);
         }
 
         return false;
+    }
+
+    @Nullable
+    private Slot getSelectedSlot(double mouseX, double mouseY) {
+
+        for (int i = 0; i < this.container.inventorySlots.size(); ++i) {
+
+            Slot slot = this.container.inventorySlots.get(i);
+            if (this.isSlotSelected(slot, mouseX, mouseY) && slot.isEnabled()) {
+
+                return slot;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isSlotSelected(Slot slotIn, double mouseX, double mouseY) {
+
+        return super.isPointInRegion(slotIn.xPos, slotIn.yPos, 16, 16, mouseX, mouseY);
+    }
+
+    private boolean showAllEnchantments() {
+
+        return this.slotTooltips.stream().mapToInt(List::size).sum() > 0;
     }
 
     private int getEnchantingSlot(int mouseX, int mouseY) {
