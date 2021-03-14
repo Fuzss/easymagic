@@ -193,20 +193,10 @@ public abstract class AbstractElement extends EventListener implements IConfigur
      */
     private void reloadSides(boolean enable) {
 
-        if (this instanceof ICommonElement) {
-
-            this.reloadSpecificSide((ICommonElement) this, enable, ICommonElement::loadCommon, ICommonElement::unloadCommon);
-        }
-
-        if (this instanceof IClientElement) {
-
-            this.reloadSpecificSide((IClientElement) this, enable, IClientElement::loadClient, IClientElement::unloadClient);
-        }
-
-        if (this instanceof IServerElement) {
-
-            this.reloadSpecificSide((IServerElement) this, enable, IServerElement::loadServer, IServerElement::unloadServer);
-        }
+        Consumer<ICommonElement> reloadCommon = element -> this.reloadSpecificSide(element, enable, ICommonElement::loadCommon, ICommonElement::unloadCommon);
+        Consumer<IClientElement> reloadClient = element -> this.reloadSpecificSide(element, enable, IClientElement::loadClient, IClientElement::unloadClient);
+        Consumer<IServerElement> reloadServer = element -> this.reloadSpecificSide(element, enable, IServerElement::loadServer, IServerElement::unloadServer);
+        this.setupAllSides(reloadCommon, reloadClient, reloadServer);
     }
 
     /**

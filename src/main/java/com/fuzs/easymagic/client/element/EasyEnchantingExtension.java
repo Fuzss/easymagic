@@ -29,9 +29,10 @@ public class EasyEnchantingExtension extends ElementExtension<EasyEnchantingElem
     @Override
     public void setupClientConfig(ForgeConfigSpec.Builder builder) {
 
-        addToConfig(builder.comment("Render inventory contents of an enchanting table.").defineEnum("Render Enchanting Table Contents", ItemRenderType.FLOATING), v -> this.renderContentsType = v);
+        addToConfig(builder.comment("Render inventory contents of an enchanting table.").defineEnum("Render Enchanting Table Contents", ItemRenderType.FANCY_FLOATING), v -> this.renderContentsType = v);
     }
 
+    @SuppressWarnings("unused")
     public enum ItemRenderType {
 
         NONE, FLAT, FLOATING, FANCY_FLOATING

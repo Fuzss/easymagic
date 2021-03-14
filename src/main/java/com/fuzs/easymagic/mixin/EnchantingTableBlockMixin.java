@@ -9,6 +9,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
@@ -21,9 +22,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import javax.annotation.Nonnull;
-
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "NullableProblems", "deprecation"})
 @Mixin(EnchantingTableBlock.class)
 public abstract class EnchantingTableBlockMixin extends ContainerBlock {
 
@@ -52,17 +51,35 @@ public abstract class EnchantingTableBlockMixin extends ContainerBlock {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public void onReplaced(@Nonnull BlockState state, @Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean isMoving) {
+    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
 
         TileEntity tileentity = worldIn.getTileEntity(pos);
-        if (tileentity instanceof EnchantingTableInventoryTileEntity && !state.isIn(newState.getBlock())) {
+        if (!state.isIn(newState.getBlock()) && tileentity instanceof EnchantingTableInventoryTileEntity) {
 
             InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory) tileentity);
         }
 
         super.onReplaced(state, worldIn, pos, newState, isMoving);
+    }
+
+    @Override
+    public boolean hasComparatorInputOverride(BlockState state) {
+
+        return true;
+    }
+
+    @Override
+    public int getComparatorInputOverride(BlockState blockState, World worldIn, BlockPos pos) {
+
+        TileEntity tileentity = worldIn.getTileEntity(pos);
+        if (tileentity instanceof IInventory) {
+
+            ItemStack catalystItem = ((IInventory) tileentity).getStackInSlot(1);
+            return Math.min(catalystItem.getCount(), 3);
+        }
+
+        return 0;
     }
 
 }
