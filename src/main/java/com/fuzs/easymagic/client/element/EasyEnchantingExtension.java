@@ -34,7 +34,7 @@ public class EasyEnchantingExtension extends ElementExtension<EasyEnchantingElem
 
     public enum ItemRenderType {
 
-        NONE, FLAT, FLOATING
+        NONE, FLAT, FLOATING, FANCY_FLOATING
 
     }
 

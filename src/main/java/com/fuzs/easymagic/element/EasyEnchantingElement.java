@@ -61,7 +61,7 @@ public class EasyEnchantingElement extends ClientExtensibleElement<EasyEnchantin
         addToConfig(builder.comment("Inventory contents stay in their slot after closing the enchanting screen. Also makes hoppers able to input and output items.").define("Inventory Contents Stay", true), v -> this.itemsStay = v);
         addToConfig(builder.comment("Re-roll possible enchantments in an enchanting table every time an item is placed into the enchanting slot.").define("Re-Roll Enchantments", true), v -> this.reRollEnchantments = v);
         addToConfig(builder.comment("When hovering over an enchanting option show the complete outcome on the tooltip instead of only a single enchantment.").define("Show All Enchantments", false), v -> this.allEnchantments = v);
-        addToConfig(builder.comment("Amount of bookshelves required to perform enchantments at the highest level.").defineInRange("Maximum Enchanting Power", 15, 0, 30), v -> this.maxPower = v);
+        addToConfig(builder.comment("Amount of bookshelves required to perform enchantments at the highest level.").defineInRange("Maximum Enchanting Power", 15, 0, Integer.MAX_VALUE), v -> this.maxPower = v);
         addToConfig(builder.comment("Blocks without a collision shape do not block bookshelves placed behind from counting towards current enchanting power.").define("Lenient Bookshelves", true), v -> this.lenientBookshelves = v);
     }
 
