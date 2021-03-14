@@ -22,6 +22,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
@@ -42,7 +43,7 @@ public class PuzzlesLib {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onCommonSetup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onServerSetup);
-        FMLJavaModLoadingContext.get().getModEventBus().register(getRegistryManager());
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(getRegistryManager()::onRegistryRegister);
     }
 
     protected void onCommonSetup(final FMLCommonSetupEvent evt) {

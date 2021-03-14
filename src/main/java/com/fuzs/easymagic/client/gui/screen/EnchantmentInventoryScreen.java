@@ -1,13 +1,15 @@
 package com.fuzs.easymagic.client.gui.screen;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.EnchantmentScreen;
 import net.minecraft.enchantment.EnchantmentData;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.EnchantmentContainer;
 import net.minecraft.inventory.container.Slot;
-import net.minecraft.util.text.*;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -25,11 +27,10 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
         super(container, playerInventory, textComponent);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(int mouseX, int mouseY, float partialTicks) {
 
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
+        super.render(mouseX, mouseY, partialTicks);
 
         // rendering of vanilla tooltip is canceled in #isPointInRegion when this is true
         if (this.showAllEnchantments()) {
@@ -37,7 +38,11 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
             int slot = this.getEnchantingSlot(mouseX, mouseY);
             if (slot != -1 && !this.slotTooltips.get(slot).isEmpty()) {
 
-                this.func_243308_b(matrixStack, this.slotTooltips.get(slot), mouseX, mouseY);
+                List<String> tooltip = this.slotTooltips.get(slot).stream()
+                        .map(ITextComponent::getFormattedText)
+                        .collect(Collectors.toList());
+
+                this.renderTooltip(tooltip, mouseX, mouseY);
             }
         }
     }
@@ -106,7 +111,7 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
         boolean isEnchantmentPresent = false;
         for (EnchantmentData data : slotData) {
 
-            slotTooltip.add((new TranslationTextComponent("container.enchant.clue", data.enchantment == null ? "" : data.enchantment.getDisplayName(data.enchantmentLevel))).mergeStyle(TextFormatting.WHITE));
+            slotTooltip.add((new TranslationTextComponent("container.enchant.clue", data.enchantment == null ? "" : data.enchantment.getDisplayName(data.enchantmentLevel))).applyTextStyle(TextFormatting.WHITE));
             if (data.enchantment != null) {
 
                 isEnchantmentPresent = true;
@@ -121,15 +126,15 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
 
         if (!isEnchantmentPresent) {
 
-            slotTooltip.add(StringTextComponent.EMPTY);
-            slotTooltip.add(new TranslationTextComponent("forge.container.enchant.limitedEnchantability").mergeStyle(TextFormatting.RED));
+            slotTooltip.add(new StringTextComponent(""));
+            slotTooltip.add(new TranslationTextComponent("forge.container.enchant.limitedEnchantability").applyTextStyle(TextFormatting.RED));
         } else if (!this.minecraft.player.abilities.isCreativeMode) {
 
-            slotTooltip.add(StringTextComponent.EMPTY);
+            slotTooltip.add(new StringTextComponent(""));
             int enchantLevels = this.container.enchantLevels[slot];
             if (this.minecraft.player.experienceLevel < enchantLevels) {
 
-                slotTooltip.add((new TranslationTextComponent("container.enchant.level.requirement", enchantLevels)).mergeStyle(TextFormatting.RED));
+                slotTooltip.add((new TranslationTextComponent("container.enchant.level.requirement", enchantLevels)).applyTextStyle(TextFormatting.RED));
             } else {
 
                 slot++;
@@ -141,7 +146,7 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
 
     private void addLapisComponent(int slot, List<ITextComponent> slotTooltip) {
 
-        IFormattableTextComponent lapisComponent;
+        ITextComponent lapisComponent;
         if (slot == 1) {
 
             lapisComponent = new TranslationTextComponent("container.enchant.lapis.one");
@@ -150,12 +155,12 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
             lapisComponent = new TranslationTextComponent("container.enchant.lapis.many", slot);
         }
 
-        slotTooltip.add(lapisComponent.mergeStyle(this.container.getLapisAmount() >= slot ? TextFormatting.GRAY : TextFormatting.RED));
+        slotTooltip.add(lapisComponent.applyTextStyle(this.container.getLapisAmount() >= slot ? TextFormatting.GRAY : TextFormatting.RED));
     }
 
     private void addLevelComponent(int slot, List<ITextComponent> slotTooltip) {
 
-        IFormattableTextComponent levelComponent;
+        ITextComponent levelComponent;
         if (slot == 1) {
 
             levelComponent = new TranslationTextComponent("container.enchant.level.one");
@@ -164,7 +169,7 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
             levelComponent = new TranslationTextComponent("container.enchant.level.many", slot);
         }
 
-        slotTooltip.add(levelComponent.mergeStyle(TextFormatting.GRAY));
+        slotTooltip.add(levelComponent.applyTextStyle(TextFormatting.GRAY));
     }
 
 }

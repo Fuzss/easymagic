@@ -3,7 +3,6 @@ package com.fuzs.easymagic.tileentity;
 import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.element.EasyEnchantingElement;
 import com.fuzs.easymagic.inventory.container.EnchantmentInventoryContainer;
-import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
@@ -51,9 +50,9 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
     }
 
     @Override
-    public void read(BlockState state, CompoundNBT nbt) {
+    public void read(CompoundNBT nbt) {
 
-        super.read(state, nbt);
+        super.read(nbt);
         this.inventory.clear();
         ItemStackHelper.loadAllItems(nbt, this.inventory);
         this.code = LockCode.read(nbt);

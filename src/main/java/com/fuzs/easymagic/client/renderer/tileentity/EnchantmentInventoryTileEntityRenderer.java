@@ -5,6 +5,7 @@ import com.fuzs.easymagic.element.EasyEnchantingElement;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.Vector3f;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -16,7 +17,6 @@ import net.minecraft.tileentity.EnchantingTableTileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
@@ -56,13 +56,13 @@ public class EnchantmentInventoryTileEntityRenderer extends EnchantmentTableTile
             case FLOATING:
 
                 List<ItemStack> floatingItems = this.getInventoryItemList(itemToEnchant, catalystItem, catalystCount);
-                this.renderHoveringItemList(floatingItems, tileEntityIn.ticks + partialTicks, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, false);
+                this.renderHoveringItemList(floatingItems, tileEntityIn.field_195522_a + partialTicks, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, false);
                 break;
             case FANCY_FLOATING:
 
                 List<ItemStack> fancyFloatingItems = this.getInventoryItemList(ItemStack.EMPTY, catalystItem, catalystCount);
-                this.renderHoveringItem(itemToEnchant, tileEntityIn.getWorld(), tileEntityIn.ticks + partialTicks, matrixStackIn, bufferIn, combinedLightIn);
-                this.renderHoveringItemList(fancyFloatingItems, tileEntityIn.ticks + partialTicks, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, true);
+                this.renderHoveringItem(itemToEnchant, tileEntityIn.getWorld(), tileEntityIn.field_195522_a + partialTicks, matrixStackIn, bufferIn, combinedLightIn);
+                this.renderHoveringItemList(fancyFloatingItems, tileEntityIn.field_195522_a + partialTicks, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, true);
                 break;
         }
     }

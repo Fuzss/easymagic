@@ -13,7 +13,7 @@ import com.google.common.collect.Maps;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.ParallelDispatchEvent;
+import net.minecraftforge.fml.event.lifecycle.ModLifecycleEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import javax.annotation.Nullable;
@@ -164,6 +164,31 @@ public class ElementRegistry {
     }
 
     /**
+     * cast an element to its class type to make unique methods accessible
+     * @param element element to get
+     * @param <T> return type
+     * @return <code>element</code> cast as <code>T</code>
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends AbstractElement> T getAs(AbstractElement element) {
+
+        return (T) element;
+    }
+
+    /**
+     * cast an element to its class type to make unique methods accessible
+     * @param element element to get
+     * @param clazz clazz type to cast to
+     * @param <T> return type
+     * @return <code>element</code> cast as <code>T</code>
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends AbstractElement> T getAs(AbstractElement element, Class<T> clazz) {
+
+        return (T) element;
+    }
+
+    /**
      * generate general config section for controlling elements, setup individual config sections and collect events to be registered in {@link #load}
      * @param namespace namespace of active mod
      */
@@ -219,7 +244,7 @@ public class ElementRegistry {
      * loads all elements, no matter which mod they're from
      * @param evt event type
      */
-    public static void load(ParallelDispatchEvent evt) {
+    public static void load(ModLifecycleEvent evt) {
 
         ELEMENTS.values().forEach(element -> element.load(evt));
     }

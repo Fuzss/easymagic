@@ -55,7 +55,7 @@ public abstract class EnchantingTableBlockMixin extends ContainerBlock {
     public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
 
         TileEntity tileentity = worldIn.getTileEntity(pos);
-        if (!state.isIn(newState.getBlock()) && tileentity instanceof EnchantingTableInventoryTileEntity) {
+        if (state.getBlock() != newState.getBlock() && tileentity instanceof EnchantingTableInventoryTileEntity) {
 
             InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory) tileentity);
         }

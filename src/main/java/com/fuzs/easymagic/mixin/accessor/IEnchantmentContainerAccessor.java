@@ -28,7 +28,7 @@ public interface IEnchantmentContainerAccessor {
     @Accessor
     Random getRand();
 
-    @Accessor
+    @Accessor(value = "field_217006_g")
     IWorldPosCallable getWorldPosCallable();
 
     @Invoker
