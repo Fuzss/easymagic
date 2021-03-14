@@ -11,7 +11,7 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 
 public class EasyEnchantingExtension extends ElementExtension<EasyEnchantingElement> implements IClientElement {
 
-    public boolean renderContents;
+    public ItemRenderType renderContentsType;
 
     public EasyEnchantingExtension(EasyEnchantingElement parent) {
 
@@ -29,7 +29,13 @@ public class EasyEnchantingExtension extends ElementExtension<EasyEnchantingElem
     @Override
     public void setupClientConfig(ForgeConfigSpec.Builder builder) {
 
-        addToConfig(builder.comment("Render item contents of an enchantment table lying on top of the block.").define("Render Table Contents", true), v -> this.renderContents = v);
+        addToConfig(builder.comment("Render inventory contents of an enchanting table.").defineEnum("Render Enchanting Table Contents", ItemRenderType.FLOATING), v -> this.renderContentsType = v);
+    }
+
+    public enum ItemRenderType {
+
+        NONE, FLAT, FLOATING
+
     }
 
 }

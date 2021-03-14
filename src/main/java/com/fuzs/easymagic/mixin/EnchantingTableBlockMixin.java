@@ -1,7 +1,6 @@
 package com.fuzs.easymagic.mixin;
 
 import com.fuzs.easymagic.EasyMagic;
-import com.fuzs.easymagic.element.EasyEnchantingElement;
 import com.fuzs.easymagic.tileentity.EnchantingTableInventoryTileEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ContainerBlock;
@@ -36,8 +35,7 @@ public abstract class EnchantingTableBlockMixin extends ContainerBlock {
     @Inject(method = "createNewTileEntity", at = @At("HEAD"), cancellable = true)
     public void createNewTileEntity(IBlockReader worldIn, CallbackInfoReturnable<TileEntity> callbackInfo) {
 
-        EasyEnchantingElement element = (EasyEnchantingElement) EasyMagic.EASY_ENCHANTING;
-        if (element.isEnabled() && element.itemsStay) {
+        if (EasyMagic.EASY_ENCHANTING.isEnabled()) {
 
             callbackInfo.setReturnValue(new EnchantingTableInventoryTileEntity());
         }
@@ -49,12 +47,7 @@ public abstract class EnchantingTableBlockMixin extends ContainerBlock {
         TileEntity tileentity = worldIn.getTileEntity(pos);
         if (!worldIn.isRemote && tileentity instanceof EnchantingTableInventoryTileEntity) {
 
-            EasyEnchantingElement element = (EasyEnchantingElement) EasyMagic.EASY_ENCHANTING;
-            if (element.isEnabled() && element.itemsStay) {
-
-                player.openContainer((INamedContainerProvider) tileentity);
-            }
-
+            player.openContainer((INamedContainerProvider) tileentity);
             callbackInfo.setReturnValue(ActionResultType.CONSUME);
         }
     }
@@ -66,14 +59,10 @@ public abstract class EnchantingTableBlockMixin extends ContainerBlock {
         TileEntity tileentity = worldIn.getTileEntity(pos);
         if (tileentity instanceof EnchantingTableInventoryTileEntity && !state.isIn(newState.getBlock())) {
 
-            EasyEnchantingElement element = (EasyEnchantingElement) EasyMagic.EASY_ENCHANTING;
-            if (element.isEnabled() && element.itemsStay) {
-
-                InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory) tileentity);
-            }
-
-            super.onReplaced(state, worldIn, pos, newState, isMoving);
+            InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory) tileentity);
         }
+
+        super.onReplaced(state, worldIn, pos, newState, isMoving);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.fuzs.easymagic.tileentity;
 
+import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.element.EasyEnchantingElement;
 import com.fuzs.easymagic.inventory.container.EnchantmentInventoryContainer;
 import net.minecraft.block.BlockState;
@@ -32,11 +33,13 @@ import net.minecraftforge.items.wrapper.SidedInvWrapper;
 
 import javax.annotation.Nullable;
 
-@SuppressWarnings("NullableProblems")
+@SuppressWarnings({"NullableProblems", "ConstantConditions"})
 public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntity implements IInventory, INamedContainerProvider, ISidedInventory {
 
     private final NonNullList<ItemStack> inventory = NonNullList.withSize(2, ItemStack.EMPTY);
     private LockCode code = LockCode.EMPTY_CODE;
+    @Nullable
+    private EnchantmentInventoryContainer container;
     
     private final LazyOptional<? extends IItemHandler>[] handlers = SidedInvWrapper.create(this, Direction.UP, Direction.DOWN, Direction.NORTH);
 
@@ -96,9 +99,11 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
     public void markDirty() {
 
         super.markDirty();
-
-        assert this.world != null;
         this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
+        if (this.container != null) {
+
+            this.container.onCraftMatrixChanged(this);
+        }
     }
 
     @Override
@@ -146,12 +151,13 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
 
             this.inventory.set(index, stack);
         }
+
+        this.markDirty();
     }
 
     @Override
     public boolean isUsableByPlayer(PlayerEntity player) {
 
-        assert this.world != null;
         if (this.world.getTileEntity(this.pos) != this) {
 
             return false;
@@ -165,17 +171,21 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
     public void clear() {
 
         this.inventory.clear();
+        this.markDirty();
     }
 
     @Override
     public boolean isItemValidForSlot(int index, ItemStack stack) {
 
-        if (index == 1) {
+        if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).itemsStay) {
 
-            return Tags.Items.GEMS_LAPIS.contains(stack.getItem());
-        } else if (index == 0) {
+            if (index == 1) {
 
-            return (stack.isEnchantable() || stack.getItem() == Items.BOOK) && this.inventory.get(index).isEmpty();
+                return Tags.Items.GEMS_LAPIS.contains(stack.getItem());
+            } else if (index == 0) {
+
+                return (stack.isEnchantable() || stack.getItem() == Items.BOOK) && this.inventory.get(index).isEmpty();
+            }
         }
 
         return false;
@@ -190,14 +200,24 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
     @Override
     public boolean canInsertItem(int index, ItemStack itemStackIn, @Nullable Direction direction) {
 
-        return this.isItemValidForSlot(index, itemStackIn);
+        if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).itemsStay) {
+
+            return this.isItemValidForSlot(index, itemStackIn);
+        }
+
+        return false;
     }
 
     @Override
     public boolean canExtractItem(int index, ItemStack stack, Direction direction) {
 
-        // only allow extracting of enchantable item
-        return index == 0 && (stack.isEnchanted() || stack.getItem() == Items.ENCHANTED_BOOK);
+        if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).itemsStay) {
+
+            // only allow extracting of enchantable item
+            return index == 0 && (stack.isEnchanted() || stack.getItem() == Items.ENCHANTED_BOOK);
+        }
+
+        return false;
     }
 
     @Override
@@ -221,7 +241,8 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
     @SuppressWarnings("ConstantConditions")
     protected Container createMenu(int id, PlayerInventory playerInventory) {
 
-        return new EnchantmentInventoryContainer(id, playerInventory, this, IWorldPosCallable.of(this.world, this.pos));
+        this.container = new EnchantmentInventoryContainer(id, playerInventory, this, IWorldPosCallable.of(this.world, this.pos));
+        return container;
     }
 
     @Override

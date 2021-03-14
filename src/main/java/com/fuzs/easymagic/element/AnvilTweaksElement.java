@@ -28,9 +28,9 @@ public class AnvilTweaksElement extends AbstractElement implements ICommonElemen
     public static final Tags.IOptionalNamedTag<Item> ANVIL_REPAIR_MATERIALS = ItemTags.createOptional(new ResourceLocation(EasyMagic.MODID, "anvil_repair_materials"));
     public static final Tags.IOptionalNamedTag<Item> ANVIL_REPAIR_CHANCE_MATERIALS = ItemTags.createOptional(new ResourceLocation(EasyMagic.MODID, "anvil_repair_chance_materials"));
 
-    private boolean repairAnvilWithIronBlock;
-    private boolean repairAnvilWithIronIngot;
-    private int anvilRepairChance;
+    private boolean repairWithBlock;
+    private boolean repairWithIngot;
+    private int ingotRepairChance;
     
     @Override
     public String getDescription() {
@@ -53,9 +53,9 @@ public class AnvilTweaksElement extends AbstractElement implements ICommonElemen
     @Override
     public void setupCommonConfig(ForgeConfigSpec.Builder builder) {
 
-        addToConfig(builder.comment("Using an iron block on a chipped or damaged anvil repairs it fully.").define("Iron Block Repairs Anvil", true), v -> this.repairAnvilWithIronBlock = v);
-        addToConfig(builder.comment("Using an iron ingot on a chipped or damaged anvil has a chance to repair it by one stage.").define("Iron Ingot Repairs Anvil", true), v -> this.repairAnvilWithIronIngot = v);
-        addToConfig(builder.comment("Chance one out of set value an attempt at repairing an anvil will be successful.").defineInRange("Anvil Repair Chance", 5, 1, Integer.MAX_VALUE), v -> this.anvilRepairChance = v);
+        addToConfig(builder.comment("Using an iron block on a chipped or damaged anvil repairs it fully.").define("Iron Block Repairs Anvil", true), v -> this.repairWithBlock = v);
+        addToConfig(builder.comment("Using an iron ingot on a chipped or damaged anvil has a chance to repair it by one stage.").define("Iron Ingot Repairs Anvil", true), v -> this.repairWithIngot = v);
+        addToConfig(builder.comment("Chance one out of set value an attempt at repairing an anvil will be successful.").defineInRange("Anvil Repair Chance", 5, 1, Integer.MAX_VALUE), v -> this.ingotRepairChance = v);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -63,7 +63,7 @@ public class AnvilTweaksElement extends AbstractElement implements ICommonElemen
 
         boolean isRepairMaterial = evt.getItemStack().getItem().isIn(ANVIL_REPAIR_MATERIALS);
         boolean isRepairChanceMaterial = evt.getItemStack().getItem().isIn(ANVIL_REPAIR_CHANCE_MATERIALS);
-        if (evt.getSide().isServer() && (this.repairAnvilWithIronBlock && isRepairMaterial || this.repairAnvilWithIronIngot && isRepairChanceMaterial)) {
+        if (evt.getSide().isServer() && (this.repairWithBlock && isRepairMaterial || this.repairWithIngot && isRepairChanceMaterial)) {
 
             World world = evt.getWorld();
             BlockPos blockPos = evt.getPos();
@@ -83,7 +83,7 @@ public class AnvilTweaksElement extends AbstractElement implements ICommonElemen
                     evt.getItemStack().shrink(1);
                 }
 
-                if (isRepairMaterial || world.getRandom().nextInt(this.anvilRepairChance) == 0) {
+                if (isRepairMaterial || world.getRandom().nextInt(this.ingotRepairChance) == 0) {
 
                     world.setBlockState(blockPos, blockState, 2);
                     // don't call IWorld::playEvent as it also plays a block breaking sound

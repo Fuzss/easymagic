@@ -45,16 +45,21 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
 
         super(id, playerInventory, worldPosCallable);
         this.updateInventory(playerInventory, inventory);
-        this.get().getXpSeed().set(playerInventory.player.getRNG().nextInt());
-        // for updating xp seed on client
-        this.detectAndSendChanges();
         if (playerInventory.player instanceof ServerPlayerEntity) {
 
             this.sendEnchantingInfo = message -> PuzzlesLib.getNetworkHandler().sendTo(message, (ServerPlayerEntity) playerInventory.player);
         }
 
-        // items might still be in inventory slots, so this needs to update so that enchantment buttons are shown
-        this.onCraftMatrixChanged(inventory);
+        if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).reRollEnchantments) {
+
+            // set random seed right from the beginning
+            this.get().getXpSeed().set(playerInventory.player.getRNG().nextInt());
+        }
+    }
+
+    public void onCraftMatrixChanged() {
+
+        this.onCraftMatrixChanged(this.get().getTableInventory());
     }
 
     @Override
@@ -62,7 +67,6 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
         
         if (inventoryIn == this.get().getTableInventory()) {
 
-            this.resetLevelsAndClues();
             ItemStack enchantedItem = inventoryIn.getStackInSlot(0);
             if (!enchantedItem.isEmpty() && enchantedItem.isEnchantable()) {
                 
@@ -83,6 +87,9 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
                         this.sendEnchantingInfo.accept(new SEnchantingInfoMessage(this.windowId, firstSlotData, secondSlotData, thirdSlotData));
                     }
                 });
+            } else {
+
+                this.resetLevelsAndClues();
             }
         }
     }
@@ -160,7 +167,7 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
 
     private boolean isBlockEmpty(World world, BlockPos pos) {
 
-        if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).bookshelves) {
+        if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).lenientBookshelves) {
 
             return world.getBlockState(pos).getCollisionShape(world, pos).isEmpty();
         }
@@ -212,10 +219,14 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
     
     private void updateInventory(PlayerInventory playerInventory, IInventory inventory) {
 
-        this.get().setTableInventory(inventory);
+        if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).itemsStay) {
+
+            this.get().setTableInventory(inventory);
+        }
+
         this.inventorySlots.clear();
-        this.addSlot(new EnchantableSlot(inventory));
-        this.addSlot(new LapisSlot(inventory));
+        this.addSlot(new EnchantableSlot(this.get().getTableInventory(), 0, 15, 47));
+        this.addSlot(new LapisSlot(this.get().getTableInventory(), 1, 35, 47));
         this.addPlayerSlots(playerInventory);
     }
 
@@ -242,15 +253,20 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
 
     private class EnchantableSlot extends Slot {
 
-        public EnchantableSlot(IInventory inventory) {
+        public EnchantableSlot(IInventory inventoryIn, int index, int xPosition, int yPosition) {
 
-            super(inventory, 0, 15, 47);
+            super(inventoryIn, index, xPosition, yPosition);
         }
 
         @Override
         public boolean isItemValid(ItemStack stack) {
 
-            return stack.isEnchantable() || stack.getItem() == Items.BOOK;
+            if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).itemsStay) {
+
+                return stack.isEnchantable() || stack.getItem() == Items.BOOK;
+            }
+
+            return true;
         }
 
         @Override
@@ -263,37 +279,28 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
         @Nonnull
         public ItemStack onTake(PlayerEntity thePlayer, ItemStack stack) {
 
-            ((IEnchantmentContainerAccessor) EnchantmentInventoryContainer.this).getXpSeed().set(thePlayer.getRNG().nextInt());
+            if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).reRollEnchantments) {
+
+                // set a random seed whenever the item is taken out
+                ((IEnchantmentContainerAccessor) EnchantmentInventoryContainer.this).getXpSeed().set(thePlayer.getRNG().nextInt());
+            }
+
             return super.onTake(thePlayer, stack);
-        }
-
-        @Override
-        public void onSlotChanged() {
-
-            super.onSlotChanged();
-            EnchantmentInventoryContainer.this.onCraftMatrixChanged(this.inventory);
         }
 
     }
 
-    private class LapisSlot extends Slot {
+    private static class LapisSlot extends Slot {
 
-        public LapisSlot(IInventory inventory) {
+        public LapisSlot(IInventory inventoryIn, int index, int xPosition, int yPosition) {
 
-            super(inventory, 1, 35, 47);
+            super(inventoryIn, index, xPosition, yPosition);
         }
 
         @Override
         public boolean isItemValid(ItemStack stack) {
 
             return Tags.Items.GEMS_LAPIS.contains(stack.getItem());
-        }
-
-        @Override
-        public void onSlotChanged() {
-
-            super.onSlotChanged();
-            EnchantmentInventoryContainer.this.onCraftMatrixChanged(this.inventory);
         }
 
     }
