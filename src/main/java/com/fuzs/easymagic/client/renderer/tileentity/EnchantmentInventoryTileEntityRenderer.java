@@ -104,6 +104,7 @@ public class EnchantmentInventoryTileEntityRenderer extends EnchantmentTableTile
 
     private void renderHoveringItemList(List<ItemStack> inventoryItems, float age, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, int combinedOverlayIn, boolean rotateItems) {
 
+        // mostly copied from botanias runic altar rendering code
         float itemRenderAngle = 360.0F / inventoryItems.size();
         for (int i = 0; i < inventoryItems.size(); ++i) {
 

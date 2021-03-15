@@ -1,6 +1,7 @@
 package com.fuzs.easymagic.mixin;
 
 import com.fuzs.easymagic.EasyMagic;
+import com.fuzs.easymagic.inventory.container.EnchantmentInventoryContainer;
 import com.fuzs.easymagic.tileentity.EnchantingTableInventoryTileEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ContainerBlock;
@@ -20,6 +21,7 @@ import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @SuppressWarnings({"unused", "NullableProblems", "deprecation"})
@@ -49,6 +51,12 @@ public abstract class EnchantingTableBlockMixin extends ContainerBlock {
             player.openContainer((INamedContainerProvider) tileentity);
             callbackInfo.setReturnValue(ActionResultType.CONSUME);
         }
+    }
+
+    @Redirect(method = "animateTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;isAirBlock(Lnet/minecraft/util/math/BlockPos;)Z"))
+    private boolean isBlockEmpty(World world, BlockPos pos) {
+
+        return EnchantmentInventoryContainer.isBlockEmpty(world, pos);
     }
 
     @Override

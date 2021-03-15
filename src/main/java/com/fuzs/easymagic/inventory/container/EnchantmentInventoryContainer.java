@@ -147,7 +147,7 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
             
             for (int l = -1; l <= 1; ++l) {
                 
-                if ((k != 0 || l != 0) && this.isBlockEmpty(world, pos.add(l, 0, k)) && this.isBlockEmpty(world, pos.add(l, 1, k))) {
+                if ((k != 0 || l != 0) && isBlockEmpty(world, pos.add(l, 0, k)) && isBlockEmpty(world, pos.add(l, 1, k))) {
                     
                     power += this.getPower(world, pos.add(l * 2, 0, k * 2));
                     power += this.getPower(world, pos.add(l * 2, 1, k * 2));
@@ -165,7 +165,7 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
         return power;
     }
 
-    private boolean isBlockEmpty(World world, BlockPos pos) {
+    public static boolean isBlockEmpty(World world, BlockPos pos) {
 
         if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).lenientBookshelves) {
 
