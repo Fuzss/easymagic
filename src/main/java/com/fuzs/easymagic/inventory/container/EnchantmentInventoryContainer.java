@@ -33,6 +33,7 @@ import java.util.function.Consumer;
 @SuppressWarnings("NullableProblems")
 public class EnchantmentInventoryContainer extends EnchantmentContainer {
 
+    public boolean closed;
     private Consumer<SEnchantingInfoMessage> sendEnchantingInfo;
 
     public EnchantmentInventoryContainer(int id, PlayerInventory playerInventory) {
@@ -200,7 +201,8 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
 
     @Override
     public void onContainerClosed(PlayerEntity playerIn) {
-        
+
+        this.closed = true;
         EasyEnchantingElement element = (EasyEnchantingElement) EasyMagic.EASY_ENCHANTING;
         if (!element.itemsStay) {
 
