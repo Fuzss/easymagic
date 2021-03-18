@@ -99,10 +99,13 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
     public void markDirty() {
 
         super.markDirty();
-        this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
-        if (this.container != null) {
+        if (this.hasWorld()) {
 
-            this.container.onCraftMatrixChanged(this);
+            this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
+            if (this.container != null && !this.container.closed) {
+
+                this.container.onCraftMatrixChanged(this);
+            }
         }
     }
 
