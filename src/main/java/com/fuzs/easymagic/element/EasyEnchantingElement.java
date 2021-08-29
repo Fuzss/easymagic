@@ -3,6 +3,7 @@ package com.fuzs.easymagic.element;
 import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.client.element.EasyEnchantingExtension;
 import com.fuzs.easymagic.inventory.container.EnchantmentInventoryContainer;
+import com.fuzs.easymagic.mixin.accessor.EnchantmentContainerAccessor;
 import com.fuzs.easymagic.network.message.SEnchantingInfoMessage;
 import com.fuzs.easymagic.tileentity.EnchantingTableInventoryTileEntity;
 import com.fuzs.puzzleslib_em.PuzzlesLib;
@@ -25,7 +26,7 @@ public class EasyEnchantingElement extends ClientExtensibleElement<EasyEnchantin
 
     public boolean itemsStay;
     public boolean reRollEnchantments;
-    public boolean allEnchantments;
+    public ShowEnchantments showEnchantments;
     public int maxPower;
     public boolean lenientBookshelves;
 
@@ -60,7 +61,7 @@ public class EasyEnchantingElement extends ClientExtensibleElement<EasyEnchantin
 
         addToConfig(builder.comment("Inventory contents stay in their slot after closing the enchanting screen. Also makes hoppers able to input and output items.").define("Inventory Contents Stay", true), v -> this.itemsStay = v);
         addToConfig(builder.comment("Re-roll possible enchantments in an enchanting table every time an item is placed into the enchanting slot.").define("Re-Roll Enchantments", true), v -> this.reRollEnchantments = v);
-        addToConfig(builder.comment("When hovering over an enchanting option show the complete outcome on the tooltip instead of only a single enchantment.").define("Show All Enchantments", false), v -> this.allEnchantments = v);
+        addToConfig(builder.comment("Choose how many enchantments are shown on the enchanting tooltip, if any at all.").defineEnum("Show Enchantments", ShowEnchantments.SINGLE), v -> this.showEnchantments = v);
         addToConfig(builder.comment("Amount of bookshelves required to perform enchantments at the highest level.").defineInRange("Enchanting Power", 15, 0, Integer.MAX_VALUE), v -> this.maxPower = v);
         addToConfig(builder.comment("Blocks without a collision shape do not block bookshelves placed behind from counting towards current enchanting power.").define("Lenient Bookshelves", true), v -> this.lenientBookshelves = v);
     }
@@ -70,8 +71,14 @@ public class EasyEnchantingElement extends ClientExtensibleElement<EasyEnchantin
         if (evt.getContainer() instanceof EnchantmentInventoryContainer) {
 
             // items might still be in inventory slots, so this needs to update so that enchantment buttons are shown
-            ((EnchantmentInventoryContainer) evt.getContainer()).onCraftMatrixChanged();
+            evt.getContainer().onCraftMatrixChanged(((EnchantmentContainerAccessor) evt.getContainer()).getTableInventory());
         }
+    }
+
+    public enum ShowEnchantments {
+
+        NONE, SINGLE, ALL
+
     }
 
 }

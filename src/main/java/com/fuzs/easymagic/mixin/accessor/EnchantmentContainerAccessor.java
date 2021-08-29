@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Random;
 
 @Mixin(EnchantmentContainer.class)
-public interface IEnchantmentContainerAccessor {
+public interface EnchantmentContainerAccessor {
 
     @Accessor
     void setTableInventory(IInventory tableInventory);

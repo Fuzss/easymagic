@@ -2,9 +2,10 @@ package com.fuzs.easymagic.inventory.container;
 
 import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.element.EasyEnchantingElement;
-import com.fuzs.easymagic.mixin.accessor.IEnchantmentContainerAccessor;
+import com.fuzs.easymagic.mixin.accessor.EnchantmentContainerAccessor;
 import com.fuzs.easymagic.network.message.SEnchantingInfoMessage;
 import com.fuzs.puzzleslib_em.PuzzlesLib;
+import com.google.common.collect.Lists;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentData;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -16,8 +17,8 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.inventory.container.EnchantmentContainer;
 import net.minecraft.inventory.container.Slot;
+import net.minecraft.item.BookItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -28,65 +29,51 @@ import net.minecraftforge.registries.ForgeRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.function.Consumer;
 
 @SuppressWarnings("NullableProblems")
 public class EnchantmentInventoryContainer extends EnchantmentContainer {
 
-    public boolean closed;
-    private Consumer<SEnchantingInfoMessage> sendEnchantingInfo;
+    private final PlayerEntity user;
 
     public EnchantmentInventoryContainer(int id, PlayerInventory playerInventory) {
 
         super(id, playerInventory);
         this.updateInventory(playerInventory, new Inventory(2));
+        this.user = playerInventory.player;
     }
 
     public EnchantmentInventoryContainer(int id, PlayerInventory playerInventory, IInventory inventory, IWorldPosCallable worldPosCallable) {
 
         super(id, playerInventory, worldPosCallable);
         this.updateInventory(playerInventory, inventory);
-        if (playerInventory.player instanceof ServerPlayerEntity) {
-
-            this.sendEnchantingInfo = message -> PuzzlesLib.getNetworkHandler().sendTo(message, (ServerPlayerEntity) playerInventory.player);
-        }
-
+        this.user = playerInventory.player;
         if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).reRollEnchantments) {
 
             // set random seed right from the beginning
-            this.get().getXpSeed().set(playerInventory.player.getRNG().nextInt());
+            ((EnchantmentContainerAccessor) this).getXpSeed().set(playerInventory.player.getRNG().nextInt());
         }
-    }
-
-    public void onCraftMatrixChanged() {
-
-        this.onCraftMatrixChanged(this.get().getTableInventory());
     }
 
     @Override
     public void onCraftMatrixChanged(IInventory inventoryIn) {
-        
-        if (inventoryIn == this.get().getTableInventory()) {
+
+        EnchantmentContainerAccessor accessor = (EnchantmentContainerAccessor) this;
+        if (inventoryIn == accessor.getTableInventory()) {
 
             ItemStack enchantedItem = inventoryIn.getStackInSlot(0);
             if (!enchantedItem.isEmpty() && enchantedItem.isEnchantable()) {
-                
-                this.get().getWorldPosCallable().consume((world, pos) -> {
+
+                accessor.getWorldPosCallable().consume((world, pos) -> {
 
                     EasyEnchantingElement element = (EasyEnchantingElement) EasyMagic.EASY_ENCHANTING;
                     int power = element.maxPower == 0 ? 15 : (this.getEnchantingPower(world, pos) * 15) / element.maxPower;
-                    this.get().getRand().setSeed(this.get().getXpSeed().get());
+
+                    accessor.getRand().setSeed(accessor.getXpSeed().get());
                     this.updateLevels(enchantedItem, world, pos, power);
                     // need to run this always as enchanting buttons will otherwise be greyed out
                     this.createClues(enchantedItem);
                     this.detectAndSendChanges();
-                    if (element.allEnchantments) {
-
-                        List<EnchantmentData> firstSlotData = this.createEnchantmentData(enchantedItem, 0);
-                        List<EnchantmentData> secondSlotData = this.createEnchantmentData(enchantedItem, 1);
-                        List<EnchantmentData> thirdSlotData = this.createEnchantmentData(enchantedItem, 2);
-                        this.sendEnchantingInfo.accept(new SEnchantingInfoMessage(this.windowId, firstSlotData, secondSlotData, thirdSlotData));
-                    }
+                    this.sendEnchantingInfo(enchantedItem, element);
                 });
             } else {
 
@@ -109,7 +96,7 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
 
         for (int i1 = 0; i1 < 3; ++i1) {
 
-            this.enchantLevels[i1] = EnchantmentHelper.calcItemStackEnchantability(this.get().getRand(), i1, power, itemstack);
+            this.enchantLevels[i1] = EnchantmentHelper.calcItemStackEnchantability(((EnchantmentContainerAccessor) this).getRand(), i1, power, itemstack);
             if (this.enchantLevels[i1] < i1 + 1) {
 
                 this.enchantLevels[i1] = 0;
@@ -128,7 +115,7 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
                 List<EnchantmentData> list = this.createEnchantmentData(itemstack, j1);
                 if (list != null && !list.isEmpty()) {
 
-                    EnchantmentData enchantmentdata = list.get(this.get().getRand().nextInt(list.size()));
+                    EnchantmentData enchantmentdata = list.get(((EnchantmentContainerAccessor) this).getRand().nextInt(list.size()));
                     this.enchantClue[j1] = ((ForgeRegistry<Enchantment>) ForgeRegistries.ENCHANTMENTS).getID(enchantmentdata.enchantment);
                     this.worldClue[j1] = enchantmentdata.enchantmentLevel;
                 }
@@ -138,7 +125,35 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
 
     private List<EnchantmentData> createEnchantmentData(ItemStack enchantedItem, int enchantSlot) {
 
-        return this.get().callGetEnchantmentList(enchantedItem, enchantSlot, this.enchantLevels[enchantSlot]);
+        return ((EnchantmentContainerAccessor) this).callGetEnchantmentList(enchantedItem, enchantSlot, this.enchantLevels[enchantSlot]);
+    }
+
+    private List<EnchantmentData> getEnchantmentHint(ItemStack enchantedItem, int enchantSlot, EasyEnchantingElement.ShowEnchantments showEnchantments) {
+
+        switch (showEnchantments) {
+
+            case NONE:
+
+                return Lists.newArrayList();
+            case SINGLE:
+
+                List<EnchantmentData> enchantmentData = this.createEnchantmentData(enchantedItem, enchantSlot);
+
+                return Lists.newArrayList(enchantmentData.get(((EnchantmentContainerAccessor) this).getRand().nextInt(enchantmentData.size())));
+            case ALL:
+
+                return this.createEnchantmentData(enchantedItem, enchantSlot);
+        }
+
+        throw new IllegalStateException("no enum types left");
+    }
+
+    private void sendEnchantingInfo(ItemStack enchantedItem, EasyEnchantingElement element) {
+
+        List<EnchantmentData> firstSlotData = this.getEnchantmentHint(enchantedItem, 0, element.showEnchantments);
+        List<EnchantmentData> secondSlotData = this.getEnchantmentHint(enchantedItem, 1, element.showEnchantments);
+        List<EnchantmentData> thirdSlotData = this.getEnchantmentHint(enchantedItem, 2, element.showEnchantments);
+        PuzzlesLib.getNetworkHandler().sendTo(new SEnchantingInfoMessage(this.windowId, firstSlotData, secondSlotData, thirdSlotData), (ServerPlayerEntity) this.user);
     }
 
     private int getEnchantingPower(World world, BlockPos pos) {
@@ -195,14 +210,13 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
 
             return super.canInteractWith(playerIn);
         }
-        
-        return this.get().getTableInventory().isUsableByPlayer(playerIn);
+
+        return ((EnchantmentContainerAccessor) this).getTableInventory().isUsableByPlayer(playerIn);
     }
 
     @Override
     public void onContainerClosed(PlayerEntity playerIn) {
 
-        this.closed = true;
         EasyEnchantingElement element = (EasyEnchantingElement) EasyMagic.EASY_ENCHANTING;
         if (!element.itemsStay) {
 
@@ -221,14 +235,15 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
     
     private void updateInventory(PlayerInventory playerInventory, IInventory inventory) {
 
+        EnchantmentContainerAccessor accessor = (EnchantmentContainerAccessor) this;
         if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).itemsStay) {
 
-            this.get().setTableInventory(inventory);
+            accessor.setTableInventory(inventory);
         }
 
         this.inventorySlots.clear();
-        this.addSlot(new EnchantableSlot(this.get().getTableInventory(), 0, 15, 47));
-        this.addSlot(new LapisSlot(this.get().getTableInventory(), 1, 35, 47));
+        this.addSlot(new EnchantableSlot(accessor.getTableInventory(), 0, 15, 47));
+        this.addSlot(new LapisSlot(accessor.getTableInventory(), 1, 35, 47));
         this.addPlayerSlots(playerInventory);
     }
 
@@ -247,10 +262,10 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
             this.addSlot(new Slot(playerInventory, k, 8 + k * 18, 142));
         }
     }
-    
-    private IEnchantmentContainerAccessor get() {
-        
-        return (IEnchantmentContainerAccessor) this;
+
+    public PlayerEntity getUser() {
+
+        return this.user;
     }
 
     private class EnchantableSlot extends Slot {
@@ -265,7 +280,7 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
 
             if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).itemsStay) {
 
-                return stack.isEnchantable() || stack.getItem() == Items.BOOK;
+                return (stack.isEnchantable() || stack.getItem() instanceof BookItem) && !this.getHasStack();
             }
 
             return true;
@@ -284,7 +299,7 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
             if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).reRollEnchantments) {
 
                 // set a random seed whenever the item is taken out
-                ((IEnchantmentContainerAccessor) EnchantmentInventoryContainer.this).getXpSeed().set(thePlayer.getRNG().nextInt());
+                ((EnchantmentContainerAccessor) EnchantmentInventoryContainer.this).getXpSeed().set(thePlayer.getRNG().nextInt());
             }
 
             return super.onTake(thePlayer, stack);

@@ -32,13 +32,10 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
         super.render(matrixStack, mouseX, mouseY, partialTicks);
 
         // rendering of vanilla tooltip is canceled in #isPointInRegion when this is true
-        if (this.showAllEnchantments()) {
+        int slot = this.getEnchantingSlot(mouseX, mouseY);
+        if (slot != -1 && !this.slotTooltips.get(slot).isEmpty()) {
 
-            int slot = this.getEnchantingSlot(mouseX, mouseY);
-            if (slot != -1 && !this.slotTooltips.get(slot).isEmpty()) {
-
-                this.func_243308_b(matrixStack, this.slotTooltips.get(slot), mouseX, mouseY);
-            }
+            this.func_243308_b(matrixStack, this.slotTooltips.get(slot), mouseX, mouseY);
         }
     }
 
@@ -46,7 +43,7 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
     protected boolean isPointInRegion(int x, int y, int width, int height, double mouseX, double mouseY) {
 
         // small hack to prevent EnchantmentScreen::render from rendering vanilla enchanting tooltips
-        if (!this.showAllEnchantments() || this.getSelectedSlot(mouseX, mouseY) != null) {
+        if (this.getSelectedSlot(mouseX, mouseY) != null) {
 
             return super.isPointInRegion(x, y, width, height, mouseX, mouseY);
         }
@@ -74,11 +71,6 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
         return super.isPointInRegion(slotIn.xPos, slotIn.yPos, 16, 16, mouseX, mouseY);
     }
 
-    private boolean showAllEnchantments() {
-
-        return this.slotTooltips.stream().mapToInt(List::size).sum() > 0;
-    }
-
     private int getEnchantingSlot(int mouseX, int mouseY) {
 
         for (int j = 0; j < 3; ++j) {
@@ -103,29 +95,33 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
 
     private void addSlotEnchantments(int slot, List<EnchantmentData> slotData, List<ITextComponent> slotTooltip) {
 
-        boolean isEnchantmentPresent = false;
+        // don't add forge text later when tooltip is purposefully empty
+        boolean hasValidEnchantment = slotData.isEmpty();
         for (EnchantmentData data : slotData) {
 
-            slotTooltip.add((new TranslationTextComponent("container.enchant.clue", data.enchantment == null ? "" : data.enchantment.getDisplayName(data.enchantmentLevel))).mergeStyle(TextFormatting.WHITE));
             if (data.enchantment != null) {
 
-                isEnchantmentPresent = true;
+                slotTooltip.add((new TranslationTextComponent("container.enchant.clue", data.enchantment.getDisplayName(data.enchantmentLevel))).mergeStyle(TextFormatting.WHITE));
+                hasValidEnchantment = true;
             }
         }
 
-        this.addSlotInfo(slot, slotTooltip, isEnchantmentPresent);
+        this.addSlotInfo(slot, slotTooltip, hasValidEnchantment);
     }
 
     @SuppressWarnings("ConstantConditions")
-    private void addSlotInfo(int slot, List<ITextComponent> slotTooltip, boolean isEnchantmentPresent) {
+    private void addSlotInfo(int slot, List<ITextComponent> slotTooltip, boolean hasValidEnchantment) {
 
-        if (!isEnchantmentPresent) {
+        if (!slotTooltip.isEmpty()) {
 
             slotTooltip.add(StringTextComponent.EMPTY);
+        }
+
+        if (!hasValidEnchantment) {
+
             slotTooltip.add(new TranslationTextComponent("forge.container.enchant.limitedEnchantability").mergeStyle(TextFormatting.RED));
         } else if (!this.minecraft.player.abilities.isCreativeMode) {
 
-            slotTooltip.add(StringTextComponent.EMPTY);
             int enchantLevels = this.container.enchantLevels[slot];
             if (this.minecraft.player.experienceLevel < enchantLevels) {
 

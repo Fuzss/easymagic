@@ -24,8 +24,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+// higher mixin priority to resolve conflict with Lavalogged blocks mod (our implementation does what they do plus more)
 @SuppressWarnings({"unused", "NullableProblems", "deprecation"})
-@Mixin(EnchantingTableBlock.class)
+@Mixin(value = EnchantingTableBlock.class, priority = 1001)
 public abstract class EnchantingTableBlockMixin extends ContainerBlock {
 
     protected EnchantingTableBlockMixin(Properties builder) {

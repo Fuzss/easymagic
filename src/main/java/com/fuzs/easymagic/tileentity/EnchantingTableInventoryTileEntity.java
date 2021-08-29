@@ -11,8 +11,9 @@ import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.item.BookItem;
+import net.minecraft.item.EnchantedBookItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
@@ -32,14 +33,15 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.SidedInvWrapper;
 
 import javax.annotation.Nullable;
+import java.lang.ref.WeakReference;
 
-@SuppressWarnings({"NullableProblems", "ConstantConditions"})
+@SuppressWarnings("NullableProblems")
 public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntity implements IInventory, INamedContainerProvider, ISidedInventory {
 
     private final NonNullList<ItemStack> inventory = NonNullList.withSize(2, ItemStack.EMPTY);
     private LockCode code = LockCode.EMPTY_CODE;
     @Nullable
-    private EnchantmentInventoryContainer container;
+    private WeakReference<EnchantmentInventoryContainer> containerReference;
     
     private final LazyOptional<? extends IItemHandler>[] handlers = SidedInvWrapper.create(this, Direction.UP, Direction.DOWN, Direction.NORTH);
 
@@ -102,9 +104,13 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
         if (this.hasWorld()) {
 
             this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
-            if (this.container != null && !this.container.closed) {
+            if (this.containerReference != null) {
 
-                this.container.onCraftMatrixChanged(this);
+                EnchantmentInventoryContainer container = this.containerReference.get();
+                if (container != null && container.getUser().openContainer == container) {
+
+                    container.onCraftMatrixChanged(this);
+                }
             }
         }
     }
@@ -187,7 +193,7 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
                 return Tags.Items.GEMS_LAPIS.contains(stack.getItem());
             } else if (index == 0) {
 
-                return (stack.isEnchantable() || stack.getItem() == Items.BOOK) && this.inventory.get(index).isEmpty();
+                return (stack.isEnchantable() || stack.getItem() instanceof BookItem) && this.inventory.get(index).isEmpty();
             }
         }
 
@@ -217,7 +223,7 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
         if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).itemsStay) {
 
             // only allow extracting of enchantable item
-            return index == 0 && (stack.isEnchanted() || stack.getItem() == Items.ENCHANTED_BOOK);
+            return index == 0 && (stack.isEnchanted() || stack.getItem() instanceof EnchantedBookItem);
         }
 
         return false;
@@ -244,7 +250,8 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
     @SuppressWarnings("ConstantConditions")
     protected Container createMenu(int id, PlayerInventory playerInventory) {
 
-        this.container = new EnchantmentInventoryContainer(id, playerInventory, this, IWorldPosCallable.of(this.world, this.pos));
+        EnchantmentInventoryContainer container = new EnchantmentInventoryContainer(id, playerInventory, this, IWorldPosCallable.of(this.world, this.pos));
+        this.containerReference = new WeakReference<>(container);
         return container;
     }
 
