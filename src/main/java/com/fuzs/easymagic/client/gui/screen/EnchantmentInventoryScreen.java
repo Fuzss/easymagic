@@ -1,5 +1,6 @@
 package com.fuzs.easymagic.client.gui.screen;
 
+import com.fuzs.easymagic.client.gui.widget.ExpandableTabWidget;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.EnchantmentScreen;
@@ -7,6 +8,7 @@ import net.minecraft.enchantment.EnchantmentData;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.EnchantmentContainer;
 import net.minecraft.inventory.container.Slot;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.*;
 
 import javax.annotation.Nullable;
@@ -20,9 +22,36 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
             .mapToObj(i -> Lists.<ITextComponent>newArrayList())
             .collect(Collectors.toList());
 
+    private ExpandableTabWidget tabWidget1;
+    private ExpandableTabWidget tabWidget2;
+
     public EnchantmentInventoryScreen(EnchantmentContainer container, PlayerInventory playerInventory, ITextComponent textComponent) {
 
         super(container, playerInventory, textComponent);
+    }
+
+    @Override
+    protected void init() {
+
+        if (this.tabWidget1 != null) {
+
+            this.tabWidget1.remove();
+        }
+        if (this.tabWidget2 != null) {
+
+            this.tabWidget2.remove();
+        }
+
+        super.init();
+
+        List<ITextComponent> tabContent = Lists.newArrayList();
+        tabContent.add(new StringTextComponent("This is a test."));
+        tabContent.add(new StringTextComponent("Hopefully nothing is too long."));
+        tabContent.add(new StringTextComponent("Let's just see what happens."));
+        this.tabWidget1 = new ExpandableTabWidget(this, ExpandableTabWidget.Side.left(0), 0xFF7F00, new StringTextComponent("Tips & Hints"), new ResourceLocation("textures/item/diamond.png"), () -> tabContent);
+        this.tabWidget2 = new ExpandableTabWidget(this, ExpandableTabWidget.Side.right(0), 0x47B5FE, new StringTextComponent("Tips & Hints"), new ResourceLocation("textures/item/golden_pickaxe.png"), () -> tabContent);
+        this.addButton(this.tabWidget1);
+        this.addButton(this.tabWidget2);
     }
 
     @SuppressWarnings("NullableProblems")
