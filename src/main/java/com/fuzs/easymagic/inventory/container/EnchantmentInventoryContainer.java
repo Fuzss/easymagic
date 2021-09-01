@@ -4,6 +4,7 @@ import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.element.EasyEnchantingElement;
 import com.fuzs.easymagic.mixin.accessor.EnchantmentContainerAccessor;
 import com.fuzs.easymagic.network.message.SEnchantingInfoMessage;
+import com.fuzs.easymagic.tileentity.EnchantingTableInventoryTileEntity;
 import com.fuzs.puzzleslib_em.PuzzlesLib;
 import com.google.common.collect.Lists;
 import net.minecraft.enchantment.Enchantment;
@@ -268,6 +269,11 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
         return this.user;
     }
 
+    public void reseed() {
+
+        ((EnchantmentContainerAccessor) EnchantmentInventoryContainer.this).getXpSeed().set(this.user.getRNG().nextInt());
+    }
+
     private class EnchantableSlot extends Slot {
 
         public EnchantableSlot(IInventory inventoryIn, int index, int xPosition, int yPosition) {
@@ -280,7 +286,8 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
 
             if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).itemsStay) {
 
-                return (stack.isEnchantable() || stack.getItem() instanceof BookItem) && !this.getHasStack();
+                // can't exchange items directly while holding replacement otherwise, this seems to do the trick
+                return stack.isEnchantable() || stack.getItem() instanceof BookItem && !this.getHasStack();
             }
 
             return true;
@@ -298,8 +305,12 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
 
             if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).reRollEnchantments) {
 
-                // set a random seed whenever the item is taken out
-                ((EnchantmentContainerAccessor) EnchantmentInventoryContainer.this).getXpSeed().set(thePlayer.getRNG().nextInt());
+                // set a random seed for everyone using same tile entity whenever the item is taken out
+                IInventory tableInventory = ((EnchantmentContainerAccessor) EnchantmentInventoryContainer.this).getTableInventory();
+                if (tableInventory instanceof EnchantingTableInventoryTileEntity) {
+
+                    ((EnchantingTableInventoryTileEntity) tableInventory).updateReferences(EnchantmentInventoryContainer::reseed);
+                }
             }
 
             return super.onTake(thePlayer, stack);

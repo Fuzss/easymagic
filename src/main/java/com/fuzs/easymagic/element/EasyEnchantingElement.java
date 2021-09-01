@@ -47,7 +47,6 @@ public class EasyEnchantingElement extends ClientExtensibleElement<EasyEnchantin
 
         PuzzlesLib.getRegistryManager().register("enchanting_table", TileEntityType.Builder.create(EnchantingTableInventoryTileEntity::new, Blocks.ENCHANTING_TABLE).build(null));
         PuzzlesLib.getRegistryManager().register("enchanting", new ContainerType<>(EnchantmentInventoryContainer::new));
-        this.addListener(this::onContainerOpen);
     }
 
     @Override
@@ -64,15 +63,6 @@ public class EasyEnchantingElement extends ClientExtensibleElement<EasyEnchantin
         addToConfig(builder.comment("Choose how many enchantments are shown on the enchanting tooltip, if any at all.").defineEnum("Show Enchantments", ShowEnchantments.SINGLE), v -> this.showEnchantments = v);
         addToConfig(builder.comment("Amount of bookshelves required to perform enchantments at the highest level.").defineInRange("Enchanting Power", 15, 0, Integer.MAX_VALUE), v -> this.maxPower = v);
         addToConfig(builder.comment("Blocks without a collision shape do not block bookshelves placed behind from counting towards current enchanting power.").define("Lenient Bookshelves", true), v -> this.lenientBookshelves = v);
-    }
-
-    private void onContainerOpen(final PlayerContainerEvent.Open evt) {
-
-        if (evt.getContainer() instanceof EnchantmentInventoryContainer) {
-
-            // items might still be in inventory slots, so this needs to update so that enchantment buttons are shown
-            evt.getContainer().onCraftMatrixChanged(((EnchantmentContainerAccessor) evt.getContainer()).getTableInventory());
-        }
     }
 
     public enum ShowEnchantments {

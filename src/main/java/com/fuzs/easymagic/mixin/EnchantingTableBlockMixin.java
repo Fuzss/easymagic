@@ -50,6 +50,12 @@ public abstract class EnchantingTableBlockMixin extends ContainerBlock {
         if (!worldIn.isRemote && tileentity instanceof EnchantingTableInventoryTileEntity) {
 
             player.openContainer((INamedContainerProvider) tileentity);
+            if (player.openContainer instanceof EnchantmentInventoryContainer) {
+
+                // items might still be in inventory slots, so this needs to update so that enchantment buttons are shown
+                player.openContainer.onCraftMatrixChanged((IInventory) tileentity);
+            }
+
             callbackInfo.setReturnValue(ActionResultType.CONSUME);
         }
     }

@@ -3,6 +3,7 @@ package com.fuzs.easymagic.tileentity;
 import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.element.EasyEnchantingElement;
 import com.fuzs.easymagic.inventory.container.EnchantmentInventoryContainer;
+import com.google.common.collect.Lists;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -34,15 +35,17 @@ import net.minecraftforge.items.wrapper.SidedInvWrapper;
 
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Consumer;
 
 @SuppressWarnings("NullableProblems")
 public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntity implements IInventory, INamedContainerProvider, ISidedInventory {
 
     private final NonNullList<ItemStack> inventory = NonNullList.withSize(2, ItemStack.EMPTY);
+    private final List<WeakReference<EnchantmentInventoryContainer>> containerReferences = Lists.newArrayList();
     private LockCode code = LockCode.EMPTY_CODE;
-    @Nullable
-    private WeakReference<EnchantmentInventoryContainer> containerReference;
-    
+
     private final LazyOptional<? extends IItemHandler>[] handlers = SidedInvWrapper.create(this, Direction.UP, Direction.DOWN, Direction.NORTH);
 
     @Override
@@ -104,13 +107,22 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
         if (this.hasWorld()) {
 
             this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
-            if (this.containerReference != null) {
+            this.updateReferences(container -> container.onCraftMatrixChanged(this));
+        }
+    }
 
-                EnchantmentInventoryContainer container = this.containerReference.get();
-                if (container != null && container.getUser().openContainer == container) {
+    public void updateReferences(Consumer<EnchantmentInventoryContainer> action) {
 
-                    container.onCraftMatrixChanged(this);
-                }
+        Iterator<WeakReference<EnchantmentInventoryContainer>> iterator = this.containerReferences.iterator();
+        while (iterator.hasNext()) {
+
+            EnchantmentInventoryContainer container = iterator.next().get();
+            if (container != null && container.getUser().openContainer == container) {
+
+                action.accept(container);
+            } else {
+
+                iterator.remove();
             }
         }
     }
@@ -251,7 +263,7 @@ public class EnchantingTableInventoryTileEntity extends EnchantingTableTileEntit
     protected Container createMenu(int id, PlayerInventory playerInventory) {
 
         EnchantmentInventoryContainer container = new EnchantmentInventoryContainer(id, playerInventory, this, IWorldPosCallable.of(this.world, this.pos));
-        this.containerReference = new WeakReference<>(container);
+        this.containerReferences.add(new WeakReference<>(container));
         return container;
     }
 

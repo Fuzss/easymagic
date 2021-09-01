@@ -112,26 +112,32 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
     @SuppressWarnings("ConstantConditions")
     private void addSlotInfo(int slot, List<ITextComponent> slotTooltip, boolean hasValidEnchantment) {
 
-        if (!slotTooltip.isEmpty()) {
-
-            slotTooltip.add(StringTextComponent.EMPTY);
-        }
-
+        List<ITextComponent> additionalTooltip = Lists.newArrayList();
         if (!hasValidEnchantment) {
 
-            slotTooltip.add(new TranslationTextComponent("forge.container.enchant.limitedEnchantability").mergeStyle(TextFormatting.RED));
+            additionalTooltip.add(new TranslationTextComponent("forge.container.enchant.limitedEnchantability").mergeStyle(TextFormatting.RED));
         } else if (!this.minecraft.player.abilities.isCreativeMode) {
 
             int enchantLevels = this.container.enchantLevels[slot];
             if (this.minecraft.player.experienceLevel < enchantLevels) {
 
-                slotTooltip.add((new TranslationTextComponent("container.enchant.level.requirement", enchantLevels)).mergeStyle(TextFormatting.RED));
+                additionalTooltip.add((new TranslationTextComponent("container.enchant.level.requirement", enchantLevels)).mergeStyle(TextFormatting.RED));
             } else {
 
                 slot++;
-                this.addLapisComponent(slot, slotTooltip);
-                this.addLevelComponent(slot, slotTooltip);
+                this.addLapisComponent(slot, additionalTooltip);
+                this.addLevelComponent(slot, additionalTooltip);
             }
+        }
+
+        if (!additionalTooltip.isEmpty()) {
+
+            if (!slotTooltip.isEmpty()) {
+
+                slotTooltip.add(StringTextComponent.EMPTY);
+            }
+
+            slotTooltip.addAll(additionalTooltip);
         }
     }
 
