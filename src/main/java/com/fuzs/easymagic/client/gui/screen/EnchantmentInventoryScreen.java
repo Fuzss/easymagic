@@ -33,25 +33,23 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
     @Override
     protected void init() {
 
-        if (this.tabWidget1 != null) {
-
-            this.tabWidget1.remove();
-        }
-        if (this.tabWidget2 != null) {
-
-            this.tabWidget2.remove();
-        }
-
         super.init();
 
-        List<ITextComponent> tabContent = Lists.newArrayList();
-        tabContent.add(new StringTextComponent("This is a test."));
-        tabContent.add(new StringTextComponent("Hopefully nothing is too long."));
-        tabContent.add(new StringTextComponent("Let's just see what happens."));
-        this.tabWidget1 = new ExpandableTabWidget(this, ExpandableTabWidget.Side.left(0), 0xFF7F00, new StringTextComponent("Tips & Hints"), new ResourceLocation("textures/item/diamond.png"), () -> tabContent);
-        this.tabWidget2 = new ExpandableTabWidget(this, ExpandableTabWidget.Side.right(0), 0x47B5FE, new StringTextComponent("Tips & Hints"), new ResourceLocation("textures/item/golden_pickaxe.png"), () -> tabContent);
+        String tabContent = "This is a test. Hopefully nothing is too long. Let's just see what happens.";
+        this.tabWidget1 = new ExpandableTabWidget(this, ExpandableTabWidget.Side.left(0), 0xFF7F00, new StringTextComponent("Tips & Hints"), new ResourceLocation("textures/item/diamond.png"));
+        this.tabWidget2 = new ExpandableTabWidget(this, ExpandableTabWidget.Side.right(0), 0x47B5FE, new StringTextComponent("Tips & Hints"), new ResourceLocation("textures/item/golden_pickaxe.png"));
+        this.tabWidget1.setTabContent(tabContent);
+        this.tabWidget2.setTabContent(tabContent);
         this.addButton(this.tabWidget1);
         this.addButton(this.tabWidget2);
+    }
+
+    @Override
+    public void tick() {
+
+        super.tick();
+        this.tabWidget1.tick();
+        this.tabWidget2.tick();
     }
 
     @SuppressWarnings("NullableProblems")
