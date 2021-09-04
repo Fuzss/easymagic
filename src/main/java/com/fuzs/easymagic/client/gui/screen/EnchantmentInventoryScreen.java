@@ -1,7 +1,9 @@
 package com.fuzs.easymagic.client.gui.screen;
 
 import com.fuzs.easymagic.client.element.EasyEnchantingExtension;
-import com.fuzs.easymagic.client.gui.widget.ExpandableTabWidget;
+import com.fuzs.easymagic.client.gui.widget.LineTabWidget;
+import com.fuzs.easymagic.client.gui.widget.TabWidget;
+import com.fuzs.easymagic.client.gui.widget.TextTabWidget;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.EnchantmentScreen;
@@ -24,8 +26,8 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
             .mapToObj(i -> Lists.<ITextComponent>newArrayList())
             .collect(Collectors.toList());
 
-    private ExpandableTabWidget tabWidget1;
-    private ExpandableTabWidget tabWidget2;
+    private TextTabWidget tabWidget1;
+    private LineTabWidget tabWidget2;
 
     public EnchantmentInventoryScreen(EnchantmentContainer container, PlayerInventory playerInventory, ITextComponent textComponent) {
 
@@ -37,14 +39,14 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
 
         super.init();
         String tabContent = "This is a test. Hopefully nothing is too long. Let's just see what happens. Although we can never be really certain, it's still worth it to try something new now and then. This is what we are made for, so let's give it a shot.";
-        this.tabWidget1 = new ExpandableTabWidget(this, ExpandableTabWidget.Side.left(0), 0x79B637, new StringTextComponent("Tips & Hints"));
-        this.tabWidget2 = new ExpandableTabWidget(this, ExpandableTabWidget.Side.right(0), 0x47B5FE, new StringTextComponent("Tips & Hints"));
+        this.tabWidget1 = new TextTabWidget(this, TabWidget.Side.left(0), 0x79B637, new StringTextComponent("Tips & Hints"));
+        this.tabWidget2 = new LineTabWidget(this, TabWidget.Side.right(0), 0x47B5FE, new StringTextComponent("Info"));
         this.tabWidget1.setAtlasIcon(PlayerContainer.LOCATION_BLOCKS_TEXTURE, EasyEnchantingExtension.QUESTION_MARK_LOCATION);
         this.tabWidget2.setItemIcon(Items.BOOKSHELF);
-        this.tabWidget1.setTabContent(tabContent);
-        this.tabWidget2.setTabContent(tabContent);
+        this.tabWidget1.setTextContent(new StringTextComponent(tabContent));
+        this.tabWidget2.setLineContent(new ITextComponent[][]{{new StringTextComponent("Enchanting Power:thisisa nrn fn"), new StringTextComponent("    10 / 15")}, {new StringTextComponent("Enchanting Power:"), new StringTextComponent("10 / 15")}});
         this.addButton(this.tabWidget1);
-        this.addButton(this.tabWidget2);
+//        this.addButton(this.tabWidget2);
     }
 
     @Override

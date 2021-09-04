@@ -5,9 +5,10 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.IBidiRenderer;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.client.gui.widget.button.ImageButton;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -16,41 +17,52 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
-public class ExpandableTabWidget extends Widget {
+public abstract class TabWidget extends Widget {
 
     private static final ResourceLocation INFO_TAB_LOCATION = new ResourceLocation(EasyMagic.MODID, "textures/gui/tab.png");
     private static final int TAB_WIDTH = 22;
     private static final int TAB_HEIGHT = 24;
 
-    private final Minecraft minecraft = Minecraft.getInstance();
-    private final int textIndent = 3;
-    private final int defaultWidth = 100;
+    protected final Minecraft minecraft = Minecraft.getInstance();
+    protected final int textIndent = 3;
+    private final int defaultWidth = 120;
     private final ContainerScreen<?> parent;
     private final Side side;
     private final int color;
+    private final ImageButton[] pageControls;
 
     private ItemStack itemIcon = ItemStack.EMPTY;
     private Pair<ResourceLocation, ResourceLocation> atlasIcon;
 
-    private IBidiRenderer tabContentRenderer = IBidiRenderer.field_243257_a;
     private int prevWidth;
     private int prevHeight;
     private int targetWidth;
     private int targetHeight;
+    private int currentPage;
 
-    public ExpandableTabWidget(ContainerScreen<?> parent, Side side, int color, ITextComponent title) {
+    public TabWidget(ContainerScreen<?> parent, Side side, int color, ITextComponent title) {
 
         super(side.getXPos(parent, TAB_WIDTH), side.getYPos(parent, TAB_HEIGHT), TAB_WIDTH, TAB_HEIGHT, title);
         this.parent = parent;
         this.side = side;
         this.color = color;
+        this.pageControls = this.getPageControls();
         this.setRawDimensions(TAB_WIDTH, TAB_HEIGHT);
+    }
+
+    private ImageButton[] getPageControls() {
+
+        ImageButton[] pageControls = new ImageButton[2];
+        pageControls[0] = new ImageButton(0, 0, 11, 11, 44, 0, 11, INFO_TAB_LOCATION, button -> this.currentPage = (this.currentPage - 1 + this.getPageCount()) % this.getPageCount());
+        pageControls[1] = new ImageButton(0, 0, 11, 11, 55, 0, 11, INFO_TAB_LOCATION, button -> this.currentPage = (this.currentPage + 1 + this.getPageCount()) % this.getPageCount());
+
+        return pageControls;
     }
 
     @Override
     public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 
-        if (this.isHovered() && !this.isExpanded()) {
+        if (this.isHovered() && this.isCollapsed()) {
 
             this.renderToolTip(matrixStack, mouseX, mouseY);
         }
@@ -71,7 +83,15 @@ public class ExpandableTabWidget extends Widget {
         if (this.isVisuallyExpanded(width, height)) {
 
             drawString(matrixStack, this.minecraft.fontRenderer, this.getMessage(), x + this.side.getLeftOffset() + 16 + this.textIndent, y + this.side.getTopOffset() + this.textIndent + 2, 16777215);
-            this.renderTabContents(matrixStack, x, y);
+            if (this.getPageCount() > 0) {
+
+                if (this.isPaged()) {
+
+                    this.renderPages(matrixStack, mouseX, mouseY, partialTicks, x + width / 2, y + this.side.getTopOffset() + 16 + this.textIndent);
+                }
+
+                this.renderTabContents(matrixStack, x + this.side.getLeftOffset() + this.textIndent, y + this.side.getTopOffset() + 16 + this.textIndent, this.currentPage);
+            }
         }
     }
 
@@ -95,10 +115,29 @@ public class ExpandableTabWidget extends Widget {
         }
     }
 
-    private void renderTabContents(MatrixStack matrixStack, int x, int y) {
+    private void renderPages(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks, int x, int y) {
 
-        this.tabContentRenderer.func_241866_c(matrixStack, x + this.side.getLeftOffset() + this.textIndent, y + this.side.getTopOffset() + 16 + this.textIndent, this.minecraft.fontRenderer.FONT_HEIGHT + 1, 2039583);
+        int lineCount = this.getCappedLineCount();
+        if (lineCount > 0) {
+
+            y += this.textIndent + this.getContentHeight(lineCount);
+        }
+
+        this.renderPageControls(matrixStack, mouseX, mouseY, partialTicks, x, y);
+        ITextComponent pageNumber = new StringTextComponent(String.format("%s / %s", this.currentPage + 1, this.getPageCount()));
+        drawCenteredString(matrixStack, this.minecraft.fontRenderer, pageNumber, x, y + 2, 16777215);
     }
+
+    private void renderPageControls(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks, int x, int y) {
+
+        final int buttonOffset = 20;
+        this.pageControls[0].setPosition(x - 11 - buttonOffset, y);
+        this.pageControls[0].render(matrixStack, mouseX, mouseY, partialTicks);
+        this.pageControls[1].setPosition(x - 1 + buttonOffset, y);
+        this.pageControls[1].render(matrixStack, mouseX, mouseY, partialTicks);
+    }
+
+    protected abstract void renderTabContents(MatrixStack matrixStack, int x, int y, int currentPage);
 
     public void setAtlasIcon(ResourceLocation atlasLocation, ResourceLocation spriteLocation) {
 
@@ -159,9 +198,8 @@ public class ExpandableTabWidget extends Widget {
         }
     }
 
-    public void setTabContent(String tabContent) {
+    protected void markContentChanged() {
 
-        this.tabContentRenderer = IBidiRenderer.func_243259_a(this.minecraft.fontRenderer, new StringTextComponent(tabContent), this.getMaxTextWidth(), this.getMaxLineCount());
         if (!this.isCollapsing()) {
 
             this.updateDimensions(true);
@@ -175,7 +213,7 @@ public class ExpandableTabWidget extends Widget {
 
     private int getMaxExpandedWidth() {
 
-        final int borderDistance = 20;
+        final int borderDistance = 16;
         return (this.parent.width - this.parent.getXSize()) / 2 - borderDistance;
     }
 
@@ -184,14 +222,20 @@ public class ExpandableTabWidget extends Widget {
         return Math.min(Math.max(defaultWidth, this.getMinExpandedWidth()), this.getMaxExpandedWidth());
     }
 
-    private int getMaxTextWidth() {
+    protected int getMaxTextWidth() {
 
         return this.getExpandedWidth(this.defaultWidth) - this.side.getLeftOffset() - this.textIndent * 2 - this.side.getRightOffset();
     }
 
-    private int getMinExpandedHeight() {
+    private int getMinExpandedHeight(boolean isPaged) {
 
-        return this.side.getTopOffset() + 16 + this.side.getBottomOffset();
+        int minHeight = this.side.getTopOffset() + 16 + this.side.getBottomOffset();
+        if (isPaged) {
+
+            minHeight += this.minecraft.fontRenderer.FONT_HEIGHT + 2 + this.textIndent;
+        }
+
+        return minHeight;
     }
 
     private int getMaxExpandedHeight() {
@@ -199,21 +243,39 @@ public class ExpandableTabWidget extends Widget {
         return this.parent.getYSize() - (this.side.getYPos(this.parent, TAB_HEIGHT) - this.parent.getGuiTop()) - 4;
     }
 
-    private int getExpandedHeight(int contentLines) {
+    private int getExpandedHeight(int lineCount) {
 
-        int minHeight = this.getMinExpandedHeight();
-        if (contentLines > 0) {
+        int minHeight = this.getMinExpandedHeight(this.isPaged());
+        if (lineCount > 0) {
 
-            minHeight += (this.minecraft.fontRenderer.FONT_HEIGHT + 1) * contentLines;
-            minHeight += 2 * this.textIndent - 1;
+            minHeight += this.getContentHeight(lineCount) + 2 * this.textIndent;
         }
 
         return minHeight;
     }
 
-    private int getMaxLineCount() {
+    private int getContentHeight(int lineCount) {
 
-        return (this.getMaxExpandedHeight() - this.getMinExpandedHeight() - this.textIndent * 2 - 1) / (this.minecraft.fontRenderer.FONT_HEIGHT + 1);
+        return (this.minecraft.fontRenderer.FONT_HEIGHT + 1) * lineCount - 1;
+    }
+
+    protected int getMaxLineCount(boolean isPaged) {
+
+        return (this.getMaxExpandedHeight() - this.getMinExpandedHeight(isPaged) - this.textIndent * 2 - 1) / (this.minecraft.fontRenderer.FONT_HEIGHT + 1);
+    }
+
+    protected abstract int getLineCount(int currentPage);
+
+    protected int getCappedLineCount() {
+
+        return Math.min(this.getMaxLineCount(this.isPaged()), this.getLineCount(this.currentPage));
+    }
+
+    protected abstract int getPageCount();
+
+    private boolean isPaged() {
+
+        return this.getPageCount() > 1;
     }
 
     private void setTargetDimensions(int targetWidth, int targetHeight) {
@@ -232,19 +294,39 @@ public class ExpandableTabWidget extends Widget {
         this.targetHeight = height;
     }
 
+    public void setOpenByDefault() {
+
+        int width = this.getExpandedWidth(this.defaultWidth);
+        int height = this.getExpandedHeight(this.getCappedLineCount());
+        this.setRawDimensions(width, height);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+
+        for (Button pageControl : this.pageControls) {
+
+            if (pageControl.mouseClicked(mouseX, mouseY, button)) {
+
+                return true;
+            }
+        }
+
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
     @Override
     public void onClick(double mouseX, double mouseY) {
 
         this.updateDimensions(this.targetWidth == TAB_WIDTH && this.targetHeight == TAB_HEIGHT);
     }
 
-    private void updateDimensions(boolean expanding) {
+    protected void updateDimensions(boolean expanding) {
 
         if (expanding) {
 
             int width = this.getExpandedWidth(this.defaultWidth);
-            int lineCount = Math.min(this.getMaxLineCount(), this.tabContentRenderer.func_241862_a());
-            int height = this.getExpandedHeight(lineCount);
+            int height = this.getExpandedHeight(this.getCappedLineCount());
             this.setTargetDimensions(width, height);
         } else {
 
@@ -252,32 +334,32 @@ public class ExpandableTabWidget extends Widget {
         }
     }
 
-    private boolean isCollapsed() {
+    public boolean isCollapsed() {
 
         return this.isDoneAnimating() && this.isCollapsing();
     }
 
-    private boolean isExpanded() {
+    public boolean isExpanded() {
 
         return this.isDoneAnimating() && !this.isCollapsing();
     }
 
-    private boolean isVisuallyExpanded(int width, int height) {
+    public boolean isVisuallyExpanded(int width, int height) {
 
         return this.isDoneAnimating(width, height) && !this.isCollapsing();
     }
 
-    private boolean isCollapsing() {
+    public boolean isCollapsing() {
 
         return this.targetWidth == TAB_WIDTH && this.targetHeight == TAB_HEIGHT;
     }
 
-    private boolean isDoneAnimating() {
+    public boolean isDoneAnimating() {
 
         return this.isDoneAnimating(this.width, this.height);
     }
 
-    private boolean isDoneAnimating(int width, int height) {
+    public boolean isDoneAnimating(int width, int height) {
 
         return width == this.targetWidth && height == this.targetHeight;
     }
@@ -297,6 +379,15 @@ public class ExpandableTabWidget extends Widget {
         this.height = Math.round(this.nextAnimationSize(this.height, this.targetHeight, updateAmount));
         this.x = this.side.getXPos(this.parent, this.width);
         this.y = this.side.getYPos(this.parent, TAB_HEIGHT);
+        this.tickPageControls();
+    }
+
+    private void tickPageControls() {
+
+        for (ImageButton pageControl : this.pageControls) {
+
+            pageControl.visible = this.isPaged() && this.isDoneAnimating();
+        }
     }
 
     private float nextAnimationSize(int size, int targetSize, float updateAmount) {
@@ -332,7 +423,8 @@ public class ExpandableTabWidget extends Widget {
 
         public int getYPos(ContainerScreen<?> parent, int tabHeight) {
 
-            return (parent.height - parent.getYSize()) / 2 + 4 + this.sideIndex * (tabHeight + 1);
+            final int tabDistance = 1;
+            return (parent.height - parent.getYSize()) / 2 + 4 + this.sideIndex * (tabHeight + tabDistance);
         }
 
         public int getTextureX(int tabWidth) {
