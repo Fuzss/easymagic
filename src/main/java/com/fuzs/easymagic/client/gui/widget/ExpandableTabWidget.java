@@ -3,10 +3,14 @@ package com.fuzs.easymagic.client.gui.widget;
 import com.fuzs.easymagic.EasyMagic;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.IBidiRenderer;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
@@ -14,7 +18,7 @@ import net.minecraft.util.text.StringTextComponent;
 
 public class ExpandableTabWidget extends Widget {
 
-    private static final ResourceLocation INFO_TAB_TEXTURES = new ResourceLocation(EasyMagic.MODID, "textures/gui/tab.png");
+    private static final ResourceLocation INFO_TAB_LOCATION = new ResourceLocation(EasyMagic.MODID, "textures/gui/tab.png");
     private static final int TAB_WIDTH = 22;
     private static final int TAB_HEIGHT = 24;
 
@@ -24,7 +28,9 @@ public class ExpandableTabWidget extends Widget {
     private final ContainerScreen<?> parent;
     private final Side side;
     private final int color;
-    private final ResourceLocation icon;
+
+    private ItemStack itemIcon = ItemStack.EMPTY;
+    private Pair<ResourceLocation, ResourceLocation> atlasIcon;
 
     private IBidiRenderer tabContentRenderer = IBidiRenderer.field_243257_a;
     private int prevWidth;
@@ -32,14 +38,13 @@ public class ExpandableTabWidget extends Widget {
     private int targetWidth;
     private int targetHeight;
 
-    public ExpandableTabWidget(ContainerScreen<?> parent, Side side, int color, ITextComponent title, ResourceLocation icon) {
+    public ExpandableTabWidget(ContainerScreen<?> parent, Side side, int color, ITextComponent title) {
 
         super(side.getXPos(parent, TAB_WIDTH), side.getYPos(parent, TAB_HEIGHT), TAB_WIDTH, TAB_HEIGHT, title);
         this.parent = parent;
         this.side = side;
         this.color = color;
-        this.icon = icon;
-        this.updateDimensions(false);
+        this.setRawDimensions(TAB_WIDTH, TAB_HEIGHT);
     }
 
     @Override
@@ -55,22 +60,54 @@ public class ExpandableTabWidget extends Widget {
         RenderSystem.enableDepthTest();
 
         RenderSystem.color4f((this.color >> 16 & 255) / 255.0F, (this.color >> 8 & 255) / 255.0F, (this.color & 255) / 255.0F, 1.0F);
-        this.minecraft.getTextureManager().bindTexture(INFO_TAB_TEXTURES);
-        final int width = (int) MathHelper.lerp(partialTicks, this.prevWidth, this.width);
-        final int height = (int) MathHelper.lerp(partialTicks, this.prevHeight, this.height);
-        final int x = (int) MathHelper.lerp(partialTicks, this.side.getXPos(this.parent, width), this.x);
-        final int y = (int) MathHelper.lerp(partialTicks, this.side.getYPos(this.parent, TAB_HEIGHT), this.y);
+        final int width = Math.round(MathHelper.lerp(partialTicks, this.prevWidth, this.width));
+        final int height = Math.round(MathHelper.lerp(partialTicks, this.prevHeight, this.height));
+        final int x = this.side.getXPos(this.parent, width);
+        final int y = this.side.getYPos(this.parent, TAB_HEIGHT);
+
+        this.minecraft.getTextureManager().bindTexture(INFO_TAB_LOCATION);
         this.buildTexture(matrixStack, x, y, width, height, this.side.getTextureX(TAB_WIDTH), this.side.getTextureY(), TAB_WIDTH, TAB_HEIGHT, 4);
-
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.minecraft.getTextureManager().bindTexture(this.icon);
-        blit(matrixStack, x + this.side.getLeftOffset(), y + this.side.getTopOffset(), this.getBlitOffset(), 0, 0, 16, 16, 16, 16);
-
-        if (this.isExpanded()) {
+        this.renderIcon(matrixStack, x, y);
+        if (this.isVisuallyExpanded(width, height)) {
 
             drawString(matrixStack, this.minecraft.fontRenderer, this.getMessage(), x + this.side.getLeftOffset() + 16 + this.textIndent, y + this.side.getTopOffset() + this.textIndent + 2, 16777215);
-            this.tabContentRenderer.func_241865_b(matrixStack, x + this.side.getLeftOffset() + this.textIndent, y + this.side.getTopOffset() + 16 + this.textIndent, this.minecraft.fontRenderer.FONT_HEIGHT + 1, 16777215);
+            this.renderTabContents(matrixStack, x, y);
         }
+    }
+
+    private void renderIcon(MatrixStack matrixStack, int x, int y) {
+
+        x += this.side.getLeftOffset();
+        y += this.side.getTopOffset();
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        if (!this.itemIcon.isEmpty()) {
+
+            this.minecraft.getItemRenderer().renderItemAndEffectIntoGuiWithoutEntity(this.itemIcon, x, y);
+        } else if (this.atlasIcon != null) {
+
+            TextureAtlasSprite textureatlassprite = this.minecraft.getAtlasSpriteGetter(this.atlasIcon.getFirst()).apply(this.atlasIcon.getSecond());
+            this.minecraft.getTextureManager().bindTexture(textureatlassprite.getAtlasTexture().getTextureLocation());
+            blit(matrixStack, x, y, this.getBlitOffset(), 16, 16, textureatlassprite);
+
+        } else {
+
+            throw new RuntimeException("missing icon");
+        }
+    }
+
+    private void renderTabContents(MatrixStack matrixStack, int x, int y) {
+
+        this.tabContentRenderer.func_241866_c(matrixStack, x + this.side.getLeftOffset() + this.textIndent, y + this.side.getTopOffset() + 16 + this.textIndent, this.minecraft.fontRenderer.FONT_HEIGHT + 1, 2039583);
+    }
+
+    public void setAtlasIcon(ResourceLocation atlasLocation, ResourceLocation spriteLocation) {
+
+        this.atlasIcon = Pair.of(atlasLocation, spriteLocation);
+    }
+
+    public void setItemIcon(Item item) {
+
+        this.itemIcon = new ItemStack(item);
     }
 
     private void buildTexture(MatrixStack matrixStack, int posX, int posY, int width, int height, int textureX, int textureY, int sourceWidth, int sourceHeight, int borderSize) {
@@ -185,6 +222,16 @@ public class ExpandableTabWidget extends Widget {
         this.targetHeight = targetHeight;
     }
 
+    private void setRawDimensions(int width, int height) {
+
+        this.width = width;
+        this.height = height;
+        this.prevWidth = width;
+        this.prevHeight = height;
+        this.targetWidth = width;
+        this.targetHeight = height;
+    }
+
     @Override
     public void onClick(double mouseX, double mouseY) {
 
@@ -207,12 +254,17 @@ public class ExpandableTabWidget extends Widget {
 
     private boolean isCollapsed() {
 
-        return !this.isAnimationInProgress() && this.isCollapsing();
+        return this.isDoneAnimating() && this.isCollapsing();
     }
 
     private boolean isExpanded() {
 
-        return !this.isAnimationInProgress() && !this.isCollapsing();
+        return this.isDoneAnimating() && !this.isCollapsing();
+    }
+
+    private boolean isVisuallyExpanded(int width, int height) {
+
+        return this.isDoneAnimating(width, height) && !this.isCollapsing();
     }
 
     private boolean isCollapsing() {
@@ -220,9 +272,14 @@ public class ExpandableTabWidget extends Widget {
         return this.targetWidth == TAB_WIDTH && this.targetHeight == TAB_HEIGHT;
     }
 
-    private boolean isAnimationInProgress() {
+    private boolean isDoneAnimating() {
 
-        return this.width != this.targetWidth || this.height != this.targetHeight;
+        return this.isDoneAnimating(this.width, this.height);
+    }
+
+    private boolean isDoneAnimating(int width, int height) {
+
+        return width == this.targetWidth && height == this.targetHeight;
     }
 
     @Override
@@ -235,8 +292,9 @@ public class ExpandableTabWidget extends Widget {
 
         this.prevWidth = this.width;
         this.prevHeight = this.height;
-        this.width = (int) this.nextAnimationSize(this.width, this.targetWidth, 12.0F);
-        this.height = (int) this.nextAnimationSize(this.height, this.targetHeight, 12.0F);
+        final int updateAmount = 24;
+        this.width = Math.round(this.nextAnimationSize(this.width, this.targetWidth, updateAmount));
+        this.height = Math.round(this.nextAnimationSize(this.height, this.targetHeight, updateAmount));
         this.x = this.side.getXPos(this.parent, this.width);
         this.y = this.side.getYPos(this.parent, TAB_HEIGHT);
     }

@@ -1,5 +1,6 @@
 package com.fuzs.easymagic.client.gui.screen;
 
+import com.fuzs.easymagic.client.element.EasyEnchantingExtension;
 import com.fuzs.easymagic.client.gui.widget.ExpandableTabWidget;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.matrix.MatrixStack;
@@ -7,8 +8,9 @@ import net.minecraft.client.gui.screen.EnchantmentScreen;
 import net.minecraft.enchantment.EnchantmentData;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.EnchantmentContainer;
+import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.inventory.container.Slot;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.item.Items;
 import net.minecraft.util.text.*;
 
 import javax.annotation.Nullable;
@@ -34,10 +36,11 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
     protected void init() {
 
         super.init();
-
-        String tabContent = "This is a test. Hopefully nothing is too long. Let's just see what happens.";
-        this.tabWidget1 = new ExpandableTabWidget(this, ExpandableTabWidget.Side.left(0), 0xFF7F00, new StringTextComponent("Tips & Hints"), new ResourceLocation("textures/item/diamond.png"));
-        this.tabWidget2 = new ExpandableTabWidget(this, ExpandableTabWidget.Side.right(0), 0x47B5FE, new StringTextComponent("Tips & Hints"), new ResourceLocation("textures/item/golden_pickaxe.png"));
+        String tabContent = "This is a test. Hopefully nothing is too long. Let's just see what happens. Although we can never be really certain, it's still worth it to try something new now and then. This is what we are made for, so let's give it a shot.";
+        this.tabWidget1 = new ExpandableTabWidget(this, ExpandableTabWidget.Side.left(0), 0x79B637, new StringTextComponent("Tips & Hints"));
+        this.tabWidget2 = new ExpandableTabWidget(this, ExpandableTabWidget.Side.right(0), 0x47B5FE, new StringTextComponent("Tips & Hints"));
+        this.tabWidget1.setAtlasIcon(PlayerContainer.LOCATION_BLOCKS_TEXTURE, EasyEnchantingExtension.QUESTION_MARK_LOCATION);
+        this.tabWidget2.setItemIcon(Items.BOOKSHELF);
         this.tabWidget1.setTabContent(tabContent);
         this.tabWidget2.setTabContent(tabContent);
         this.addButton(this.tabWidget1);
