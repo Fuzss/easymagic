@@ -1,7 +1,6 @@
 package com.fuzs.easymagic.client.gui.widget;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
@@ -9,9 +8,9 @@ public class LineTabWidget extends TabWidget {
 
     private ITextComponent[][] tabContent = new ITextComponent[0][];
 
-    public LineTabWidget(ContainerScreen<?> parent, Side side, int color, ITextComponent title) {
+    public LineTabWidget(TabSide tabSide, int color, ITextComponent title) {
 
-        super(parent, side, color, title);
+        super(tabSide, color, title);
     }
 
     @Override
@@ -40,7 +39,7 @@ public class LineTabWidget extends TabWidget {
         }
 
         this.tabContent = tabContent;
-        this.markContentChanged();
+        this.notifyContentChanged();
     }
 
     @Override

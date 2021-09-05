@@ -2,7 +2,6 @@ package com.fuzs.easymagic.client.gui.widget;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.IBidiRenderer;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.util.text.ITextComponent;
 
 import java.util.stream.Stream;
@@ -11,9 +10,9 @@ public class TextTabWidget extends TabWidget {
 
     private IBidiRenderer[] tabContentRenderers = new IBidiRenderer[0];
 
-    public TextTabWidget(ContainerScreen<?> parent, Side side, int color, ITextComponent title) {
+    public TextTabWidget(TabSide tabSide, int color, ITextComponent title) {
 
-        super(parent, side, color, title);
+        super(tabSide, color, title);
     }
 
     @Override
@@ -28,7 +27,7 @@ public class TextTabWidget extends TabWidget {
         this.tabContentRenderers = Stream.of(tabContent)
                 .map(content -> IBidiRenderer.func_243259_a(this.minecraft.fontRenderer, content, this.getMaxTextWidth(), this.getMaxLineCount(isPaged)))
                 .toArray(IBidiRenderer[]::new);
-        this.markContentChanged();
+        this.notifyContentChanged();
     }
 
     @Override

@@ -38,15 +38,19 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
     protected void init() {
 
         super.init();
+        List<TabWidget> tabSiblings = Lists.newArrayList();
         String tabContent = "This is a test. Hopefully nothing is too long. Let's just see what happens. Although we can never be really certain, it's still worth it to try something new now and then. This is what we are made for, so let's give it a shot.";
-        this.tabWidget1 = new TextTabWidget(this, TabWidget.Side.left(0), 0x79B637, new StringTextComponent("Tips & Hints"));
-        this.tabWidget2 = new LineTabWidget(this, TabWidget.Side.right(0), 0x47B5FE, new StringTextComponent("Info"));
+        String tabContent2 = "Although we can never be really certain, it's still worth it to try something new now and then.";
+        this.tabWidget1 = new TextTabWidget(TabWidget.TabSide.left(this, 0, null, tabSiblings), 0x79B637, new StringTextComponent("Tips & Hints"));
+        this.tabWidget2 = new LineTabWidget(TabWidget.TabSide.left(this, 1, this.tabWidget1, tabSiblings), 0x47B5FE, new StringTextComponent("Information"));
+        tabSiblings.add(this.tabWidget1);
+        tabSiblings.add(this.tabWidget2);
         this.tabWidget1.setAtlasIcon(PlayerContainer.LOCATION_BLOCKS_TEXTURE, EasyEnchantingExtension.QUESTION_MARK_LOCATION);
         this.tabWidget2.setItemIcon(Items.BOOKSHELF);
-        this.tabWidget1.setTextContent(new StringTextComponent(tabContent));
-        this.tabWidget2.setLineContent(new ITextComponent[][]{{new StringTextComponent("Enchanting Power:thisisa nrn fn"), new StringTextComponent("    10 / 15")}, {new StringTextComponent("Enchanting Power:"), new StringTextComponent("10 / 15")}});
+        this.tabWidget1.setTextContent(new StringTextComponent(tabContent), new StringTextComponent(tabContent2));
+        this.tabWidget2.setLineContent(new StringTextComponent("Enchanting Power:"), new StringTextComponent("    10 / 15"));
         this.addButton(this.tabWidget1);
-//        this.addButton(this.tabWidget2);
+        this.addButton(this.tabWidget2);
     }
 
     @Override

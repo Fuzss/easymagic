@@ -17,6 +17,9 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
+import javax.annotation.Nullable;
+import java.util.List;
+
 public abstract class TabWidget extends Widget {
 
     private static final ResourceLocation INFO_TAB_LOCATION = new ResourceLocation(EasyMagic.MODID, "textures/gui/tab.png");
@@ -25,9 +28,8 @@ public abstract class TabWidget extends Widget {
 
     protected final Minecraft minecraft = Minecraft.getInstance();
     protected final int textIndent = 3;
-    private final int defaultWidth = 120;
-    private final ContainerScreen<?> parent;
-    private final Side side;
+    private final int defaultWidth = 112;
+    private final TabSide tabSide;
     private final int color;
     private final ImageButton[] pageControls;
 
@@ -40,29 +42,51 @@ public abstract class TabWidget extends Widget {
     private int targetHeight;
     private int currentPage;
 
-    public TabWidget(ContainerScreen<?> parent, Side side, int color, ITextComponent title) {
+    public TabWidget(TabSide tabSide, int color, ITextComponent title) {
 
-        super(side.getXPos(parent, TAB_WIDTH), side.getYPos(parent, TAB_HEIGHT), TAB_WIDTH, TAB_HEIGHT, title);
-        this.parent = parent;
-        this.side = side;
+        super(tabSide.getXPos(TAB_WIDTH), tabSide.getDefaultYPos(TAB_HEIGHT), TAB_WIDTH, TAB_HEIGHT, title);
+        this.tabSide = tabSide;
         this.color = color;
         this.pageControls = this.getPageControls();
-        this.setRawDimensions(TAB_WIDTH, TAB_HEIGHT);
+        this.collapse(true);
     }
 
     private ImageButton[] getPageControls() {
 
         ImageButton[] pageControls = new ImageButton[2];
-        pageControls[0] = new ImageButton(0, 0, 11, 11, 44, 0, 11, INFO_TAB_LOCATION, button -> this.currentPage = (this.currentPage - 1 + this.getPageCount()) % this.getPageCount());
-        pageControls[1] = new ImageButton(0, 0, 11, 11, 55, 0, 11, INFO_TAB_LOCATION, button -> this.currentPage = (this.currentPage + 1 + this.getPageCount()) % this.getPageCount());
+        pageControls[0] = new ImageButton(0, 0, 11, 11, 44, 0, 11, INFO_TAB_LOCATION, button -> this.adjustCurrentPage(-1));
+        pageControls[1] = new ImageButton(0, 0, 11, 11, 55, 0, 11, INFO_TAB_LOCATION, button -> this.adjustCurrentPage(1));
 
         return pageControls;
+    }
+
+    private void adjustCurrentPage(int amount) {
+
+        final int pageCount = this.getPageCount();
+        amount %= pageCount;
+        this.currentPage = (this.currentPage + amount + pageCount) % pageCount;
+        this.expand(true);
+    }
+
+    public void copy(TabWidget other) {
+
+        this.currentPage = Math.min(other.currentPage, this.getPageCount() - 1);
+        if (other.isExpanded()) {
+
+            this.expand(true);
+            this.tabSide.collapseOthers(this, true);
+        }
     }
 
     @Override
     public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 
-        if (this.isHovered() && this.isCollapsed()) {
+        final int visualWidth = Math.round(MathHelper.lerp(partialTicks, this.prevWidth, this.width));
+        final int visualHeight = Math.round(MathHelper.lerp(partialTicks, this.prevHeight, this.height));
+        final int visualX = this.tabSide.getXPos(visualWidth);
+        final int visualY = this.tabSide.getVisualYPos(TAB_HEIGHT, partialTicks);
+
+        if (this.isHovered() && this.isDoneAnimating(visualWidth, visualHeight) && this.isCollapsed()) {
 
             this.renderToolTip(matrixStack, mouseX, mouseY);
         }
@@ -70,35 +94,36 @@ public abstract class TabWidget extends Widget {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
-
         RenderSystem.color4f((this.color >> 16 & 255) / 255.0F, (this.color >> 8 & 255) / 255.0F, (this.color & 255) / 255.0F, 1.0F);
-        final int width = Math.round(MathHelper.lerp(partialTicks, this.prevWidth, this.width));
-        final int height = Math.round(MathHelper.lerp(partialTicks, this.prevHeight, this.height));
-        final int x = this.side.getXPos(this.parent, width);
-        final int y = this.side.getYPos(this.parent, TAB_HEIGHT);
 
         this.minecraft.getTextureManager().bindTexture(INFO_TAB_LOCATION);
-        this.buildTexture(matrixStack, x, y, width, height, this.side.getTextureX(TAB_WIDTH), this.side.getTextureY(), TAB_WIDTH, TAB_HEIGHT, 4);
-        this.renderIcon(matrixStack, x, y);
-        if (this.isVisuallyExpanded(width, height)) {
+        this.buildTexture(matrixStack, visualX, visualY, visualWidth, visualHeight, this.tabSide.getTextureX(TAB_WIDTH), this.tabSide.getTextureY(), TAB_WIDTH, TAB_HEIGHT, 4);
+        this.renderIcon(matrixStack, visualX, visualY);
 
-            drawString(matrixStack, this.minecraft.fontRenderer, this.getMessage(), x + this.side.getLeftOffset() + 16 + this.textIndent, y + this.side.getTopOffset() + this.textIndent + 2, 16777215);
+        if (this.isDoneAnimating(visualWidth, visualHeight) && this.isExpanded()) {
+
+            drawString(matrixStack, this.minecraft.fontRenderer, this.getMessage(), visualX + this.tabSide.getLeftOffset() + 16 + this.textIndent, visualY + this.tabSide.getTopOffset() + this.textIndent + 2, 16777215);
             if (this.getPageCount() > 0) {
 
                 if (this.isPaged()) {
 
-                    this.renderPages(matrixStack, mouseX, mouseY, partialTicks, x + width / 2, y + this.side.getTopOffset() + 16 + this.textIndent);
+                    this.renderPages(matrixStack, mouseX, mouseY, partialTicks, visualX + visualWidth / 2, visualY + this.tabSide.getTopOffset() + 16 + this.textIndent);
                 }
 
-                this.renderTabContents(matrixStack, x + this.side.getLeftOffset() + this.textIndent, y + this.side.getTopOffset() + 16 + this.textIndent, this.currentPage);
+                this.renderTabContents(matrixStack, visualX + this.tabSide.getLeftOffset() + this.textIndent, visualY + this.tabSide.getTopOffset() + 16 + this.textIndent, this.currentPage);
             }
         }
     }
 
+    private int getVisualBottom(float partialTicks) {
+
+        return this.tabSide.getVisualYPos(TAB_HEIGHT, partialTicks) + Math.round(MathHelper.lerp(partialTicks, this.prevHeight, this.height));
+    }
+
     private void renderIcon(MatrixStack matrixStack, int x, int y) {
 
-        x += this.side.getLeftOffset();
-        y += this.side.getTopOffset();
+        x += this.tabSide.getLeftOffset();
+        y += this.tabSide.getTopOffset();
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         if (!this.itemIcon.isEmpty()) {
 
@@ -198,23 +223,23 @@ public abstract class TabWidget extends Widget {
         }
     }
 
-    protected void markContentChanged() {
+    protected void notifyContentChanged() {
 
-        if (!this.isCollapsing()) {
+        if (this.isExpanded()) {
 
-            this.updateDimensions(true);
+            this.expand();
         }
     }
 
     private int getMinExpandedWidth() {
 
-        return this.side.getLeftOffset() + 16 + this.textIndent + this.minecraft.fontRenderer.getStringPropertyWidth(this.getMessage()) + this.textIndent + this.side.getRightOffset();
+        return this.tabSide.getLeftOffset() + 16 + this.textIndent + this.minecraft.fontRenderer.getStringPropertyWidth(this.getMessage()) + this.textIndent + this.tabSide.getRightOffset();
     }
 
     private int getMaxExpandedWidth() {
 
         final int borderDistance = 16;
-        return (this.parent.width - this.parent.getXSize()) / 2 - borderDistance;
+        return (this.tabSide.screen.width - this.tabSide.screen.getXSize()) / 2 - borderDistance;
     }
 
     private int getExpandedWidth(int defaultWidth) {
@@ -224,12 +249,12 @@ public abstract class TabWidget extends Widget {
 
     protected int getMaxTextWidth() {
 
-        return this.getExpandedWidth(this.defaultWidth) - this.side.getLeftOffset() - this.textIndent * 2 - this.side.getRightOffset();
+        return this.getExpandedWidth(this.defaultWidth) - this.tabSide.getLeftOffset() - this.textIndent * 2 - this.tabSide.getRightOffset();
     }
 
     private int getMinExpandedHeight(boolean isPaged) {
 
-        int minHeight = this.side.getTopOffset() + 16 + this.side.getBottomOffset();
+        int minHeight = this.tabSide.getTopOffset() + 16 + this.tabSide.getBottomOffset();
         if (isPaged) {
 
             minHeight += this.minecraft.fontRenderer.FONT_HEIGHT + 2 + this.textIndent;
@@ -240,7 +265,7 @@ public abstract class TabWidget extends Widget {
 
     private int getMaxExpandedHeight() {
 
-        return this.parent.getYSize() - (this.side.getYPos(this.parent, TAB_HEIGHT) - this.parent.getGuiTop()) - 4;
+        return this.tabSide.screen.getYSize() - (this.tabSide.getDefaultYPos(TAB_HEIGHT) - this.tabSide.screen.getGuiTop()) - 4 - (TAB_HEIGHT + 1) * this.tabSide.getTabsBelow();
     }
 
     private int getExpandedHeight(int lineCount) {
@@ -278,12 +303,6 @@ public abstract class TabWidget extends Widget {
         return this.getPageCount() > 1;
     }
 
-    private void setTargetDimensions(int targetWidth, int targetHeight) {
-
-        this.targetWidth = targetWidth;
-        this.targetHeight = targetHeight;
-    }
-
     private void setRawDimensions(int width, int height) {
 
         this.width = width;
@@ -294,11 +313,44 @@ public abstract class TabWidget extends Widget {
         this.targetHeight = height;
     }
 
-    public void setOpenByDefault() {
+    private void setTargetDimensions(int width, int height) {
+
+        this.targetWidth = width;
+        this.targetHeight = height;
+    }
+
+    private void collapse(boolean immediate) {
+
+        if (immediate) {
+
+            this.setRawDimensions(TAB_WIDTH, TAB_HEIGHT);
+        } else {
+
+            this.setTargetDimensions(TAB_WIDTH, TAB_HEIGHT);
+        }
+    }
+
+    private void expand(boolean immediate) {
 
         int width = this.getExpandedWidth(this.defaultWidth);
         int height = this.getExpandedHeight(this.getCappedLineCount());
-        this.setRawDimensions(width, height);
+        if (immediate) {
+
+            this.setRawDimensions(width, height);
+        } else {
+
+            this.setTargetDimensions(width, height);
+        }
+    }
+
+    private void collapse() {
+
+        this.collapse(false);
+    }
+
+    private void expand() {
+
+        this.expand(false);
     }
 
     @Override
@@ -318,48 +370,27 @@ public abstract class TabWidget extends Widget {
     @Override
     public void onClick(double mouseX, double mouseY) {
 
-        this.updateDimensions(this.targetWidth == TAB_WIDTH && this.targetHeight == TAB_HEIGHT);
-    }
+        if (this.isCollapsed()) {
 
-    protected void updateDimensions(boolean expanding) {
-
-        if (expanding) {
-
-            int width = this.getExpandedWidth(this.defaultWidth);
-            int height = this.getExpandedHeight(this.getCappedLineCount());
-            this.setTargetDimensions(width, height);
+            this.expand();
+            this.tabSide.collapseOthers(this, false);
         } else {
 
-            this.setTargetDimensions(TAB_WIDTH, TAB_HEIGHT);
+            this.collapse();
         }
     }
 
     public boolean isCollapsed() {
 
-        return this.isDoneAnimating() && this.isCollapsing();
+        return this.targetWidth == TAB_WIDTH && this.targetHeight == TAB_HEIGHT;
     }
 
     public boolean isExpanded() {
 
-        return this.isDoneAnimating() && !this.isCollapsing();
+        return !this.isCollapsed();
     }
 
-    public boolean isVisuallyExpanded(int width, int height) {
-
-        return this.isDoneAnimating(width, height) && !this.isCollapsing();
-    }
-
-    public boolean isCollapsing() {
-
-        return this.targetWidth == TAB_WIDTH && this.targetHeight == TAB_HEIGHT;
-    }
-
-    public boolean isDoneAnimating() {
-
-        return this.isDoneAnimating(this.width, this.height);
-    }
-
-    public boolean isDoneAnimating(int width, int height) {
+    private boolean isDoneAnimating(int width, int height) {
 
         return width == this.targetWidth && height == this.targetHeight;
     }
@@ -367,7 +398,7 @@ public abstract class TabWidget extends Widget {
     @Override
     public void renderToolTip(MatrixStack matrixStack, int mouseX, int mouseY) {
 
-        this.parent.renderTooltip(matrixStack, this.getMessage(), mouseX, mouseY);
+        this.tabSide.screen.renderTooltip(matrixStack, this.getMessage(), mouseX, mouseY);
     }
 
     public void tick() {
@@ -377,8 +408,8 @@ public abstract class TabWidget extends Widget {
         final int updateAmount = 24;
         this.width = Math.round(this.nextAnimationSize(this.width, this.targetWidth, updateAmount));
         this.height = Math.round(this.nextAnimationSize(this.height, this.targetHeight, updateAmount));
-        this.x = this.side.getXPos(this.parent, this.width);
-        this.y = this.side.getYPos(this.parent, TAB_HEIGHT);
+        this.x = this.tabSide.getXPos(this.width);
+        this.y = this.tabSide.getYPos(TAB_HEIGHT);
         this.tickPageControls();
     }
 
@@ -386,7 +417,7 @@ public abstract class TabWidget extends Widget {
 
         for (ImageButton pageControl : this.pageControls) {
 
-            pageControl.visible = this.isPaged() && this.isDoneAnimating();
+            pageControl.visible = this.isPaged() && this.isDoneAnimating(this.width, this.height);
         }
     }
 
@@ -400,31 +431,57 @@ public abstract class TabWidget extends Widget {
         return size;
     }
 
-    public static class Side {
+    public static class TabSide {
 
+        public final ContainerScreen<?> screen;
         private final boolean right;
         private final int sideIndex;
+        @Nullable
+        private final TabWidget above;
+        private final List<TabWidget> siblings;
 
-        private Side(boolean right, int sideIndex) {
+        private TabSide(ContainerScreen<?> screen, boolean right, int sideIndex, @Nullable TabWidget above, List<TabWidget> siblings) {
 
+            this.screen = screen;
             this.right = right;
             this.sideIndex = sideIndex;
+            this.above = above;
+            this.siblings = siblings;
         }
 
-        public int getXPos(ContainerScreen<?> parent, int tabWidth) {
+        public int getXPos(int tabWidth) {
 
             if (this.right) {
 
-                return (parent.width + parent.getXSize()) / 2;
+                return (this.screen.width + this.screen.getXSize()) / 2;
             }
 
-            return (parent.width - parent.getXSize()) / 2 - tabWidth;
+            return (this.screen.width - this.screen.getXSize()) / 2 - tabWidth;
         }
 
-        public int getYPos(ContainerScreen<?> parent, int tabHeight) {
+        public int getYPos(int defaultTabHeight) {
 
-            final int tabDistance = 1;
-            return (parent.height - parent.getYSize()) / 2 + 4 + this.sideIndex * (tabHeight + tabDistance);
+            if (this.above == null) {
+
+                return this.getDefaultYPos(defaultTabHeight);
+            }
+
+            return this.above.y + this.above.height + 1;
+        }
+
+        public int getVisualYPos(int defaultTabHeight, float partialTicks) {
+
+            if (this.above == null) {
+
+                return this.getDefaultYPos(defaultTabHeight);
+            }
+
+            return this.above.getVisualBottom(partialTicks) + 1;
+        }
+
+        public int getDefaultYPos(int defaultTabHeight) {
+
+            return (this.screen.height - this.screen.getYSize()) / 2 + 4 + this.sideIndex * (defaultTabHeight + 1);
         }
 
         public int getTextureX(int tabWidth) {
@@ -457,14 +514,30 @@ public abstract class TabWidget extends Widget {
             return 4;
         }
 
-        public static Side left(int sideIndex) {
+        public void collapseOthers(TabWidget tab, boolean immediate) {
 
-            return new Side(false, sideIndex);
+            for (TabWidget sibling : this.siblings) {
+
+                if (sibling != tab) {
+
+                    sibling.collapse(immediate);
+                }
+            }
         }
 
-        public static Side right(int sideIndex) {
+        public int getTabsBelow() {
 
-            return new Side(true, sideIndex);
+            return this.siblings.size() - 1 - this.sideIndex;
+        }
+
+        public static TabSide left(ContainerScreen<?> screen, int sideIndex, @Nullable TabWidget above, List<TabWidget> siblings) {
+
+            return new TabSide(screen, false, sideIndex, above, siblings);
+        }
+
+        public static TabSide right(ContainerScreen<?> screen, int sideIndex, @Nullable TabWidget above, List<TabWidget> siblings) {
+
+            return new TabSide(screen, true, sideIndex, above, siblings);
         }
 
     }
