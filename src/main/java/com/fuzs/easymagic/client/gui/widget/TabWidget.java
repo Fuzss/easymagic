@@ -1,6 +1,7 @@
 package com.fuzs.easymagic.client.gui.widget;
 
 import com.fuzs.easymagic.EasyMagic;
+import com.fuzs.puzzleslib_em.util.PuzzlesLibUtil;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
@@ -48,6 +49,7 @@ public abstract class TabWidget extends Widget {
         this.tabSide = tabSide;
         this.color = color;
         this.pageControls = this.getPageControls();
+        tabSide.siblings.add(this);
         this.collapse(true);
     }
 
@@ -68,7 +70,7 @@ public abstract class TabWidget extends Widget {
         this.expand(true);
     }
 
-    public void copy(TabWidget other) {
+    public void copyData(TabWidget other) {
 
         this.currentPage = Math.min(other.currentPage, this.getPageCount() - 1);
         if (other.isExpanded()) {
@@ -530,14 +532,118 @@ public abstract class TabWidget extends Widget {
             return this.siblings.size() - 1 - this.sideIndex;
         }
 
-        public static TabSide left(ContainerScreen<?> screen, int sideIndex, @Nullable TabWidget above, List<TabWidget> siblings) {
+        public static TabSide left(ContainerScreen<?> screen, List<TabWidget> siblings) {
 
-            return new TabSide(screen, false, sideIndex, above, siblings);
+            return new TabSide(screen, false, siblings.size(), siblings.isEmpty() ? null : siblings.get(siblings.size() - 1), siblings);
         }
 
-        public static TabSide right(ContainerScreen<?> screen, int sideIndex, @Nullable TabWidget above, List<TabWidget> siblings) {
+        public static TabSide right(ContainerScreen<?> screen, List<TabWidget> siblings) {
 
-            return new TabSide(screen, true, sideIndex, above, siblings);
+            return new TabSide(screen, true, siblings.size(), siblings.isEmpty() ? null : siblings.get(siblings.size() - 1), siblings);
+        }
+
+    }
+
+    public static class Builder {
+
+        private final int color;
+        private final ITextComponent title;
+
+        private Item itemIcon;
+        private Pair<ResourceLocation, ResourceLocation> atlasIcon;
+
+        private ITextComponent[] textContent;
+        private ITextComponent[][] lineContent;
+
+        public Builder(int color, ITextComponent title) {
+
+            this.color = color;
+            this.title = title;
+        }
+
+        public Builder setItemIcon(Item itemIcon) {
+
+            if (this.atlasIcon != null) {
+
+                throw new RuntimeException("can't have both item and atlas icon");
+            }
+
+            this.itemIcon = itemIcon;
+            return this;
+        }
+
+        public Builder setAtlasIcon(ResourceLocation atlasLocation, ResourceLocation spriteLocation) {
+
+            if (this.itemIcon != null) {
+
+                throw new RuntimeException("can't have both item and atlas icon");
+            }
+
+            this.atlasIcon = Pair.of(atlasLocation, spriteLocation);
+            return this;
+        }
+
+        public Builder setLineContent(ITextComponent... tabContent) {
+
+            return this.setLineContent(new ITextComponent[][]{tabContent});
+        }
+
+        public Builder setLineContent(ITextComponent[][] tabContent) {
+
+            if (this.textContent != null) {
+
+                throw new RuntimeException("can't have both line and text content");
+            }
+
+            this.lineContent = tabContent;
+            return this;
+        }
+
+        public Builder setTextContent(ITextComponent... tabContent) {
+
+            if (this.lineContent != null) {
+
+                throw new RuntimeException("can't have both line and text content");
+            }
+
+            this.textContent = tabContent;
+            return this;
+        }
+
+        public TabWidget build(TabSide tabSide) {
+
+            if (this.itemIcon == null && this.atlasIcon == null) {
+
+                throw new RuntimeException("missing tab icon");
+            }
+
+            if (this.textContent == null && this.lineContent == null) {
+
+                throw new RuntimeException("missing tab content");
+            }
+
+            TabWidget tabWidget = null;
+            if (this.textContent != null) {
+
+                tabWidget = PuzzlesLibUtil.make(new TextTabWidget(tabSide, this.color, this.title), tab -> tab.setTextContent(this.textContent));
+            }
+
+            if (this.lineContent != null) {
+
+                tabWidget = PuzzlesLibUtil.make(new LineTabWidget(tabSide, this.color, this.title), tab -> tab.setLineContent(this.lineContent));
+            }
+
+            if (this.itemIcon != null) {
+
+                tabWidget.setItemIcon(this.itemIcon);
+            }
+
+            if (this.atlasIcon != null) {
+
+                tabWidget.setAtlasIcon(this.atlasIcon.getFirst(), this.atlasIcon.getSecond());
+            }
+
+            return tabWidget;
         }
 
     }

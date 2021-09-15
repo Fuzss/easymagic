@@ -1,18 +1,18 @@
 package com.fuzs.easymagic.client.gui.screen;
 
 import com.fuzs.easymagic.client.element.EasyEnchantingExtension;
-import com.fuzs.easymagic.client.gui.widget.LineTabWidget;
 import com.fuzs.easymagic.client.gui.widget.TabWidget;
-import com.fuzs.easymagic.client.gui.widget.TextTabWidget;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.EnchantmentScreen;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.enchantment.EnchantmentData;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.EnchantmentContainer;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.Items;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.*;
 
 import javax.annotation.Nullable;
@@ -20,14 +20,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class EnchantmentInventoryScreen extends EnchantmentScreen {
+public class EnchantmentInventoryScreen extends EnchantmentScreen implements ITabbedScreen {
 
     private final List<List<ITextComponent>> slotTooltips = IntStream.range(0, 3)
             .mapToObj(i -> Lists.<ITextComponent>newArrayList())
             .collect(Collectors.toList());
 
-    private TextTabWidget tabWidget1;
-    private LineTabWidget tabWidget2;
+    private final List<TabWidget> leftTabs = Lists.newArrayList();
+    private final List<TabWidget> rightTabs = Lists.newArrayList();
 
     public EnchantmentInventoryScreen(EnchantmentContainer container, PlayerInventory playerInventory, ITextComponent textComponent) {
 
@@ -38,27 +38,17 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
     protected void init() {
 
         super.init();
-        List<TabWidget> tabSiblings = Lists.newArrayList();
         String tabContent = "This is a test. Hopefully nothing is too long. Let's just see what happens. Although we can never be really certain, it's still worth it to try something new now and then. This is what we are made for, so let's give it a shot.";
         String tabContent2 = "Although we can never be really certain, it's still worth it to try something new now and then.";
-        this.tabWidget1 = new TextTabWidget(TabWidget.TabSide.left(this, 0, null, tabSiblings), 0x79B637, new StringTextComponent("Tips & Hints"));
-        this.tabWidget2 = new LineTabWidget(TabWidget.TabSide.left(this, 1, this.tabWidget1, tabSiblings), 0x47B5FE, new StringTextComponent("Information"));
-        tabSiblings.add(this.tabWidget1);
-        tabSiblings.add(this.tabWidget2);
-        this.tabWidget1.setAtlasIcon(PlayerContainer.LOCATION_BLOCKS_TEXTURE, EasyEnchantingExtension.QUESTION_MARK_LOCATION);
-        this.tabWidget2.setItemIcon(Items.BOOKSHELF);
-        this.tabWidget1.setTextContent(new StringTextComponent(tabContent), new StringTextComponent(tabContent2));
-        this.tabWidget2.setLineContent(new StringTextComponent("Enchanting Power:"), new StringTextComponent("    10 / 15"));
-        this.addButton(this.tabWidget1);
-        this.addButton(this.tabWidget2);
+        this.addButton(this.createLeftTab("tips", new TabWidget.Builder(0x79B637, new StringTextComponent("Tips & Hints")).setAtlasIcon(PlayerContainer.LOCATION_BLOCKS_TEXTURE, EasyEnchantingExtension.QUESTION_MARK_LOCATION).setTextContent(new StringTextComponent(tabContent), new StringTextComponent(tabContent2))));
+        this.addButton(this.createLeftTab("information", new TabWidget.Builder(0x47B5FE, new StringTextComponent("Information")).setItemIcon(Items.BOOKSHELF).setLineContent(new StringTextComponent("Enchanting Power:"), new StringTextComponent("    10 / 15"))));
     }
 
     @Override
     public void tick() {
 
         super.tick();
-        this.tabWidget1.tick();
-        this.tabWidget2.tick();
+        this.tickTabs();
     }
 
     @SuppressWarnings("NullableProblems")
@@ -203,6 +193,30 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
         }
 
         slotTooltip.add(levelComponent.mergeStyle(TextFormatting.GRAY));
+    }
+
+    @Override
+    public List<TabWidget> getLeftTabs() {
+
+        return this.leftTabs;
+    }
+
+    @Override
+    public List<TabWidget> getRightTabs() {
+
+        return this.rightTabs;
+    }
+
+    @Override
+    public ContainerScreen<?> getScreen() {
+
+        return this;
+    }
+
+    @Override
+    public ResourceLocation getScreenIdentifier() {
+
+        return new ResourceLocation("enchanting");
     }
 
 }

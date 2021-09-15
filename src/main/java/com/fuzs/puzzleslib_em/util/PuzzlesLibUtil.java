@@ -16,6 +16,18 @@ import java.util.function.Supplier;
 public class PuzzlesLibUtil {
 
     /**
+     * @param object object to consume
+     * @param consumer action
+     * @param <T> object type
+     * @return the object
+     */
+    public static <T> T make(T object, Consumer<T> consumer) {
+
+        consumer.accept(object);
+        return object;
+    }
+
+    /**
      * run an action, if an exception occurs run a different action
      * @param object object for actions
      * @param action action to attempt
