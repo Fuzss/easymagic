@@ -1,7 +1,6 @@
 package com.fuzs.easymagic.client.gui.widget;
 
 import com.fuzs.easymagic.EasyMagic;
-import com.fuzs.puzzleslib_em.util.PuzzlesLibUtil;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
@@ -10,6 +9,7 @@ import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.gui.widget.button.ImageButton;
+import net.minecraft.client.renderer.texture.ITickable;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -19,9 +19,8 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
-public abstract class TabWidget extends Widget {
+public abstract class TabWidget extends Widget implements ITickable {
 
     private static final ResourceLocation INFO_TAB_LOCATION = new ResourceLocation(EasyMagic.MODID, "textures/gui/tab.png");
     private static final int TAB_WIDTH = 22;
@@ -49,7 +48,6 @@ public abstract class TabWidget extends Widget {
         this.tabSide = tabSide;
         this.color = color;
         this.pageControls = this.getPageControls();
-        tabSide.siblings.add(this);
         this.collapse(true);
     }
 
@@ -403,6 +401,7 @@ public abstract class TabWidget extends Widget {
         this.tabSide.screen.renderTooltip(matrixStack, this.getMessage(), mouseX, mouseY);
     }
 
+    @Override
     public void tick() {
 
         this.prevWidth = this.width;
@@ -437,17 +436,14 @@ public abstract class TabWidget extends Widget {
 
         public final ContainerScreen<?> screen;
         private final boolean right;
-        private final int sideIndex;
-        @Nullable
-        private final TabWidget above;
-        private final List<TabWidget> siblings;
+        private final int ownIndex;
+        private final TabWidget[] siblings;
 
-        private TabSide(ContainerScreen<?> screen, boolean right, int sideIndex, @Nullable TabWidget above, List<TabWidget> siblings) {
+        public TabSide(ContainerScreen<?> screen, boolean right, int ownIndex, TabWidget[] siblings) {
 
             this.screen = screen;
             this.right = right;
-            this.sideIndex = sideIndex;
-            this.above = above;
+            this.ownIndex = ownIndex;
             this.siblings = siblings;
         }
 
@@ -463,27 +459,27 @@ public abstract class TabWidget extends Widget {
 
         public int getYPos(int defaultTabHeight) {
 
-            if (this.above == null) {
+            if (this.getTabAbove() == null) {
 
                 return this.getDefaultYPos(defaultTabHeight);
             }
 
-            return this.above.y + this.above.height + 1;
+            return this.getTabAbove().y + this.getTabAbove().height + 1;
         }
 
         public int getVisualYPos(int defaultTabHeight, float partialTicks) {
 
-            if (this.above == null) {
+            if (this.getTabAbove() == null) {
 
                 return this.getDefaultYPos(defaultTabHeight);
             }
 
-            return this.above.getVisualBottom(partialTicks) + 1;
+            return this.getTabAbove().getVisualBottom(partialTicks) + 1;
         }
 
         public int getDefaultYPos(int defaultTabHeight) {
 
-            return (this.screen.height - this.screen.getYSize()) / 2 + 4 + this.sideIndex * (defaultTabHeight + 1);
+            return (this.screen.height - this.screen.getYSize()) / 2 + 4 + this.ownIndex * (defaultTabHeight + 1);
         }
 
         public int getTextureX(int tabWidth) {
@@ -529,121 +525,13 @@ public abstract class TabWidget extends Widget {
 
         public int getTabsBelow() {
 
-            return this.siblings.size() - 1 - this.sideIndex;
+            return this.siblings.length - 1 - this.ownIndex;
         }
 
-        public static TabSide left(ContainerScreen<?> screen, List<TabWidget> siblings) {
+        @Nullable
+        private TabWidget getTabAbove() {
 
-            return new TabSide(screen, false, siblings.size(), siblings.isEmpty() ? null : siblings.get(siblings.size() - 1), siblings);
-        }
-
-        public static TabSide right(ContainerScreen<?> screen, List<TabWidget> siblings) {
-
-            return new TabSide(screen, true, siblings.size(), siblings.isEmpty() ? null : siblings.get(siblings.size() - 1), siblings);
-        }
-
-    }
-
-    public static class Builder {
-
-        private final int color;
-        private final ITextComponent title;
-
-        private Item itemIcon;
-        private Pair<ResourceLocation, ResourceLocation> atlasIcon;
-
-        private ITextComponent[] textContent;
-        private ITextComponent[][] lineContent;
-
-        public Builder(int color, ITextComponent title) {
-
-            this.color = color;
-            this.title = title;
-        }
-
-        public Builder setItemIcon(Item itemIcon) {
-
-            if (this.atlasIcon != null) {
-
-                throw new RuntimeException("can't have both item and atlas icon");
-            }
-
-            this.itemIcon = itemIcon;
-            return this;
-        }
-
-        public Builder setAtlasIcon(ResourceLocation atlasLocation, ResourceLocation spriteLocation) {
-
-            if (this.itemIcon != null) {
-
-                throw new RuntimeException("can't have both item and atlas icon");
-            }
-
-            this.atlasIcon = Pair.of(atlasLocation, spriteLocation);
-            return this;
-        }
-
-        public Builder setLineContent(ITextComponent... tabContent) {
-
-            return this.setLineContent(new ITextComponent[][]{tabContent});
-        }
-
-        public Builder setLineContent(ITextComponent[][] tabContent) {
-
-            if (this.textContent != null) {
-
-                throw new RuntimeException("can't have both line and text content");
-            }
-
-            this.lineContent = tabContent;
-            return this;
-        }
-
-        public Builder setTextContent(ITextComponent... tabContent) {
-
-            if (this.lineContent != null) {
-
-                throw new RuntimeException("can't have both line and text content");
-            }
-
-            this.textContent = tabContent;
-            return this;
-        }
-
-        public TabWidget build(TabSide tabSide) {
-
-            if (this.itemIcon == null && this.atlasIcon == null) {
-
-                throw new RuntimeException("missing tab icon");
-            }
-
-            if (this.textContent == null && this.lineContent == null) {
-
-                throw new RuntimeException("missing tab content");
-            }
-
-            TabWidget tabWidget = null;
-            if (this.textContent != null) {
-
-                tabWidget = PuzzlesLibUtil.make(new TextTabWidget(tabSide, this.color, this.title), tab -> tab.setTextContent(this.textContent));
-            }
-
-            if (this.lineContent != null) {
-
-                tabWidget = PuzzlesLibUtil.make(new LineTabWidget(tabSide, this.color, this.title), tab -> tab.setLineContent(this.lineContent));
-            }
-
-            if (this.itemIcon != null) {
-
-                tabWidget.setItemIcon(this.itemIcon);
-            }
-
-            if (this.atlasIcon != null) {
-
-                tabWidget.setAtlasIcon(this.atlasIcon.getFirst(), this.atlasIcon.getSecond());
-            }
-
-            return tabWidget;
+            return this.ownIndex == 0 ? null : this.siblings[this.ownIndex - 1];
         }
 
     }
