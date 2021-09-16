@@ -9,16 +9,16 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.util.Constants;
 
-public class SAnvilRepairMessage extends Message {
+public class S2CAnvilRepairMessage extends Message {
 
     private BlockPos blockPos;
     private int stateId;
 
-    public SAnvilRepairMessage() {
+    public S2CAnvilRepairMessage() {
 
     }
 
-    public SAnvilRepairMessage(BlockPos blockPos, BlockState blockState) {
+    public S2CAnvilRepairMessage(BlockPos blockPos, BlockState blockState) {
 
         this.blockPos = blockPos;
         this.stateId = Block.getStateId(blockState);
@@ -48,11 +48,11 @@ public class SAnvilRepairMessage extends Message {
         public void accept(PlayerEntity playerEntity) {
 
             // play repair sound
-            playerEntity.world.playEvent(Constants.WorldEvents.ANVIL_USE_SOUND, SAnvilRepairMessage.this.blockPos, 0);
+            playerEntity.world.playEvent(Constants.WorldEvents.ANVIL_USE_SOUND, S2CAnvilRepairMessage.this.blockPos, 0);
 
             // show block breaking particles for anvil without playing breaking sound
-            BlockState blockstate = Block.getStateById(SAnvilRepairMessage.this.stateId);
-            Minecraft.getInstance().particles.addBlockDestroyEffects(SAnvilRepairMessage.this.blockPos, blockstate);
+            BlockState blockstate = Block.getStateById(S2CAnvilRepairMessage.this.stateId);
+            Minecraft.getInstance().particles.addBlockDestroyEffects(S2CAnvilRepairMessage.this.blockPos, blockstate);
         }
 
     }

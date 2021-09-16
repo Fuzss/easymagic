@@ -4,7 +4,7 @@ import com.fuzs.puzzleslib_em.PuzzlesLib;
 import com.fuzs.puzzleslib_em.element.AbstractElement;
 import com.fuzs.puzzleslib_em.element.side.ICommonElement;
 import com.fuzs.easymagic.EasyMagic;
-import com.fuzs.easymagic.network.message.SAnvilRepairMessage;
+import com.fuzs.easymagic.network.message.S2CAnvilRepairMessage;
 import net.minecraft.block.AnvilBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -47,7 +47,7 @@ public class AnvilTweaksElement extends AbstractElement implements ICommonElemen
     @Override
     public void initCommon() {
 
-        PuzzlesLib.getNetworkHandler().registerMessage(SAnvilRepairMessage::new, LogicalSide.CLIENT);
+        PuzzlesLib.getNetworkHandler().registerMessage(S2CAnvilRepairMessage::new, LogicalSide.CLIENT);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class AnvilTweaksElement extends AbstractElement implements ICommonElemen
 
                     world.setBlockState(blockPos, blockState, 2);
                     // don't call IWorld::playEvent as it also plays a block breaking sound
-                    SAnvilRepairMessage message = new SAnvilRepairMessage(blockPos, blockState);
+                    S2CAnvilRepairMessage message = new S2CAnvilRepairMessage(blockPos, blockState);
                     PuzzlesLib.getNetworkHandler().sendToAllNear(message, world, blockPos);
                 } else if (world instanceof ServerWorld) {
 

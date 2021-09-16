@@ -2,7 +2,7 @@ package com.fuzs.easymagic.mixin;
 
 import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.inventory.container.EnchantmentInventoryContainer;
-import com.fuzs.easymagic.network.message.SEnchantingPowerMessage;
+import com.fuzs.easymagic.network.message.S2CEnchantingPowerMessage;
 import com.fuzs.easymagic.tileentity.EnchantingTableInventoryTileEntity;
 import com.fuzs.puzzleslib_em.PuzzlesLib;
 import net.minecraft.block.BlockState;
@@ -59,7 +59,7 @@ public abstract class EnchantingTableBlockMixin extends ContainerBlock {
 
                 // items might still be in inventory slots, so this needs to update so that enchantment buttons are shown
                 container.onCraftMatrixChanged((IInventory) tileentity);
-                PuzzlesLib.getNetworkHandler().sendTo(new SEnchantingPowerMessage(container.windowId, EnchantmentInventoryContainer.getEnchantingPower(worldIn, pos)), (ServerPlayerEntity) player);
+                PuzzlesLib.getNetworkHandler().sendTo(new S2CEnchantingPowerMessage(container.windowId, EnchantmentInventoryContainer.getEnchantingPower(worldIn, pos)), (ServerPlayerEntity) player);
             }
 
             callbackInfo.setReturnValue(ActionResultType.CONSUME);

@@ -12,16 +12,16 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.StringTextComponent;
 
-public class SEnchantingPowerMessage extends Message {
+public class S2CEnchantingPowerMessage extends Message {
 
     private int windowId;
     private int enchPower;
 
-    public SEnchantingPowerMessage() {
+    public S2CEnchantingPowerMessage() {
 
     }
 
-    public SEnchantingPowerMessage(int windowId, int enchPower) {
+    public S2CEnchantingPowerMessage(int windowId, int enchPower) {
 
         this.windowId = windowId;
         this.enchPower = enchPower;
@@ -53,9 +53,9 @@ public class SEnchantingPowerMessage extends Message {
         public void accept(PlayerEntity playerEntity) {
 
             Container container = playerEntity.openContainer;
-            if (SEnchantingPowerMessage.this.windowId == container.windowId && container instanceof EnchantmentInventoryContainer) {
+            if (S2CEnchantingPowerMessage.this.windowId == container.windowId && container instanceof EnchantmentInventoryContainer) {
 
-                TabManager.INSTANCE.getTab(new ResourceLocation(EasyMagic.MODID, "information")).ifPresent(tab -> ((LineTabWidget) tab).setLineContent(new StringTextComponent("Enchanting Power:"), new StringTextComponent(String.format("    %d / %d", SEnchantingPowerMessage.this.enchPower, ((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).maxPower))));
+                TabManager.INSTANCE.getTab(new ResourceLocation(EasyMagic.MODID, "information")).ifPresent(tab -> ((LineTabWidget) tab).setLineContent(new StringTextComponent("Enchanting Power:"), new StringTextComponent(String.format("    %d / %d", S2CEnchantingPowerMessage.this.enchPower, ((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).maxPower))));
             }
         }
 

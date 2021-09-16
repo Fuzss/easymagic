@@ -3,7 +3,7 @@ package com.fuzs.easymagic.inventory.container;
 import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.element.EasyEnchantingElement;
 import com.fuzs.easymagic.mixin.accessor.EnchantmentContainerAccessor;
-import com.fuzs.easymagic.network.message.SEnchantingInfoMessage;
+import com.fuzs.easymagic.network.message.S2CEnchantingInfoMessage;
 import com.fuzs.easymagic.tileentity.EnchantingTableInventoryTileEntity;
 import com.fuzs.puzzleslib_em.PuzzlesLib;
 import com.google.common.collect.Lists;
@@ -154,7 +154,7 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
         List<EnchantmentData> firstSlotData = this.getEnchantmentHint(enchantedItem, 0, showEnchantments);
         List<EnchantmentData> secondSlotData = this.getEnchantmentHint(enchantedItem, 1, showEnchantments);
         List<EnchantmentData> thirdSlotData = this.getEnchantmentHint(enchantedItem, 2, showEnchantments);
-        PuzzlesLib.getNetworkHandler().sendTo(new SEnchantingInfoMessage(this.windowId, firstSlotData, secondSlotData, thirdSlotData), (ServerPlayerEntity) this.user);
+        PuzzlesLib.getNetworkHandler().sendTo(new S2CEnchantingInfoMessage(this.windowId, firstSlotData, secondSlotData, thirdSlotData), (ServerPlayerEntity) this.user);
     }
 
     public static int getEnchantingPower(World world, BlockPos pos) {

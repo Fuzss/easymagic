@@ -13,18 +13,18 @@ import net.minecraftforge.registries.ForgeRegistry;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SEnchantingInfoMessage extends Message {
+public class S2CEnchantingInfoMessage extends Message {
 
     private int windowId;
     private List<EnchantmentData> firstSlotData;
     private List<EnchantmentData> secondSlotData;
     private List<EnchantmentData> thirdSlotData;
 
-    public SEnchantingInfoMessage() {
+    public S2CEnchantingInfoMessage() {
 
     }
 
-    public SEnchantingInfoMessage(int windowId, List<EnchantmentData> firstSlotData, List<EnchantmentData> secondSlotData, List<EnchantmentData> thirdSlotData) {
+    public S2CEnchantingInfoMessage(int windowId, List<EnchantmentData> firstSlotData, List<EnchantmentData> secondSlotData, List<EnchantmentData> thirdSlotData) {
 
         this.windowId = windowId;
         this.firstSlotData = firstSlotData;
@@ -86,12 +86,12 @@ public class SEnchantingInfoMessage extends Message {
 
             if (Minecraft.getInstance().currentScreen instanceof EnchantmentInventoryScreen) {
 
-                if (playerEntity.openContainer.windowId == SEnchantingInfoMessage.this.windowId) {
+                if (playerEntity.openContainer.windowId == S2CEnchantingInfoMessage.this.windowId) {
 
                     EnchantmentInventoryScreen screen = (EnchantmentInventoryScreen) Minecraft.getInstance().currentScreen;
-                    screen.setSlotTooltip(0, SEnchantingInfoMessage.this.firstSlotData);
-                    screen.setSlotTooltip(1, SEnchantingInfoMessage.this.secondSlotData);
-                    screen.setSlotTooltip(2, SEnchantingInfoMessage.this.thirdSlotData);
+                    screen.setSlotTooltip(0, S2CEnchantingInfoMessage.this.firstSlotData);
+                    screen.setSlotTooltip(1, S2CEnchantingInfoMessage.this.secondSlotData);
+                    screen.setSlotTooltip(2, S2CEnchantingInfoMessage.this.thirdSlotData);
                 }
             }
         }
