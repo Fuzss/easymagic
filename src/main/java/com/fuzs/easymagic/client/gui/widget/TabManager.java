@@ -1,7 +1,6 @@
-package com.fuzs.easymagic.client.gui.screen;
+package com.fuzs.easymagic.client.gui.widget;
 
 import com.fuzs.easymagic.EasyMagic;
-import com.fuzs.easymagic.client.gui.widget.TabWidget;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
@@ -18,6 +17,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -37,6 +37,11 @@ public enum TabManager {
         MinecraftForge.EVENT_BUS.register(this);
     }
 
+    public Optional<TabWidget> getTab(ResourceLocation identifier) {
+
+        return Optional.ofNullable(ALL_TABS.get(identifier));
+    }
+
     public void registerLeft(ResourceLocation tabIdentifier, Consumer<Widget> addButton, TabBuilder<?> builder) {
 
         this.registerTab(tabIdentifier, builder, addButton);
@@ -53,6 +58,7 @@ public enum TabManager {
 
         builder.addSetupAction(tab -> this.copyOldData(tabIdentifier, tab));
         builder.addSetupAction(addButton::accept);
+        // use map just for checking duplicate identifiers
         if (this.leftTabBuilders.containsKey(tabIdentifier) || this.rightTabBuilders.containsKey(tabIdentifier)) {
 
             throw new RuntimeException("duplicate tab identifier " + tabIdentifier);
@@ -76,8 +82,6 @@ public enum TabManager {
             this.tickableTabs.clear();
             this.buildTabs(this.leftTabBuilders.values(), (ContainerScreen<?>) evt.getGui(), false);
             this.buildTabs(this.rightTabBuilders.values(), (ContainerScreen<?>) evt.getGui(), true);
-            this.leftTabBuilders.clear();
-            this.rightTabBuilders.clear();
         }
     }
 
@@ -94,10 +98,12 @@ public enum TabManager {
             this.tickableTabs.add(tabWidget);
         }
 
-        for (int i = 0; i < sortedTabBuilders.size(); i++) {
+        for (TabBuilder<?> sortedTabBuilder : sortedTabBuilders) {
 
-            sortedTabBuilders.get(i).setup(tabSiblings[i]);
+            sortedTabBuilder.setup();
         }
+
+        tabBuilders.clear();
     }
 
     @SubscribeEvent
@@ -120,6 +126,8 @@ public enum TabManager {
         private int priority = 10;
         private Item itemIcon;
         private Pair<ResourceLocation, ResourceLocation> atlasIcon;
+        @Nullable
+        private T builtTab;
 
         public TabBuilder(ContainerScreen<?> screen, ITabWidgetFactory<T> factory, int color, ITextComponent title) {
 
@@ -131,10 +139,7 @@ public enum TabManager {
 
         public TabBuilder<T> setItemIcon(Item itemIcon) {
 
-            if (this.atlasIcon != null) {
-
-                throw new RuntimeException("can't have both item and atlas icon");
-            }
+            assert this.atlasIcon == null : "can't have both item and atlas icon";
 
             this.itemIcon = itemIcon;
             return this;
@@ -142,10 +147,7 @@ public enum TabManager {
 
         public TabBuilder<T> setAtlasIcon(ResourceLocation atlasLocation, ResourceLocation spriteLocation) {
 
-            if (this.itemIcon != null) {
-
-                throw new RuntimeException("can't have both item and atlas icon");
-            }
+            assert this.itemIcon == null : "can't have both item and atlas icon";
 
             this.atlasIcon = Pair.of(atlasLocation, spriteLocation);
             return this;
@@ -175,30 +177,29 @@ public enum TabManager {
                 EasyMagic.LOGGER.warn("tab screen mismatch: {} != {}", tabSide.screen, this.screen);
             }
 
-            if (this.itemIcon == null && this.atlasIcon == null) {
+            assert this.itemIcon != null || this.atlasIcon != null : "missing tab icon";
 
-                throw new RuntimeException("missing tab icon");
-            }
-
-            T tabWidget = this.factory.make(tabSide, this.color, this.title);
+            this.builtTab = this.factory.make(tabSide, this.color, this.title);
             if (this.itemIcon != null) {
 
-                tabWidget.setItemIcon(this.itemIcon);
+                this.builtTab.setItemIcon(this.itemIcon);
             }
 
             if (this.atlasIcon != null) {
 
-                tabWidget.setAtlasIcon(this.atlasIcon.getFirst(), this.atlasIcon.getSecond());
+                this.builtTab.setAtlasIcon(this.atlasIcon.getFirst(), this.atlasIcon.getSecond());
             }
 
-            return tabWidget;
+            return this.builtTab;
         }
 
-        private void setup(TabWidget tabWidget) {
+        private void setup() {
+
+            assert this.builtTab != null : "trying to setup tab before it was built";
 
             while (!this.setupQueue.isEmpty()) {
 
-                this.setupQueue.poll().accept((T) tabWidget);
+                this.setupQueue.poll().accept(this.builtTab);
             }
         }
 

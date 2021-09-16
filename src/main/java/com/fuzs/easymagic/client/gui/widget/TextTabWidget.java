@@ -39,7 +39,7 @@ public class TextTabWidget extends TabWidget {
     @Override
     protected int getLineCount(int currentPage) {
 
-        return this.tabContentRenderers[currentPage].func_241862_a();
+        return this.getPageCount() == 0 ? 0 : this.tabContentRenderers[currentPage].func_241862_a();
     }
 
 }

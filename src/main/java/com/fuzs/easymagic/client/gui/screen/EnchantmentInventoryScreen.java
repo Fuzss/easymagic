@@ -3,6 +3,7 @@ package com.fuzs.easymagic.client.gui.screen;
 import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.client.element.EasyEnchantingExtension;
 import com.fuzs.easymagic.client.gui.widget.LineTabWidget;
+import com.fuzs.easymagic.client.gui.widget.TabManager;
 import com.fuzs.easymagic.client.gui.widget.TextTabWidget;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.matrix.MatrixStack;
@@ -40,11 +41,12 @@ public class EnchantmentInventoryScreen extends EnchantmentScreen {
         String tabContent2 = "Although we can never be really certain, it's still worth it to try something new now and then.";
         TabManager.INSTANCE.registerLeft(new ResourceLocation(EasyMagic.MODID, "information"), this::addButton, new TabManager.TabBuilder<>(this, LineTabWidget::new, 0x47B5FE, new StringTextComponent("Information"))
                 .setItemIcon(Items.BOOKSHELF)
-                .addSetupAction(tab -> tab.setLineContent(new StringTextComponent("Enchanting Power:"), new StringTextComponent("    10 / 15"))));
+                // just some dummy text so tab doesn't resize when actual information is sent over
+                .addSetupAction(tab -> tab.setLineContent(new StringTextComponent("Enchanting Power:"), new StringTextComponent("    0 / 15"))));
         TabManager.INSTANCE.registerLeft(new ResourceLocation(EasyMagic.MODID, "tips"), this::addButton, new TabManager.TabBuilder<>(this, TextTabWidget::new, 0x79B637, new StringTextComponent("Tips & Hints"))
                 .setAtlasIcon(PlayerContainer.LOCATION_BLOCKS_TEXTURE, EasyEnchantingExtension.QUESTION_MARK_LOCATION)
                 .addSetupAction(tab -> tab.setTextContent(new StringTextComponent(tabContent), new StringTextComponent(tabContent2)))
-                .setPriority(5));
+                .setPriority(50));
     }
 
     @SuppressWarnings("NullableProblems")

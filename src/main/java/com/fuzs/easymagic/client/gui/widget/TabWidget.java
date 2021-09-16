@@ -70,7 +70,7 @@ public abstract class TabWidget extends Widget implements ITickable {
 
     public void copyData(TabWidget other) {
 
-        this.currentPage = Math.min(other.currentPage, this.getPageCount() - 1);
+        this.currentPage = Math.max(0, Math.min(other.currentPage, this.getPageCount() - 1));
         if (other.isExpanded()) {
 
             this.expand(true);

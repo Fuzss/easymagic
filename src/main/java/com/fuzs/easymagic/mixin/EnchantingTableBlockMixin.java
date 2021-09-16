@@ -2,13 +2,17 @@ package com.fuzs.easymagic.mixin;
 
 import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.inventory.container.EnchantmentInventoryContainer;
+import com.fuzs.easymagic.network.message.SEnchantingPowerMessage;
 import com.fuzs.easymagic.tileentity.EnchantingTableInventoryTileEntity;
+import com.fuzs.puzzleslib_em.PuzzlesLib;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ContainerBlock;
 import net.minecraft.block.EnchantingTableBlock;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -50,10 +54,12 @@ public abstract class EnchantingTableBlockMixin extends ContainerBlock {
         if (!worldIn.isRemote && tileentity instanceof EnchantingTableInventoryTileEntity) {
 
             player.openContainer((INamedContainerProvider) tileentity);
-            if (player.openContainer instanceof EnchantmentInventoryContainer) {
+            Container container = player.openContainer;
+            if (container instanceof EnchantmentInventoryContainer) {
 
                 // items might still be in inventory slots, so this needs to update so that enchantment buttons are shown
-                player.openContainer.onCraftMatrixChanged((IInventory) tileentity);
+                container.onCraftMatrixChanged((IInventory) tileentity);
+                PuzzlesLib.getNetworkHandler().sendTo(new SEnchantingPowerMessage(container.windowId, EnchantmentInventoryContainer.getEnchantingPower(worldIn, pos)), (ServerPlayerEntity) player);
             }
 
             callbackInfo.setReturnValue(ActionResultType.CONSUME);

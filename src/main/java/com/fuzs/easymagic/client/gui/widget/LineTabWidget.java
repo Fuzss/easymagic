@@ -51,7 +51,7 @@ public class LineTabWidget extends TabWidget {
     @Override
     protected int getLineCount(int currentPage) {
 
-        return this.tabContent[currentPage].length;
+        return this.getPageCount() == 0 ? 0 : this.tabContent[currentPage].length;
     }
 
 }

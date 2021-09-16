@@ -3,8 +3,8 @@ package com.fuzs.easymagic.element;
 import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.client.element.EasyEnchantingExtension;
 import com.fuzs.easymagic.inventory.container.EnchantmentInventoryContainer;
-import com.fuzs.easymagic.mixin.accessor.EnchantmentContainerAccessor;
 import com.fuzs.easymagic.network.message.SEnchantingInfoMessage;
+import com.fuzs.easymagic.network.message.SEnchantingPowerMessage;
 import com.fuzs.easymagic.tileentity.EnchantingTableInventoryTileEntity;
 import com.fuzs.puzzleslib_em.PuzzlesLib;
 import com.fuzs.puzzleslib_em.element.extension.ClientExtensibleElement;
@@ -12,7 +12,6 @@ import net.minecraft.block.Blocks;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.event.entity.player.PlayerContainerEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.registries.ObjectHolder;
 
@@ -53,6 +52,7 @@ public class EasyEnchantingElement extends ClientExtensibleElement<EasyEnchantin
     public void initCommon() {
 
         PuzzlesLib.getNetworkHandler().registerMessage(SEnchantingInfoMessage::new, LogicalSide.CLIENT);
+        PuzzlesLib.getNetworkHandler().registerMessage(SEnchantingPowerMessage::new, LogicalSide.CLIENT);
     }
 
     @Override

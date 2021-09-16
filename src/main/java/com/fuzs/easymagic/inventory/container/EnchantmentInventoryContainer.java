@@ -67,14 +67,14 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
                 accessor.getWorldPosCallable().consume((world, pos) -> {
 
                     EasyEnchantingElement element = (EasyEnchantingElement) EasyMagic.EASY_ENCHANTING;
-                    int power = element.maxPower == 0 ? 15 : (this.getEnchantingPower(world, pos) * 15) / element.maxPower;
+                    int power = element.maxPower == 0 ? 15 : (getEnchantingPower(world, pos) * 15) / element.maxPower;
 
                     accessor.getRand().setSeed(accessor.getXpSeed().get());
                     this.updateLevels(enchantedItem, world, pos, power);
                     // need to run this always as enchanting buttons will otherwise be greyed out
                     this.createClues(enchantedItem);
                     this.detectAndSendChanges();
-                    this.sendEnchantingInfo(enchantedItem, element);
+                    this.sendEnchantingInfo(enchantedItem, element.showEnchantments);
                 });
             } else {
 
@@ -149,15 +149,15 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
         throw new IllegalStateException("no enum types left");
     }
 
-    private void sendEnchantingInfo(ItemStack enchantedItem, EasyEnchantingElement element) {
+    private void sendEnchantingInfo(ItemStack enchantedItem, EasyEnchantingElement.ShowEnchantments showEnchantments) {
 
-        List<EnchantmentData> firstSlotData = this.getEnchantmentHint(enchantedItem, 0, element.showEnchantments);
-        List<EnchantmentData> secondSlotData = this.getEnchantmentHint(enchantedItem, 1, element.showEnchantments);
-        List<EnchantmentData> thirdSlotData = this.getEnchantmentHint(enchantedItem, 2, element.showEnchantments);
+        List<EnchantmentData> firstSlotData = this.getEnchantmentHint(enchantedItem, 0, showEnchantments);
+        List<EnchantmentData> secondSlotData = this.getEnchantmentHint(enchantedItem, 1, showEnchantments);
+        List<EnchantmentData> thirdSlotData = this.getEnchantmentHint(enchantedItem, 2, showEnchantments);
         PuzzlesLib.getNetworkHandler().sendTo(new SEnchantingInfoMessage(this.windowId, firstSlotData, secondSlotData, thirdSlotData), (ServerPlayerEntity) this.user);
     }
 
-    private int getEnchantingPower(World world, BlockPos pos) {
+    public static int getEnchantingPower(World world, BlockPos pos) {
         
         int power = 0;
         for (int k = -1; k <= 1; ++k) {
@@ -166,14 +166,14 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
                 
                 if ((k != 0 || l != 0) && isBlockEmpty(world, pos.add(l, 0, k)) && isBlockEmpty(world, pos.add(l, 1, k))) {
                     
-                    power += this.getPower(world, pos.add(l * 2, 0, k * 2));
-                    power += this.getPower(world, pos.add(l * 2, 1, k * 2));
+                    power += getPower(world, pos.add(l * 2, 0, k * 2));
+                    power += getPower(world, pos.add(l * 2, 1, k * 2));
                     if (l != 0 && k != 0) {
                         
-                        power += this.getPower(world, pos.add(l * 2, 0, k));
-                        power += this.getPower(world, pos.add(l * 2, 1, k));
-                        power += this.getPower(world, pos.add(l, 0, k * 2));
-                        power += this.getPower(world, pos.add(l, 1, k * 2));
+                        power += getPower(world, pos.add(l * 2, 0, k));
+                        power += getPower(world, pos.add(l * 2, 1, k));
+                        power += getPower(world, pos.add(l, 0, k * 2));
+                        power += getPower(world, pos.add(l, 1, k * 2));
                     }
                 }
             }
@@ -192,7 +192,7 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
         return world.isAirBlock(pos);
     }
     
-    private float getPower(World world, BlockPos pos) {
+    private static float getPower(World world, BlockPos pos) {
 
         return world.getBlockState(pos).getEnchantPowerBonus(world, pos);
     }
