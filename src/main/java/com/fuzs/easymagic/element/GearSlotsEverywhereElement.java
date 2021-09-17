@@ -2,8 +2,11 @@ package com.fuzs.easymagic.element;
 
 import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.client.element.GearSlotsEverywhereExtension;
+import com.fuzs.easymagic.inventory.container.IMovableSlot;
+import com.fuzs.easymagic.inventory.container.MovableCraftingSlot;
 import com.fuzs.easymagic.inventory.container.MovableSlot;
 import com.fuzs.easymagic.mixin.accessor.ContainerAccessor;
+import com.fuzs.easymagic.network.message.S2CCraftingSlotsMessage;
 import com.fuzs.easymagic.network.message.S2CGearSlotsMessage;
 import com.fuzs.puzzleslib_em.PuzzlesLib;
 import com.fuzs.puzzleslib_em.element.extension.ClientExtensibleElement;
@@ -12,16 +15,26 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.CraftResultInventory;
+import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.PlayerContainer;
+import net.minecraft.inventory.container.RecipeBookContainer;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.ICraftingRecipe;
+import net.minecraft.item.crafting.IRecipeType;
+import net.minecraft.network.play.server.SSetSlotPacket;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.event.entity.player.PlayerContainerEvent;
 import net.minecraftforge.fml.LogicalSide;
+
+import java.util.Optional;
 
 public class GearSlotsEverywhereElement extends ClientExtensibleElement<GearSlotsEverywhereExtension> {
 
@@ -49,16 +62,113 @@ public class GearSlotsEverywhereElement extends ClientExtensibleElement<GearSlot
     public void initCommon() {
 
         PuzzlesLib.getNetworkHandler().registerMessage(S2CGearSlotsMessage::new, LogicalSide.CLIENT);
+        PuzzlesLib.getNetworkHandler().registerMessage(S2CCraftingSlotsMessage::new, LogicalSide.CLIENT);
     }
 
     private void onContainerOpen(final PlayerContainerEvent.Open evt) {
 
         Container container = evt.getContainer();
-        addPlayerSlots(container, evt.getPlayer());
-        PuzzlesLib.getNetworkHandler().sendTo(new S2CGearSlotsMessage(container.windowId), (ServerPlayerEntity) evt.getPlayer());
+        PlayerEntity player = evt.getPlayer();
+
+        int[] gearSlotNumbers = addGearSlots(container, player);
+        PuzzlesLib.getNetworkHandler().sendTo(new S2CGearSlotsMessage(container.windowId, gearSlotNumbers), (ServerPlayerEntity) player);
+
+        if (!(container instanceof RecipeBookContainer) || ((RecipeBookContainer<?>) container).getWidth() != 3 || ((RecipeBookContainer<?>) container).getHeight() != 3) {
+
+            int[] craftingSlotNumbers = addCraftingSlots(container, player);
+            PuzzlesLib.getNetworkHandler().sendTo(new S2CCraftingSlotsMessage(container.windowId, craftingSlotNumbers), (ServerPlayerEntity) player);
+        }
     }
 
-    public static int[] addPlayerSlots(Container container, PlayerEntity player) {
+    private void onContainerClose(final PlayerContainerEvent.Close evt, IInventory craftMatrix, Container container, Runnable unregister) {
+
+        if (container == evt.getContainer()) {
+
+            this.clearContainer(evt.getPlayer(), evt.getPlayer().world, craftMatrix);
+        }
+
+        unregister.run();
+    }
+
+    private void clearContainer(PlayerEntity playerIn, World worldIn, IInventory inventoryIn) {
+
+        if (!playerIn.isAlive() || playerIn instanceof ServerPlayerEntity && ((ServerPlayerEntity)playerIn).hasDisconnected()) {
+
+            for (int j = 0; j < inventoryIn.getSizeInventory(); ++j) {
+
+                playerIn.dropItem(inventoryIn.removeStackFromSlot(j), false);
+            }
+        } else {
+
+            for (int i = 0; i < inventoryIn.getSizeInventory(); ++i) {
+
+                playerIn.inventory.placeItemBackInInventory(worldIn, inventoryIn.removeStackFromSlot(i));
+            }
+        }
+    }
+
+    public static int[] addCraftingSlots(Container container, PlayerEntity player) {
+
+        int[] slotNumbers = new int[10];
+        CraftResultInventory craftResult = new CraftResultInventory();
+        CraftingInventory craftMatrix = new CraftingInventory(container, 3, 3) {
+
+            @Override
+            public ItemStack decrStackSize(int index, int count) {
+
+                ItemStack itemstack = super.decrStackSize(index, count);
+                if (!itemstack.isEmpty()) {
+
+                    updateCraftingResult(container.windowId, player.world, player, this, craftResult, slotNumbers);
+                }
+
+                return itemstack;
+            }
+
+            @Override
+            public void setInventorySlotContents(int index, ItemStack stack) {
+
+                super.setInventorySlotContents(index, stack);
+                updateCraftingResult(container.windowId, player.world, player, this, craftResult, slotNumbers);
+            }
+
+        };
+
+        slotNumbers[0] = ((ContainerAccessor) container).callAddSlot(new MovableCraftingSlot(player, craftMatrix, craftResult, 0)).slotNumber;
+        for (int i = 0; i < 3; ++i) {
+
+            for (int j = 0; j < 3; ++j) {
+
+                slotNumbers[j + i * 3 + 1] = ((ContainerAccessor) container).callAddSlot(new MovableSlot(craftMatrix, j + i * 3)).slotNumber;
+            }
+        }
+
+        return slotNumbers;
+    }
+
+    private static void updateCraftingResult(int id, World world, PlayerEntity player, CraftingInventory inventory, CraftResultInventory inventoryResult, int[] slotNumbers) {
+
+        // copied from WorkbenchContainer, only SSetSlotPacket slot has been changed
+        if (!world.isRemote) {
+
+            ServerPlayerEntity serverplayerentity = (ServerPlayerEntity) player;
+            ItemStack itemstack = ItemStack.EMPTY;
+            Optional<ICraftingRecipe> optional = world.getServer().getRecipeManager().getRecipe(IRecipeType.CRAFTING, inventory, world);
+            if (optional.isPresent()) {
+
+                ICraftingRecipe icraftingrecipe = optional.get();
+                if (inventoryResult.canUseRecipe(world, serverplayerentity, icraftingrecipe)) {
+
+                    itemstack = icraftingrecipe.getCraftingResult(inventory);
+                }
+            }
+
+            inventoryResult.setInventorySlotContents(0, itemstack);
+            serverplayerentity.connection.sendPacket(new SSetSlotPacket(id, slotNumbers[0], itemstack));
+        }
+    }
+
+    public static int[] addGearSlots(Container container, PlayerEntity player) {
 
         int[] slotNumbers = new int[5];
         PlayerInventory playerInventory = player.inventory;
@@ -119,9 +229,9 @@ public class GearSlotsEverywhereElement extends ClientExtensibleElement<GearSlot
             if (slotIndex < container.inventorySlots.size()) {
 
                 Slot slot = container.getSlot(slotIndex);
-                if (slot instanceof MovableSlot) {
+                if (slot instanceof IMovableSlot) {
 
-                    ((MovableSlot) slot).moveTo(slotNumberToPosition[i + 1], slotNumberToPosition[i + 2]);
+                    ((IMovableSlot) slot).moveTo(slotNumberToPosition[i + 1], slotNumberToPosition[i + 2]);
                 } else {
 
                     EasyMagic.LOGGER.warn("slot is not movable");
@@ -138,9 +248,9 @@ public class GearSlotsEverywhereElement extends ClientExtensibleElement<GearSlot
         for (int slotNumber : slotNumbers) {
 
             Slot slot = container.getSlot(slotNumber);
-            if (slot instanceof MovableSlot) {
+            if (slot instanceof IMovableSlot) {
 
-                ((MovableSlot) slot).setVisible(visible);
+                ((IMovableSlot) slot).setVisible(visible);
             } else {
 
                 EasyMagic.LOGGER.warn("slot unable to change visibility");

@@ -1,8 +1,7 @@
 package com.fuzs.easymagic.network.message;
 
+import com.fuzs.easymagic.EasyMagic;
 import com.fuzs.easymagic.element.GearSlotsEverywhereElement;
-import com.fuzs.easymagic.network.client.message.C2SMoveGearSlotsMessage;
-import com.fuzs.puzzleslib_em.PuzzlesLib;
 import com.fuzs.puzzleslib_em.network.message.Message;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
@@ -11,38 +10,44 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.network.PacketBuffer;
 
+import java.util.Arrays;
+
 public class S2CGearSlotsMessage extends Message {
 
     private int windowId;
+    private int[] slotNumbers;
 
     public S2CGearSlotsMessage() {
 
     }
 
-    public S2CGearSlotsMessage(int windowId) {
+    public S2CGearSlotsMessage(int windowId, int[] slotNumbers) {
 
         this.windowId = windowId;
+        this.slotNumbers = slotNumbers;
     }
 
     @Override
     public void write(PacketBuffer buf) {
 
         buf.writeByte(this.windowId);
+        buf.writeVarIntArray(this.slotNumbers);
     }
 
     @Override
     public void read(PacketBuffer buf) {
 
         this.windowId = buf.readByte();
+        this.slotNumbers = buf.readVarIntArray();
     }
 
     @Override
     protected MessageProcessor createProcessor() {
 
-        return new AddArmorSlotsProcessor();
+        return new GearSlotsProcessor();
     }
 
-    private class AddArmorSlotsProcessor implements MessageProcessor {
+    private class GearSlotsProcessor implements MessageProcessor {
 
         @Override
         public void accept(PlayerEntity playerEntity) {
@@ -50,7 +55,13 @@ public class S2CGearSlotsMessage extends Message {
             Container container = playerEntity.openContainer;
             if (S2CGearSlotsMessage.this.windowId == container.windowId) {
 
-                int[] slotNumbers = GearSlotsEverywhereElement.addPlayerSlots(container, playerEntity);
+                int[] slotNumbers = GearSlotsEverywhereElement.addGearSlots(container, playerEntity);
+                if (!Arrays.equals(slotNumbers, S2CGearSlotsMessage.this.slotNumbers)) {
+
+                    EasyMagic.LOGGER.error("unable to add additional container slots on client: slot numbers mismatched");
+                    return;
+                }
+
                 Screen currentScreen = Minecraft.getInstance().currentScreen;
                 if (currentScreen instanceof ContainerScreen<?> && ((ContainerScreen<?>) currentScreen).getContainer() == container) {
 
@@ -63,9 +74,8 @@ public class S2CGearSlotsMessage extends Message {
                     }
 
                     GearSlotsEverywhereElement.setupSlotPositions(container, slotNumberToPosition);
-                    // don't need to make slots visible on server as parameter is only used for rendering
                     GearSlotsEverywhereElement.setSlotVisibilities(container, slotNumbers, true);
-                    PuzzlesLib.getNetworkHandler().sendToServer(new C2SMoveGearSlotsMessage(container.windowId, slotNumberToPosition));
+//                    PuzzlesLib.getNetworkHandler().sendToServer(new C2SMoveGearSlotsMessage(container.windowId, slotNumberToPosition));
                 }
             }
         }

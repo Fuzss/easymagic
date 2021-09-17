@@ -1,17 +1,20 @@
 package com.fuzs.easymagic.inventory.container;
 
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.container.CraftingResultSlot;
 import net.minecraft.inventory.container.Slot;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class MovableSlot extends Slot implements IMovableSlot {
+public class MovableCraftingSlot extends CraftingResultSlot implements IMovableSlot {
 
     private boolean visible = false;
 
-    public MovableSlot(IInventory inventoryIn, int index) {
+    public MovableCraftingSlot(PlayerEntity player, CraftingInventory craftingInventory, IInventory inventoryIn, int slotIndex) {
 
-        super(inventoryIn, index, 0, 0);
+        super(player, craftingInventory, inventoryIn, slotIndex, 0, 0);
     }
 
     @Override
