@@ -5,17 +5,24 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.IHasContainer;
+import net.minecraft.client.gui.ScreenManager;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.renderer.texture.ITickable;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -26,7 +33,8 @@ public enum TabManager {
 
     INSTANCE;
 
-    private static final Map<ResourceLocation, TabWidget> ALL_TABS = Maps.newHashMap();
+    private static final Map<ContainerType<?>, ScreenManager.IScreenFactory<?, ?>> FACTORIES = Maps.newHashMap();
+    private static final Map<ResourceLocation, TabWidget> TAB_INSTANCES = Maps.newHashMap();
 
     private final Map<ResourceLocation, TabBuilder<?>> leftTabBuilders = Maps.newHashMap();
     private final Map<ResourceLocation, TabBuilder<?>> rightTabBuilders = Maps.newHashMap();
@@ -37,9 +45,35 @@ public enum TabManager {
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    public Optional<TabWidget> getTab(ResourceLocation identifier) {
+    public static <T extends Container> Optional<ScreenManager.IScreenFactory<T, ?>> getScreenFactory(@Nullable ContainerType<T> type) {
+        if (type == null) {
+            EasyMagic.LOGGER.warn("Trying to open invalid screen");
+        } else {
+            ScreenManager.IScreenFactory<T, ?> iscreenfactory = getFactory(type);
+            if (iscreenfactory == null) {
+                EasyMagic.LOGGER.warn("Failed to create screen for menu type: {}", ForgeRegistries.CONTAINERS.getKey(type));
+            } else {
+                return java.util.Optional.of(iscreenfactory);
+            }
+        }
+        return Optional.empty();
+    }
 
-        return Optional.ofNullable(ALL_TABS.get(identifier));
+    @Nullable
+    private static <T extends Container> ScreenManager.IScreenFactory<T, ?> getFactory(ContainerType<T> type) {
+        return (ScreenManager.IScreenFactory<T, ?>)FACTORIES.get(type);
+    }
+
+    public static <M extends Container, U extends Screen & IHasContainer<M>> void registerFactory(ContainerType<? extends M> type, ScreenManager.IScreenFactory<M, U> factory) {
+        ScreenManager.IScreenFactory<?, ?> iscreenfactory = FACTORIES.put(type, factory);
+        if (iscreenfactory != null) {
+            throw new IllegalStateException("Duplicate registration for " + ForgeRegistries.CONTAINERS.getKey(type));
+        }
+    }
+
+    public Optional<TabWidget> getTabInstance(ResourceLocation identifier) {
+
+        return Optional.ofNullable(TAB_INSTANCES.get(identifier));
     }
 
     public void registerLeft(ResourceLocation tabIdentifier, Consumer<Widget> addButton, TabBuilder<?> builder) {
@@ -67,7 +101,7 @@ public enum TabManager {
 
     private void copyOldData(ResourceLocation tabIdentifier, TabWidget tabWidget) {
 
-        TabWidget oldTabWidget = ALL_TABS.put(tabIdentifier, tabWidget);
+        TabWidget oldTabWidget = TAB_INSTANCES.put(tabIdentifier, tabWidget);
         if (oldTabWidget != null) {
 
             tabWidget.copyData(oldTabWidget);

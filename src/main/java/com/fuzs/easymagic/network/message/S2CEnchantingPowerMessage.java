@@ -55,7 +55,7 @@ public class S2CEnchantingPowerMessage extends Message {
             Container container = playerEntity.openContainer;
             if (S2CEnchantingPowerMessage.this.windowId == container.windowId && container instanceof EnchantmentInventoryContainer) {
 
-                TabManager.INSTANCE.getTab(new ResourceLocation(EasyMagic.MODID, "information")).ifPresent(tab -> ((LineTabWidget) tab).setLineContent(new StringTextComponent("Enchanting Power:"), new StringTextComponent(String.format("    %d / %d", S2CEnchantingPowerMessage.this.enchPower, ((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).maxPower))));
+                TabManager.INSTANCE.getTabInstance(new ResourceLocation(EasyMagic.MODID, "information")).ifPresent(tab -> ((LineTabWidget) tab).setLineContent(new StringTextComponent("Enchanting Power:"), new StringTextComponent(String.format("    %d / %d", S2CEnchantingPowerMessage.this.enchPower, ((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).maxPower))));
             }
         }
 

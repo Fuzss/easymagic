@@ -8,6 +8,7 @@ import com.fuzs.easymagic.inventory.container.MovableSlot;
 import com.fuzs.easymagic.mixin.accessor.ContainerAccessor;
 import com.fuzs.easymagic.network.message.S2CCraftingSlotsMessage;
 import com.fuzs.easymagic.network.message.S2CGearSlotsMessage;
+import com.fuzs.easymagic.network.message.S2COpenTabMessage;
 import com.fuzs.puzzleslib_em.PuzzlesLib;
 import com.fuzs.puzzleslib_em.element.extension.ClientExtensibleElement;
 import com.mojang.datafixers.util.Pair;
@@ -63,6 +64,7 @@ public class GearSlotsEverywhereElement extends ClientExtensibleElement<GearSlot
 
         PuzzlesLib.getNetworkHandler().registerMessage(S2CGearSlotsMessage::new, LogicalSide.CLIENT);
         PuzzlesLib.getNetworkHandler().registerMessage(S2CCraftingSlotsMessage::new, LogicalSide.CLIENT);
+        PuzzlesLib.getNetworkHandler().registerMessage(S2COpenTabMessage::new, LogicalSide.CLIENT);
     }
 
     private void onContainerOpen(final PlayerContainerEvent.Open evt) {
