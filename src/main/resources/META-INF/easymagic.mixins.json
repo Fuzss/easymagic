@@ -1,12 +1,12 @@
 {
   "required": true,
-  "minVersion": "0.8.0",
-  "compatibilityLevel": "JAVA_8",
-  "package": "com.fuzs.easymagic.mixin",
+  "minVersion": "0.8.4",
+  "compatibilityLevel": "JAVA_16",
+  "package": "fuzs.easymagic.mixin",
   "refmap": "easymagic.refmap.json",
   "mixins": [
-    "EnchantingTableBlockMixin",
-    "accessor.EnchantmentContainerAccessor"
+    "EnchantmentTableBlockMixin",
+    "accessor.EnchantmentMenuAccessor"
   ],
   "client": [
   ],
