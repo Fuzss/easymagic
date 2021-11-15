@@ -1,6 +1,6 @@
 {
   "required": true,
-  "minVersion": "0.8.4",
+  "minVersion": "0.8",
   "compatibilityLevel": "JAVA_16",
   "package": "fuzs.easymagic.mixin",
   "refmap": "easymagic.refmap.json",

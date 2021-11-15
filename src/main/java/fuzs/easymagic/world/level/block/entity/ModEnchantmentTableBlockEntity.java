@@ -63,12 +63,12 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
 
     @Override
     public CompoundTag save(CompoundTag compound) {
-        this.saveItems(compound);
+        this.saveMetadataAndItems(compound);
         this.code.addToTag(compound);
         return compound;
     }
 
-    private CompoundTag saveItems(CompoundTag compound) {
+    private CompoundTag saveMetadataAndItems(CompoundTag compound) {
         super.save(compound);
         ContainerHelper.saveAllItems(compound, this.inventory, true);
         return compound;
@@ -82,7 +82,7 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
 
     @Override
     public CompoundTag getUpdateTag() {
-        return this.saveItems(new CompoundTag());
+        return this.saveMetadataAndItems(new CompoundTag());
     }
 
     @Override
