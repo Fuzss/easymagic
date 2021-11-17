@@ -139,6 +139,7 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
             case SINGLE:
 
                 List<EnchantmentData> enchantmentData = this.createEnchantmentData(enchantedItem, enchantSlot);
+                if (enchantmentData.isEmpty()) return Lists.newArrayList();
 
                 return Lists.newArrayList(enchantmentData.get(((EnchantmentContainerAccessor) this).getRand().nextInt(enchantmentData.size())));
             case ALL:
@@ -284,7 +285,8 @@ public class EnchantmentInventoryContainer extends EnchantmentContainer {
         @Override
         public boolean isItemValid(ItemStack stack) {
 
-            if (((EasyEnchantingElement) EasyMagic.EASY_ENCHANTING).itemsStay) {
+            final EasyEnchantingElement element = (EasyEnchantingElement) EasyMagic.EASY_ENCHANTING;
+            if (element.itemsStay && element.filterTable) {
 
                 // can't exchange items directly while holding replacement otherwise, this seems to do the trick
                 return stack.isEnchantable() || stack.getItem() instanceof BookItem && !this.getHasStack();

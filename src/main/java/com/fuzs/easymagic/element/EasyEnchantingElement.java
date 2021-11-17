@@ -29,6 +29,7 @@ public class EasyEnchantingElement extends ClientExtensibleElement<EasyEnchantin
     public ShowEnchantments showEnchantments;
     public int maxPower;
     public boolean lenientBookshelves;
+    public boolean filterTable;
 
     public EasyEnchantingElement() {
 
@@ -63,6 +64,7 @@ public class EasyEnchantingElement extends ClientExtensibleElement<EasyEnchantin
         addToConfig(builder.comment("Choose how many enchantments are shown on the enchanting tooltip, if any at all.").defineEnum("Show Enchantments", ShowEnchantments.SINGLE), v -> this.showEnchantments = v);
         addToConfig(builder.comment("Amount of bookshelves required to perform enchantments at the highest level.").defineInRange("Enchanting Power", 15, 0, Integer.MAX_VALUE), v -> this.maxPower = v);
         addToConfig(builder.comment("Blocks without a collision shape do not block bookshelves placed behind from counting towards current enchanting power.").define("Lenient Bookshelves", true), v -> this.lenientBookshelves = v);
+        addToConfig(builder.comment("Only allow items that can be enchanted to be placed into the enchanting slot of an enchanting table. Useful when inserting items automatically with a hopper.").define("Filter Enchanting Input", false), v -> this.filterTable = v);
     }
 
     public enum ShowEnchantments {
