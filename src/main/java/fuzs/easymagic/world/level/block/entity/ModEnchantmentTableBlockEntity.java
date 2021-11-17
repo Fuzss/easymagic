@@ -172,7 +172,7 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
             if (index == 1) {
                 return Tags.Items.GEMS_LAPIS.contains(stack.getItem());
             } else if (index == 0) {
-                return (stack.isEnchantable() || stack.getItem() instanceof BookItem) && this.inventory.get(index).isEmpty();
+                return this.inventory.get(0).isEmpty() && (!EasyMagic.CONFIG.server().filterTable || stack.isEnchantable() || stack.getItem() instanceof BookItem);
             }
         }
         return false;

@@ -118,6 +118,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu {
             case NONE -> Lists.newArrayList();
             case SINGLE -> {
                 List<EnchantmentInstance> enchantmentData = this.createEnchantmentInstance(enchantedItem, enchantSlot);
+                if (enchantmentData.isEmpty()) yield Lists.newArrayList();
                 yield Lists.newArrayList(enchantmentData.get(((EnchantmentMenuAccessor) this).getRandom().nextInt(enchantmentData.size())));
             }
             case ALL -> this.createEnchantmentInstance(enchantedItem, enchantSlot);
@@ -212,7 +213,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu {
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            if (EasyMagic.CONFIG.server().itemsStay) {
+            if (EasyMagic.CONFIG.server().itemsStay && EasyMagic.CONFIG.server().filterTable) {
                 // can't exchange items directly while holding replacement otherwise, this seems to do the trick
                 return stack.isEnchantable() || stack.getItem() instanceof BookItem && !this.hasItem();
             }
