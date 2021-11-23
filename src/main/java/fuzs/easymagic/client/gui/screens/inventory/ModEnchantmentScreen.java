@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ModEnchantmentScreen extends EnchantmentScreen {
-    private final List<List<Component>> slotTooltips = IntStream.range(0, 3).mapToObj(i -> Lists.<Component>newArrayList()).collect(Collectors.toList());
+    private final List<List<EnchantmentInstance>> slotData = IntStream.range(0, 3).mapToObj(i -> Lists.<EnchantmentInstance>newArrayList()).collect(Collectors.toList());
 
     public ModEnchantmentScreen(EnchantmentMenu container, Inventory playerInventory, Component textComponent) {
         super(container, playerInventory, textComponent);
@@ -31,8 +31,10 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         super.render(matrixStack, mouseX, mouseY, partialTicks);
         // rendering of vanilla tooltip is canceled in #isPointInRegion when this is true
         int slot = this.getEnchantingSlot(mouseX, mouseY);
-        if (slot != -1 && !this.slotTooltips.get(slot).isEmpty()) {
-            this.renderComponentTooltip(matrixStack, this.slotTooltips.get(slot), mouseX, mouseY);
+        if (slot != -1 && !this.slotData.get(slot).isEmpty()) {
+            List<Component> tooltip = Lists.newArrayList();
+            this.addSlotEnchantments(slot, this.slotData.get(slot), tooltip);
+            this.renderComponentTooltip(matrixStack, tooltip, mouseX, mouseY);
         }
     }
 
@@ -71,10 +73,8 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         return -1;
     }
 
-    public void setSlotTooltip(int slot, List<EnchantmentInstance> slotData) {
-        List<Component> slotTooltip = this.slotTooltips.get(slot);
-        slotTooltip.clear();
-        this.addSlotEnchantments(slot, slotData, slotTooltip);
+    public void setSlotData(int slot, List<EnchantmentInstance> data) {
+        this.slotData.set(slot, data);
     }
 
     private void addSlotEnchantments(int slot, List<EnchantmentInstance> slotData, List<Component> slotTooltip) {

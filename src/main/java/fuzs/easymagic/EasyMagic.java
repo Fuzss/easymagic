@@ -2,7 +2,7 @@ package fuzs.easymagic;
 
 import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.config.ServerConfig;
-import fuzs.easymagic.network.message.S2CEnchantingInfoMessage;
+import fuzs.easymagic.network.message.S2CEnchantingDataMessage;
 import fuzs.easymagic.registry.ModRegistry;
 import fuzs.puzzleslib.config.ConfigHolder;
 import fuzs.puzzleslib.config.ConfigHolderImpl;
@@ -33,6 +33,6 @@ public class EasyMagic {
     }
 
     private static void registerMessages() {
-        NETWORK.register(S2CEnchantingInfoMessage.class, S2CEnchantingInfoMessage::new, MessageDirection.TO_CLIENT);
+        NETWORK.register(S2CEnchantingDataMessage.class, S2CEnchantingDataMessage::new, MessageDirection.TO_CLIENT);
     }
 }

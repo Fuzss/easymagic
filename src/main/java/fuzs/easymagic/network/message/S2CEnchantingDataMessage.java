@@ -13,17 +13,17 @@ import net.minecraftforge.registries.ForgeRegistry;
 import java.util.ArrayList;
 import java.util.List;
 
-public class S2CEnchantingInfoMessage implements Message {
+public class S2CEnchantingDataMessage implements Message {
     private int containerId;
     private List<EnchantmentInstance> firstSlotData;
     private List<EnchantmentInstance> secondSlotData;
     private List<EnchantmentInstance> thirdSlotData;
 
-    public S2CEnchantingInfoMessage() {
+    public S2CEnchantingDataMessage() {
 
     }
 
-    public S2CEnchantingInfoMessage(int containerId, List<EnchantmentInstance> firstSlotData, List<EnchantmentInstance> secondSlotData, List<EnchantmentInstance> thirdSlotData) {
+    public S2CEnchantingDataMessage(int containerId, List<EnchantmentInstance> firstSlotData, List<EnchantmentInstance> secondSlotData, List<EnchantmentInstance> thirdSlotData) {
         this.containerId = containerId;
         this.firstSlotData = firstSlotData;
         this.secondSlotData = secondSlotData;
@@ -65,18 +65,18 @@ public class S2CEnchantingInfoMessage implements Message {
     }
 
     @Override
-    public EnchantingInfoHandler makeHandler() {
-        return new EnchantingInfoHandler();
+    public EnchantingDataHandler makeHandler() {
+        return new EnchantingDataHandler();
     }
 
-    private static class EnchantingInfoHandler extends PacketHandler<S2CEnchantingInfoMessage> {
+    private static class EnchantingDataHandler extends PacketHandler<S2CEnchantingDataMessage> {
         @Override
-        public void handle(S2CEnchantingInfoMessage packet, Player player, Object gameInstance) {
+        public void handle(S2CEnchantingDataMessage packet, Player player, Object gameInstance) {
             if (((Minecraft) gameInstance).screen instanceof ModEnchantmentScreen screen) {
                 if (player.containerMenu.containerId == packet.containerId) {
-                    screen.setSlotTooltip(0, packet.firstSlotData);
-                    screen.setSlotTooltip(1, packet.secondSlotData);
-                    screen.setSlotTooltip(2, packet.thirdSlotData);
+                    screen.setSlotData(0, packet.firstSlotData);
+                    screen.setSlotData(1, packet.secondSlotData);
+                    screen.setSlotData(2, packet.thirdSlotData);
                 }
             }
         }

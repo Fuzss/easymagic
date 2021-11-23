@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ModEnchantTableRenderer extends EnchantTableRenderer {
-
     public ModEnchantTableRenderer(BlockEntityRendererProvider.Context pContext) {
         super(pContext);
     }
@@ -32,7 +31,6 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
     @Override
     public void render(EnchantmentTableBlockEntity tileEntityIn, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
         super.render(tileEntityIn, partialTicks, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
-        if (!EasyMagic.CONFIG.server().itemsStay) return;
         // get inventory contents from two slots
         ItemStack itemToEnchant = ((Container) tileEntityIn).getItem(0);
         ItemStack catalystItem = ((Container) tileEntityIn).getItem(1);

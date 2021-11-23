@@ -21,16 +21,10 @@ public interface EnchantmentMenuAccessor {
     void setEnchantSlots(Container enchantSlots);
 
     @Accessor
-    Container getEnchantSlots();
-
-    @Accessor
     DataSlot getEnchantmentSeed();
 
     @Accessor
     Random getRandom();
-
-    @Accessor
-    ContainerLevelAccess getAccess();
 
     @Invoker
     List<EnchantmentInstance> callGetEnchantmentList(ItemStack stack, int enchantSlot, int level);

@@ -1,9 +1,8 @@
 package fuzs.easymagic.world.level.block.entity;
 
 import fuzs.easymagic.EasyMagic;
-import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.easymagic.registry.ModRegistry;
-import com.google.common.collect.Lists;
+import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -31,15 +30,10 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.SidedInvWrapper;
 
 import javax.annotation.Nullable;
-import java.lang.ref.WeakReference;
-import java.util.Iterator;
-import java.util.List;
-import java.util.function.Consumer;
 
 @SuppressWarnings("NullableProblems")
 public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity implements Container, MenuProvider, WorldlyContainer {
     private final NonNullList<ItemStack> inventory = NonNullList.withSize(2, ItemStack.EMPTY);
-    private final List<WeakReference<ModEnchantmentMenu>> containerReferences = Lists.newArrayList();
     private LazyOptional<? extends IItemHandler>[] handlers = SidedInvWrapper.create(this, Direction.UP, Direction.DOWN, Direction.NORTH);
     private LockCode code = LockCode.NO_LOCK;
 
@@ -97,19 +91,6 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
         super.setChanged();
         if (this.level != null) {
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
-            this.updateReferences(container -> container.slotsChanged(this));
-        }
-    }
-
-    public void updateReferences(Consumer<ModEnchantmentMenu> action) {
-        Iterator<WeakReference<ModEnchantmentMenu>> iterator = this.containerReferences.iterator();
-        while (iterator.hasNext()) {
-            ModEnchantmentMenu container = iterator.next().get();
-            if (container != null && container.getUser().containerMenu == container) {
-                action.accept(container);
-            } else {
-                iterator.remove();
-            }
         }
     }
 
@@ -168,12 +149,10 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
 
     @Override
     public boolean canPlaceItem(int index, ItemStack stack) {
-        if (EasyMagic.CONFIG.server().itemsStay) {
-            if (index == 1) {
-                return Tags.Items.GEMS_LAPIS.contains(stack.getItem());
-            } else if (index == 0) {
-                return this.inventory.get(0).isEmpty() && (!EasyMagic.CONFIG.server().filterTable || stack.isEnchantable() || stack.getItem() instanceof BookItem);
-            }
+        if (index == 1) {
+            return Tags.Items.GEMS_LAPIS.contains(stack.getItem());
+        } else if (index == 0) {
+            return this.inventory.get(0).isEmpty() && (!EasyMagic.CONFIG.server().filterTable || stack.isEnchantable() || stack.getItem() instanceof BookItem);
         }
         return false;
     }
@@ -185,19 +164,13 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
 
     @Override
     public boolean canPlaceItemThroughFace(int index, ItemStack itemStackIn, @Nullable Direction direction) {
-        if (EasyMagic.CONFIG.server().itemsStay) {
-            return this.canPlaceItem(index, itemStackIn);
-        }
-        return false;
+        return this.canPlaceItem(index, itemStackIn);
     }
 
     @Override
     public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
-        if (EasyMagic.CONFIG.server().itemsStay) {
-            // only allow extracting of enchantable item
-            return index == 0 && (stack.isEnchanted() || stack.getItem() instanceof EnchantedBookItem);
-        }
-        return false;
+        // only allow extracting of enchantable item
+        return index == 0 && (stack.isEnchanted() || stack.getItem() instanceof EnchantedBookItem);
     }
 
     @Override
@@ -217,9 +190,7 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
 
     @SuppressWarnings("ConstantConditions")
     protected AbstractContainerMenu createMenu(int id, Inventory playerInventory) {
-        ModEnchantmentMenu container = new ModEnchantmentMenu(id, playerInventory, this, ContainerLevelAccess.create(this.level, this.worldPosition));
-        this.containerReferences.add(new WeakReference<>(container));
-        return container;
+        return new ModEnchantmentMenu(id, playerInventory, this, ContainerLevelAccess.create(this.level, this.worldPosition));
     }
 
     @Override
