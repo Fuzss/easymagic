@@ -7,7 +7,7 @@ import fuzs.puzzleslib.registry.RegistryManager;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.fmllegacy.RegistryObject;
+import net.minecraftforge.registries.RegistryObject;
 
 public class ModRegistry {
     private static final RegistryManager REGISTRY = RegistryManager.of(EasyMagic.MOD_ID);
