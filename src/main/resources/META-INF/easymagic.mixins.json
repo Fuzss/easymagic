@@ -6,7 +6,8 @@
   "refmap": "easymagic.refmap.json",
   "mixins": [
     "EnchantmentTableBlockMixin",
-    "accessor.EnchantmentMenuAccessor"
+    "accessor.EnchantmentMenuAccessor",
+    "accessor.PlayerAccessor"
   ],
   "client": [
   ],

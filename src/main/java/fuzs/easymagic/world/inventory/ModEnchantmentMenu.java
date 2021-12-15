@@ -4,11 +4,14 @@ import com.google.common.collect.Lists;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.mixin.accessor.EnchantmentMenuAccessor;
+import fuzs.easymagic.mixin.accessor.PlayerAccessor;
 import fuzs.easymagic.network.message.S2CEnchantingDataMessage;
 import fuzs.easymagic.registry.ModRegistry;
 import fuzs.puzzleslib.util.PuzzlesUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -26,12 +29,14 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.ForgeRegistry;
 
 import java.util.List;
+import java.util.Random;
 
-@SuppressWarnings("NullableProblems")
 public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerListener {
     private final Container enchantSlots;
     private final ContainerLevelAccess access;
     private final Player player;
+    private final Random random;
+    private final DataSlot enchantmentSeed;
 
     public ModEnchantmentMenu(int id, Inventory playerInventory) {
         this(id, playerInventory, new SimpleContainer(2), ContainerLevelAccess.NULL);
@@ -42,6 +47,8 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         this.enchantSlots = inventory;
         this.access = worldPosCallable;
         this.player = playerInventory.player;
+        this.random = ((EnchantmentMenuAccessor) this).getRandom();
+        this.enchantmentSeed = ((EnchantmentMenuAccessor) this).getEnchantmentSeed();
         ((EnchantmentMenuAccessor) this).setEnchantSlots(inventory);
         this.slots.set(0, PuzzlesUtil.make(new EnchantableSlot(inventory, 0, 15, 47), slot -> slot.index = 0));
         this.slots.set(1, PuzzlesUtil.make(new LapisSlot(inventory, 1, 35, 47), slot -> slot.index = 1));
@@ -60,7 +67,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             if (!enchantedItem.isEmpty() && enchantedItem.isEnchantable()) {
                 this.access.execute((world, pos) -> {
                     int power = EasyMagic.CONFIG.server().maxPower == 0 ? 15 : (this.getEnchantingPower(world, pos) * 15) / EasyMagic.CONFIG.server().maxPower;
-                    ((EnchantmentMenuAccessor) this).getRandom().setSeed(((EnchantmentMenuAccessor) this).getEnchantmentSeed().get());
+                    this.random.setSeed(this.enchantmentSeed.get());
                     this.updateLevels(enchantedItem, world, pos, power);
                     // need to run this always as enchanting buttons will otherwise be greyed out
                     this.createClues(enchantedItem);
@@ -82,14 +89,21 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             // this is only executed on server anyways as slot listeners are only processed there by default, but might as well use the access here
             this.access.execute((Level, BlockPos) -> {
                 // need to do this before calling AbstractContainerMenu::slotsChanged
-                if (i == 0 && !itemStack.isEmpty() && EasyMagic.CONFIG.server().reRollEnchantments) {
-                    // set a new enchantment seed every time a new item is placed into the enchanting slot
-                    ((EnchantmentMenuAccessor) ModEnchantmentMenu.this).getEnchantmentSeed().set(this.player.getRandom().nextInt());
+                if (i == 0 && !itemStack.isEmpty() && EasyMagic.CONFIG.server().rerollEnchantments == ServerConfig.ReRollEnchantments.FREE) {
+                    this.reRollEnchantments(false);
                 }
                 if (i >= 0 && i < 2) {
                     this.slotsChanged(this.enchantSlots);
                 }
             });
+        }
+    }
+
+    private void reRollEnchantments(boolean setPlayerSeed) {
+        // set a new enchantment seed every time a new item is placed into the enchanting slot
+        this.enchantmentSeed.set(this.player.getRandom().nextInt());
+        if (setPlayerSeed) {
+            ((PlayerAccessor) this.player).setEnchantmentSeed(this.enchantmentSeed.get());
         }
     }
 
@@ -108,7 +122,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
 
     private void updateLevels(ItemStack itemstack, Level world, BlockPos pos, int power) {
         for (int i1 = 0; i1 < 3; ++i1) {
-            this.costs[i1] = EnchantmentHelper.getEnchantmentCost(((EnchantmentMenuAccessor) this).getRandom(), i1, power, itemstack);
+            this.costs[i1] = EnchantmentHelper.getEnchantmentCost(this.random, i1, power, itemstack);
             if (this.costs[i1] < i1 + 1) {
                 this.costs[i1] = 0;
             }
@@ -120,7 +134,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             if (this.costs[j1] > 0) {
                 List<EnchantmentInstance> list = this.createEnchantmentInstance(itemstack, j1);
                 if (list != null && !list.isEmpty()) {
-                    EnchantmentInstance enchantmentdata = list.get(((EnchantmentMenuAccessor) this).getRandom().nextInt(list.size()));
+                    EnchantmentInstance enchantmentdata = list.get(this.random.nextInt(list.size()));
                     this.enchantClue[j1] = ((ForgeRegistry<Enchantment>) ForgeRegistries.ENCHANTMENTS).getID(enchantmentdata.enchantment);
                     this.levelClue[j1] = enchantmentdata.level;
                 }
@@ -138,7 +152,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             case SINGLE -> {
                 List<EnchantmentInstance> enchantmentData = this.createEnchantmentInstance(enchantedItem, enchantSlot);
                 if (enchantmentData.isEmpty()) yield Lists.newArrayList();
-                yield Lists.newArrayList(enchantmentData.get(((EnchantmentMenuAccessor) this).getRandom().nextInt(enchantmentData.size())));
+                yield Lists.newArrayList(enchantmentData.get(this.random.nextInt(enchantmentData.size())));
             }
             case ALL -> this.createEnchantmentInstance(enchantedItem, enchantSlot);
         };
@@ -180,6 +194,38 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
 
     private float getPower(Level world, BlockPos pos) {
         return world.getBlockState(pos).is(Blocks.BOOKSHELF) ? 1.0F : 0.0F;
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int data) {
+        if (data == 4) {
+            if (EasyMagic.CONFIG.server().rerollEnchantments == ServerConfig.ReRollEnchantments.WITH_COST) {
+                ItemStack itemstack = this.enchantSlots.getItem(1);
+                if (itemstack.getCount() >= EasyMagic.CONFIG.server().rerollLapisCost && player.experienceLevel >= EasyMagic.CONFIG.server().rerollLevelCost || player.getAbilities().instabuild) {
+                    this.access.execute((Level level, BlockPos pos) -> {
+                        this.reRollEnchantments(true);
+                        if (!player.getAbilities().instabuild) {
+                            if (EasyMagic.CONFIG.server().rerollLapisCost > 0) {
+                                itemstack.shrink(EasyMagic.CONFIG.server().rerollLapisCost);
+                                if (itemstack.isEmpty()) {
+                                    this.enchantSlots.setItem(1, ItemStack.EMPTY);
+                                }
+                            }
+                            if (EasyMagic.CONFIG.server().rerollLevelCost > 0) {
+                                player.giveExperienceLevels(-EasyMagic.CONFIG.server().rerollLevelCost);
+                            }
+                        }
+                        this.enchantSlots.setChanged();
+                        // needed for creative mode since slots don't actually change
+                        this.slotsChanged(this.enchantSlots);
+                        level.playSound(null, pos, SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.1F + 0.9F);
+                    });
+                    return true;
+                }
+            }
+            return false;
+        }
+        return super.clickMenuButton(player, data);
     }
 
     @Override
