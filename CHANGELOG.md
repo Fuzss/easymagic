@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog].
 
+## [v3.2.1-1.18.1] - 2022-01-03
+### Fixed
+- Fixed modded bookshelves not being recognized by the enchanting table
+
 ## [v3.2.0-1.18.1] - 2021-12-15
 ### Added
 - Added a few new config settings for rerolling enchantments at a cost

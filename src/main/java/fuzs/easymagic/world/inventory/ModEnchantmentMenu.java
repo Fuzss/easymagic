@@ -23,7 +23,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.ForgeRegistry;
@@ -193,7 +192,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     }
 
     private float getPower(Level world, BlockPos pos) {
-        return world.getBlockState(pos).is(Blocks.BOOKSHELF) ? 1.0F : 0.0F;
+        return world.getBlockState(pos).getEnchantPowerBonus(world, pos);
     }
 
     @Override
