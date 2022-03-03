@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.*;
@@ -137,7 +136,7 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
     @Override
     public boolean canPlaceItem(int index, ItemStack stack) {
         if (index == 1) {
-            return Tags.Items.GEMS_LAPIS.contains(stack.getItem());
+            return stack.is(Tags.Items.ENCHANTING_FUELS);
         } else if (index == 0) {
             return this.inventory.get(0).isEmpty() && (!EasyMagic.CONFIG.server().filterTable || stack.isEnchantable() || stack.getItem() instanceof BookItem);
         }

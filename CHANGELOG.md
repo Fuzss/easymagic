@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog].
 
+## [v3.3.0-1.18.2] - 2022-03-03
+- Compiled for Minecraft 1.18.2
+
 ## [v3.2.1-1.18.1] - 2022-01-03
 ### Fixed
 - Fixed modded bookshelves not being recognized by the enchanting table
