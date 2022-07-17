@@ -3,20 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog].
 
-## [v3.3.0-1.18.2] - 2022-03-03
-- Compiled for Minecraft 1.18.2
-
-## [v3.2.1-1.18.1] - 2022-01-03
-### Fixed
-- Fixed modded bookshelves not being recognized by the enchanting table
-
-## [v3.2.0-1.18.1] - 2021-12-15
-### Added
-- Added a few new config settings for rerolling enchantments at a cost
+## [v4.0.0-1.19] - 2022-07-17
+- Ported to Minecraft 1.19
+- Split into multi-loader project
 ### Changed
-- Converted config setting names to underscore format
-
-## [v3.0.0-1.18] - 2021-12-04
-- Ported to Minecraft 1.18
+- Enchanting table contents will no longer render when the player is too far away (can be changed back in the client config)
+- Showing all enchantments you'll receive no longer adds a question mark
+### Fixed
+- Re-rolling is no longer possible without an item in the enchanting slot
+- Modded bookshelves are now recognized on Fabric
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
