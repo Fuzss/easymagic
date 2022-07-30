@@ -11,6 +11,6 @@ public class EasyMagicForge {
 
     @SubscribeEvent
     public static void onConstructMod(final FMLConstructModEvent evt) {
-        CoreServices.FACTORIES.modConstructor().accept(EasyMagic.INSTANCE);
+        CoreServices.FACTORIES.modConstructor(EasyMagic.MOD_ID).accept(new EasyMagic());
     }
 }

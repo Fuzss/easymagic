@@ -64,7 +64,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             ItemStack enchantedItem = inventory.getItem(0);
             if (!enchantedItem.isEmpty() && enchantedItem.isEnchantable()) {
                 this.access.execute((world, pos) -> {
-                    int power = EasyMagic.CONFIG.server().maxPower == 0 ? 15 : (this.getEnchantingPower(world, pos) * 15) / EasyMagic.CONFIG.server().maxPower;
+                    int power = EasyMagic.CONFIG.get(ServerConfig.class).maxPower == 0 ? 15 : (this.getEnchantingPower(world, pos) * 15) / EasyMagic.CONFIG.get(ServerConfig.class).maxPower;
                     this.random.setSeed(this.enchantmentSeed.get());
                     this.updateLevels(enchantedItem, world, pos, power);
                     // need to run this always as enchanting buttons will otherwise be greyed out
@@ -87,7 +87,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             // this is only executed on server anyway as slot listeners are only processed there by default, but might as well use the access here
             this.access.execute((Level, BlockPos) -> {
                 // need to do this before calling AbstractContainerMenu::slotsChanged
-                if (i == 0 && !itemStack.isEmpty() && EasyMagic.CONFIG.server().rerollEnchantments == ServerConfig.ReRollEnchantments.FREE) {
+                if (i == 0 && !itemStack.isEmpty() && EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments == ServerConfig.ReRollEnchantments.FREE) {
                     this.reRollEnchantments(false);
                 }
                 if (i >= 0 && i < 2) {
@@ -157,7 +157,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     }
 
     private void sendEnchantingData(ItemStack enchantedItem) {
-        final ServerConfig.ShowEnchantments showEnchantments = EasyMagic.CONFIG.server().showEnchantments;
+        final ServerConfig.ShowEnchantments showEnchantments = EasyMagic.CONFIG.get(ServerConfig.class).showEnchantments;
         List<EnchantmentInstance> firstSlotData = this.getEnchantmentHint(enchantedItem, 0, showEnchantments);
         List<EnchantmentInstance> secondSlotData = this.getEnchantmentHint(enchantedItem, 1, showEnchantments);
         List<EnchantmentInstance> thirdSlotData = this.getEnchantmentHint(enchantedItem, 2, showEnchantments);
@@ -175,7 +175,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     }
 
     public static boolean isBlockEmpty(Level world, BlockPos pos) {
-        if (EasyMagic.CONFIG.server().lenientBookshelves) {
+        if (EasyMagic.CONFIG.get(ServerConfig.class).lenientBookshelves) {
             return world.getBlockState(pos).getCollisionShape(world, pos).isEmpty();
         }
         return world.isEmptyBlock(pos);
@@ -184,20 +184,20 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     @Override
     public boolean clickMenuButton(Player player, int data) {
         if (data == 4 && !this.enchantSlots.getItem(0).isEmpty()) {
-            if (EasyMagic.CONFIG.server().rerollEnchantments == ServerConfig.ReRollEnchantments.WITH_COST) {
+            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments == ServerConfig.ReRollEnchantments.WITH_COST) {
                 ItemStack itemstack = this.enchantSlots.getItem(1);
-                if (itemstack.getCount() >= EasyMagic.CONFIG.server().rerollLapisCost && player.experienceLevel >= EasyMagic.CONFIG.server().rerollLevelCost || player.getAbilities().instabuild) {
+                if (itemstack.getCount() >= EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisCost && player.experienceLevel >= EasyMagic.CONFIG.get(ServerConfig.class).rerollLevelCost || player.getAbilities().instabuild) {
                     this.access.execute((Level level, BlockPos pos) -> {
                         this.reRollEnchantments(true);
                         if (!player.getAbilities().instabuild) {
-                            if (EasyMagic.CONFIG.server().rerollLapisCost > 0) {
-                                itemstack.shrink(EasyMagic.CONFIG.server().rerollLapisCost);
+                            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisCost > 0) {
+                                itemstack.shrink(EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisCost);
                                 if (itemstack.isEmpty()) {
                                     this.enchantSlots.setItem(1, ItemStack.EMPTY);
                                 }
                             }
-                            if (EasyMagic.CONFIG.server().rerollLevelCost > 0) {
-                                player.giveExperienceLevels(-EasyMagic.CONFIG.server().rerollLevelCost);
+                            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollLevelCost > 0) {
+                                player.giveExperienceLevels(-EasyMagic.CONFIG.get(ServerConfig.class).rerollLevelCost);
                             }
                         }
                         this.enchantSlots.setChanged();
@@ -241,7 +241,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            if (EasyMagic.CONFIG.server().filterTable) {
+            if (EasyMagic.CONFIG.get(ServerConfig.class).filterTable) {
                 // can't exchange items directly while holding replacement otherwise, this seems to do the trick
                 return stack.isEnchantable() || stack.getItem() instanceof BookItem && !this.hasItem();
             }

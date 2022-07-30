@@ -30,7 +30,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (EasyMagic.CONFIG.server().rerollEnchantments == ServerConfig.ReRollEnchantments.WITH_COST) {
+        if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments == ServerConfig.ReRollEnchantments.WITH_COST) {
             final int startX = this.leftPos + 15;
             final int startY = this.topPos + 14;
             if (startX <= mouseX && mouseX < startX + 36 && startY <= mouseY && mouseY < startY + 31) {
@@ -54,7 +54,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                 this.addSlotEnchantments(slot, this.slotData.get(slot), tooltip);
                 this.renderComponentTooltip(matrixStack, tooltip, mouseX, mouseY);
             }
-        } else if (EasyMagic.CONFIG.server().rerollEnchantments == ServerConfig.ReRollEnchantments.WITH_COST) {
+        } else if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments == ServerConfig.ReRollEnchantments.WITH_COST) {
             final int startX = this.leftPos + 15;
             final int startY = this.topPos + 14;
             if (startX <= mouseX && mouseX < startX + 36 && startY <= mouseY && mouseY < startY + 31) {
@@ -109,7 +109,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         boolean hasValidEnchantment = slotData.isEmpty();
         for (EnchantmentInstance data : slotData) {
             if (data.enchantment != null) {
-                if (EasyMagic.CONFIG.server().showEnchantments == ServerConfig.ShowEnchantments.ALL) {
+                if (EasyMagic.CONFIG.get(ServerConfig.class).showEnchantments == ServerConfig.ShowEnchantments.ALL) {
                     slotTooltip.add(((MutableComponent) data.enchantment.getFullname(data.level)).withStyle(ChatFormatting.GRAY));
                 } else {
                     slotTooltip.add((Component.translatable("container.enchant.clue", data.enchantment.getFullname(data.level))).withStyle(ChatFormatting.GRAY));
@@ -167,11 +167,11 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         tooltip.add(RE_ROLL_ENCHANTMENTS_TOOLTIP);
         List<Component> additionalTooltip = Lists.newArrayList();
         if (!this.minecraft.player.getAbilities().instabuild) {
-            if (EasyMagic.CONFIG.server().rerollLapisCost > 0) {
-                this.addLapisComponent(EasyMagic.CONFIG.server().rerollLapisCost, additionalTooltip);
+            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisCost > 0) {
+                this.addLapisComponent(EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisCost, additionalTooltip);
             }
-            if (EasyMagic.CONFIG.server().rerollLevelCost > 0) {
-                this.addLevelComponent(EasyMagic.CONFIG.server().rerollLevelCost, additionalTooltip);
+            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollLevelCost > 0) {
+                this.addLevelComponent(EasyMagic.CONFIG.get(ServerConfig.class).rerollLevelCost, additionalTooltip);
             }
         }
         if (!additionalTooltip.isEmpty()) {

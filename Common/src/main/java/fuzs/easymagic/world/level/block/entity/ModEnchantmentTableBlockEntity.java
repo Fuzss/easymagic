@@ -1,6 +1,7 @@
 package fuzs.easymagic.world.level.block.entity;
 
 import fuzs.easymagic.EasyMagic;
+import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.core.ModCoreServices;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
@@ -131,7 +132,7 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
         if (index == 1) {
             return ModCoreServices.ABSTRACTIONS.isStackEnchantingFuel(stack);
         } else if (index == 0) {
-            return this.inventory.get(0).isEmpty() && (!EasyMagic.CONFIG.server().filterTable || stack.isEnchantable() || stack.getItem() instanceof BookItem);
+            return this.inventory.get(0).isEmpty() && (!EasyMagic.CONFIG.get(ServerConfig.class).filterTable || stack.isEnchantable() || stack.getItem() instanceof BookItem);
         }
         return false;
     }

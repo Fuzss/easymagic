@@ -12,6 +12,6 @@ public class EasyMagicForgeClient {
 
     @SubscribeEvent
     public static void onConstructMod(final FMLConstructModEvent evt) {
-        ClientCoreServices.FACTORIES.clientModConstructor().accept(EasyMagicClient.INSTANCE);
+        ClientCoreServices.FACTORIES.clientModConstructor(EasyMagic.MOD_ID).accept(new EasyMagicClient());
     }
 }

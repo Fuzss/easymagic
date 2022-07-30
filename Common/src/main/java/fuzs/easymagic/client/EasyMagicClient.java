@@ -6,7 +6,6 @@ import fuzs.easymagic.init.ModRegistry;
 import fuzs.puzzleslib.client.core.ClientModConstructor;
 
 public class EasyMagicClient implements ClientModConstructor {
-    static final ClientModConstructor INSTANCE = new EasyMagicClient();
 
     @Override
     public void onRegisterBlockEntityRenderers(BlockEntityRenderersContext context) {

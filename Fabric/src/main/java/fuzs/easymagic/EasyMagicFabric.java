@@ -7,6 +7,6 @@ public class EasyMagicFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        CoreServices.FACTORIES.modConstructor().accept(EasyMagic.INSTANCE);
+        CoreServices.FACTORIES.modConstructor(EasyMagic.MOD_ID).accept(new EasyMagic());
     }
 }

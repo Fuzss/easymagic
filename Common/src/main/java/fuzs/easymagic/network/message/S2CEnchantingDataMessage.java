@@ -12,7 +12,7 @@ import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import java.util.ArrayList;
 import java.util.List;
 
-public class S2CEnchantingDataMessage implements Message {
+public class S2CEnchantingDataMessage implements Message<S2CEnchantingDataMessage> {
     private int containerId;
     private List<EnchantmentInstance> firstSlotData;
     private List<EnchantmentInstance> secondSlotData;
@@ -64,7 +64,7 @@ public class S2CEnchantingDataMessage implements Message {
     }
 
     @Override
-    public EnchantingDataHandler makeHandler() {
+    public PacketHandler<S2CEnchantingDataMessage> makeHandler() {
         return new EnchantingDataHandler();
     }
 

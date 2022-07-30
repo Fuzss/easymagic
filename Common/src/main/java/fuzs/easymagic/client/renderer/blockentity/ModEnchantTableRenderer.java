@@ -3,6 +3,7 @@ package fuzs.easymagic.client.renderer.blockentity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import fuzs.easymagic.EasyMagic;
+import fuzs.easymagic.config.ClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -37,14 +38,14 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
         ItemStack catalystItem = ((Container) blockEntity).getItem(1);
         int catalystCount = Math.min(catalystItem.getCount(), 3);
         int posData = (int) blockEntity.getBlockPos().asLong();
-        switch (EasyMagic.CONFIG.client().renderContentsType) {
+        switch (EasyMagic.CONFIG.get(ClientConfig.class).renderContentsType) {
             case FLAT -> {
                 List<ItemStack> flatItems = this.getInventoryItemList(itemToEnchant, catalystItem, catalystCount);
                 this.renderFlatItemList(flatItems, blockEntity.getBlockPos(), poseStack, bufferIn, combinedLightIn, combinedOverlayIn, posData);
             }
             case FLOATING -> {
                 List<ItemStack> floatingItems = this.getInventoryItemList(itemToEnchant, catalystItem, catalystCount);
-                if (EasyMagic.CONFIG.client().disappearingContents) {
+                if (EasyMagic.CONFIG.get(ClientConfig.class).disappearingContents) {
                     this.renderVanishingHoveringItemList(blockEntity, floatingItems, partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, false, posData);
                 } else {
                     this.renderHoveringItemList(floatingItems, blockEntity.time + partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, false, posData);
@@ -52,7 +53,7 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
             }
             case FANCY_FLOATING -> {
                 List<ItemStack> fancyFloatingItems = this.getInventoryItemList(ItemStack.EMPTY, catalystItem, catalystCount);
-                if (EasyMagic.CONFIG.client().disappearingContents) {
+                if (EasyMagic.CONFIG.get(ClientConfig.class).disappearingContents) {
                     this.renderVanishingHoveringItem(blockEntity, itemToEnchant, partialTicks, poseStack, bufferIn, combinedLightIn);
                     this.renderVanishingHoveringItemList(blockEntity, fancyFloatingItems, partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, true, posData);
                 } else {
