@@ -1,6 +1,6 @@
 package fuzs.easymagic.mixin;
 
-import fuzs.easymagic.core.ModCoreServices;
+import fuzs.easymagic.core.ModServices;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.easymagic.world.level.block.entity.ModEnchantmentTableBlockEntity;
@@ -33,7 +33,7 @@ public abstract class EnchantmentTableBlockMixin extends BaseEntityBlock {
 
     @Inject(method = "newBlockEntity", at = @At("HEAD"), cancellable = true)
     public void newBlockEntity(BlockPos pPos, BlockState pState, CallbackInfoReturnable<BlockEntity> callbackInfo) {
-        callbackInfo.setReturnValue(ModCoreServices.ABSTRACTIONS.createModEnchantmentTableBlockEntity(pPos, pState));
+        callbackInfo.setReturnValue(ModServices.ABSTRACTIONS.createModEnchantmentTableBlockEntity(pPos, pState));
     }
 
     @Inject(method = "getTicker", at = @At("HEAD"), cancellable = true)

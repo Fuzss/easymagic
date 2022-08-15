@@ -1,37 +1,26 @@
 package fuzs.easymagic.config;
 
 import fuzs.puzzleslib.config.ConfigCore;
-import fuzs.puzzleslib.config.ValueCallback;
 import fuzs.puzzleslib.config.annotation.Config;
-import fuzs.puzzleslib.config.core.AbstractConfigBuilder;
 
 public class ServerConfig implements ConfigCore {
-    public ReRollEnchantments rerollEnchantments;
-    @Config(description = {"Amount of lapis lazuli taken as cost for rerolling enchantments. Set to 0 to disable this kind of cost.", "Requires \"reroll_enchantments\" to be set to \"WITH_COST\"."})
+    @Config(description = {"Add a button in the enchanting screen to allow for re-rolling enchantments.", "This costs experience levels as well as lapis lazuli, or can be free when the costs are set to 0."})
+    public boolean rerollEnchantments = true;
+    @Config(description = {"Amount of lapis lazuli taken as a cost for re-rolling enchantments. Set to 0 to disable this kind of cost.", "Requires the re-rolling option to be enabled."})
     @Config.IntRange(min = 0, max = 64)
-    public int rerollLapisCost = 3;
-    @Config(description = {"Amount of enchantment levels taken as cost for rerolling enchantments. Set to 0 to disable this kind of cost.", "Requires \"reroll_enchantments\" to be set to \"WITH_COST\"."})
+    public int rerollLapisLazuliCost = 1;
+    @Config(description = {"Amount of experience points (not enchantment levels) taken as a cost for re-rolling enchantments. Set to 0 to disable this kind of cost.", "Requires the re-rolling option to be enabled."})
     @Config.IntRange(min = 0)
-    public int rerollLevelCost = 0;
-    public ShowEnchantments showEnchantments;
-    public int maxPower;
-    public boolean lenientBookshelves;
-    public boolean filterTable;
+    public int rerollExperiencePointsCost = 5;
+    @Config(description = "Choose how many enchantments are shown on the enchanting tooltip, if any at all.")
+    public EnchantmentHint enchantmentHint = EnchantmentHint.SINGLE;
+    @Config(description = "Amount of bookshelves required to perform enchantments at the highest level.")
+    @Config.IntRange(min = 0)
+    public int maxEnchantingPower = 15;
+    @Config(description = "Blocks without a collision shape (e.g. grass or torches) do not block bookshelves placed behind from counting towards current enchanting power.")
+    public boolean lenientBookshelves = true;
 
-    @Override
-    public void addToBuilder(AbstractConfigBuilder builder, ValueCallback callback) {
-        callback.accept(builder.comment("Re-roll possible enchantments in an enchanting table every time an item is placed into the enchanting slot.").defineEnum("reroll_enchantments", ReRollEnchantments.FREE), v -> this.rerollEnchantments = v);
-        callback.accept(builder.comment("Choose how many enchantments are shown on the enchanting tooltip, if any at all.").defineEnum("show_enchantments", ShowEnchantments.SINGLE), v -> this.showEnchantments = v);
-        callback.accept(builder.comment("Amount of bookshelves required to perform enchantments at the highest level.").defineInRange("enchanting_power", 15, 0, Integer.MAX_VALUE), v -> this.maxPower = v);
-        callback.accept(builder.comment("Blocks without a collision shape do not block bookshelves placed behind from counting towards current enchanting power.").define("lenient_bookshelves", true), v -> this.lenientBookshelves = v);
-        callback.accept(builder.comment("Only allow items that can be enchanted to be placed into the enchanting slot of an enchanting table. Useful when inserting items automatically with a hopper.").define("filter_enchanting_input", false), v -> this.filterTable = v);
-    }
-
-    public enum ShowEnchantments {
+    public enum EnchantmentHint {
         NONE, SINGLE, ALL
-    }
-
-    public enum ReRollEnchantments {
-        FREE, WITH_COST, NEVER
     }
 }

@@ -3,24 +3,22 @@ package fuzs.easymagic.world.inventory;
 import com.google.common.collect.Lists;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ServerConfig;
-import fuzs.easymagic.core.ModCoreServices;
+import fuzs.easymagic.core.ModServices;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.mixin.accessor.EnchantmentMenuAccessor;
 import fuzs.easymagic.mixin.accessor.PlayerAccessor;
 import fuzs.easymagic.network.message.S2CEnchantingDataMessage;
-import fuzs.puzzleslib.util.PuzzlesUtil;
+import fuzs.easymagic.util.ExperienceUtil;
+import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
-import net.minecraft.world.item.BookItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
@@ -48,8 +46,19 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         this.random = ((EnchantmentMenuAccessor) this).getRandom();
         this.enchantmentSeed = ((EnchantmentMenuAccessor) this).getEnchantmentSeed();
         ((EnchantmentMenuAccessor) this).setEnchantSlots(inventory);
-        this.slots.set(0, PuzzlesUtil.make(new EnchantableSlot(inventory, 0, 15, 47), slot -> slot.index = 0));
-        this.slots.set(1, PuzzlesUtil.make(new LapisSlot(inventory, 1, 35, 47), slot -> slot.index = 1));
+        //  manually set slot index as vanilla's AbstractContainerMenu::addSlot normally does that which we cannot use as we want to override default enchantment menu slots
+        this.slots.set(0, Util.make(new Slot(inventory, 0, 15, 47) {
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
+        }, slot -> slot.index = 0));
+        this.slots.set(1, Util.make(new Slot(inventory, 1, 35, 47) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return ModServices.ABSTRACTIONS.isStackEnchantingFuel(stack);
+            }
+        }, slot -> slot.index = 1));
         this.addSlotListener(this);
     }
 
@@ -64,7 +73,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             ItemStack enchantedItem = inventory.getItem(0);
             if (!enchantedItem.isEmpty() && enchantedItem.isEnchantable()) {
                 this.access.execute((world, pos) -> {
-                    int power = EasyMagic.CONFIG.get(ServerConfig.class).maxPower == 0 ? 15 : (this.getEnchantingPower(world, pos) * 15) / EasyMagic.CONFIG.get(ServerConfig.class).maxPower;
+                    int power = EasyMagic.CONFIG.get(ServerConfig.class).maxEnchantingPower == 0 ? 15 : (this.getEnchantingPower(world, pos) * 15) / EasyMagic.CONFIG.get(ServerConfig.class).maxEnchantingPower;
                     this.random.setSeed(this.enchantmentSeed.get());
                     this.updateLevels(enchantedItem, world, pos, power);
                     // need to run this always as enchanting buttons will otherwise be greyed out
@@ -86,22 +95,10 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         if (abstractContainerMenu == this) {
             // this is only executed on server anyway as slot listeners are only processed there by default, but might as well use the access here
             this.access.execute((Level, BlockPos) -> {
-                // need to do this before calling AbstractContainerMenu::slotsChanged
-                if (i == 0 && !itemStack.isEmpty() && EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments == ServerConfig.ReRollEnchantments.FREE) {
-                    this.reRollEnchantments(false);
-                }
                 if (i >= 0 && i < 2) {
                     this.slotsChanged(this.enchantSlots);
                 }
             });
-        }
-    }
-
-    private void reRollEnchantments(boolean setPlayerSeed) {
-        // set a new enchantment seed every time a new item is placed into the enchanting slot
-        this.enchantmentSeed.set(this.player.getRandom().nextInt());
-        if (setPlayerSeed) {
-            ((PlayerAccessor) this.player).setEnchantmentSeed(this.enchantmentSeed.get());
         }
     }
 
@@ -144,8 +141,8 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         return ((EnchantmentMenuAccessor) this).callGetEnchantmentList(enchantedItem, enchantSlot, this.costs[enchantSlot]);
     }
 
-    private List<EnchantmentInstance> getEnchantmentHint(ItemStack enchantedItem, int enchantSlot, ServerConfig.ShowEnchantments showEnchantments) {
-        return switch (showEnchantments) {
+    private List<EnchantmentInstance> getEnchantmentHint(ItemStack enchantedItem, int enchantSlot, ServerConfig.EnchantmentHint enchantmentHint) {
+        return switch (enchantmentHint) {
             case NONE -> Lists.newArrayList();
             case SINGLE -> {
                 List<EnchantmentInstance> enchantmentData = this.createEnchantmentInstance(enchantedItem, enchantSlot);
@@ -157,10 +154,10 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     }
 
     private void sendEnchantingData(ItemStack enchantedItem) {
-        final ServerConfig.ShowEnchantments showEnchantments = EasyMagic.CONFIG.get(ServerConfig.class).showEnchantments;
-        List<EnchantmentInstance> firstSlotData = this.getEnchantmentHint(enchantedItem, 0, showEnchantments);
-        List<EnchantmentInstance> secondSlotData = this.getEnchantmentHint(enchantedItem, 1, showEnchantments);
-        List<EnchantmentInstance> thirdSlotData = this.getEnchantmentHint(enchantedItem, 2, showEnchantments);
+        final ServerConfig.EnchantmentHint enchantmentHint = EasyMagic.CONFIG.get(ServerConfig.class).enchantmentHint;
+        List<EnchantmentInstance> firstSlotData = this.getEnchantmentHint(enchantedItem, 0, enchantmentHint);
+        List<EnchantmentInstance> secondSlotData = this.getEnchantmentHint(enchantedItem, 1, enchantmentHint);
+        List<EnchantmentInstance> thirdSlotData = this.getEnchantmentHint(enchantedItem, 2, enchantmentHint);
         EasyMagic.NETWORK.sendTo(new S2CEnchantingDataMessage(this.containerId, firstSlotData, secondSlotData, thirdSlotData), (ServerPlayer) this.player);
     }
 
@@ -168,7 +165,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         float j = 0;
         for(BlockPos blockpos : EnchantmentTableBlock.BOOKSHELF_OFFSETS) {
             if (EnchantmentTableBlock.isValidBookShelf(level, pos, blockpos)) {
-                j += ModCoreServices.ABSTRACTIONS.getEnchantPowerBonus(level.getBlockState(pos.offset(blockpos)), level, pos.offset(blockpos));
+                j += ModServices.ABSTRACTIONS.getEnchantPowerBonus(level.getBlockState(pos.offset(blockpos)), level, pos.offset(blockpos));
             }
         }
         return (int) j;
@@ -184,26 +181,27 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     @Override
     public boolean clickMenuButton(Player player, int data) {
         if (data == 4 && !this.enchantSlots.getItem(0).isEmpty()) {
-            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments == ServerConfig.ReRollEnchantments.WITH_COST) {
+            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments) {
                 ItemStack itemstack = this.enchantSlots.getItem(1);
-                if (itemstack.getCount() >= EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisCost && player.experienceLevel >= EasyMagic.CONFIG.get(ServerConfig.class).rerollLevelCost || player.getAbilities().instabuild) {
+                if (itemstack.getCount() >= EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisLazuliCost && ExperienceUtil.getTotalExperience(player) >= EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost || player.getAbilities().instabuild) {
                     this.access.execute((Level level, BlockPos pos) -> {
-                        this.reRollEnchantments(true);
+                        // set a new enchantment seed every time a new item is placed into the enchanting slot
+                        this.enchantmentSeed.set(this.player.getRandom().nextInt());
+                        ((PlayerAccessor) this.player).setEnchantmentSeed(this.enchantmentSeed.get());
                         if (!player.getAbilities().instabuild) {
-                            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisCost > 0) {
-                                itemstack.shrink(EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisCost);
+                            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisLazuliCost > 0) {
+                                itemstack.shrink(EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisLazuliCost);
                                 if (itemstack.isEmpty()) {
                                     this.enchantSlots.setItem(1, ItemStack.EMPTY);
                                 }
                             }
-                            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollLevelCost > 0) {
-                                player.giveExperienceLevels(-EasyMagic.CONFIG.get(ServerConfig.class).rerollLevelCost);
+                            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost > 0) {
+                                player.giveExperiencePoints(-EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost);
                             }
                         }
                         this.enchantSlots.setChanged();
                         // needed for creative mode since slots don't actually change
                         this.slotsChanged(this.enchantSlots);
-                        level.playSound(null, pos, SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.1F + 0.9F);
                     });
                     return true;
                 }
@@ -231,37 +229,6 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
                 }
                 this.setCarried(ItemStack.EMPTY);
             }
-        }
-    }
-
-    private static class EnchantableSlot extends Slot {
-        public EnchantableSlot(Container inventoryIn, int index, int xPosition, int yPosition) {
-            super(inventoryIn, index, xPosition, yPosition);
-        }
-
-        @Override
-        public boolean mayPlace(ItemStack stack) {
-            if (EasyMagic.CONFIG.get(ServerConfig.class).filterTable) {
-                // can't exchange items directly while holding replacement otherwise, this seems to do the trick
-                return stack.isEnchantable() || stack.getItem() instanceof BookItem && !this.hasItem();
-            }
-            return true;
-        }
-
-        @Override
-        public int getMaxStackSize() {
-            return 1;
-        }
-    }
-
-    private static class LapisSlot extends Slot {
-        public LapisSlot(Container inventoryIn, int index, int xPosition, int yPosition) {
-            super(inventoryIn, index, xPosition, yPosition);
-        }
-
-        @Override
-        public boolean mayPlace(ItemStack stack) {
-            return ModCoreServices.ABSTRACTIONS.isStackEnchantingFuel(stack);
         }
     }
 }

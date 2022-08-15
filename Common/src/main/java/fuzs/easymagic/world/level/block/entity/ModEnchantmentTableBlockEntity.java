@@ -1,8 +1,6 @@
 package fuzs.easymagic.world.level.block.entity;
 
-import fuzs.easymagic.EasyMagic;
-import fuzs.easymagic.config.ServerConfig;
-import fuzs.easymagic.core.ModCoreServices;
+import fuzs.easymagic.core.ModServices;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import net.minecraft.core.BlockPos;
@@ -16,7 +14,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.item.BookItem;
 import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
@@ -130,9 +127,9 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
     @Override
     public boolean canPlaceItem(int index, ItemStack stack) {
         if (index == 1) {
-            return ModCoreServices.ABSTRACTIONS.isStackEnchantingFuel(stack);
+            return ModServices.ABSTRACTIONS.isStackEnchantingFuel(stack);
         } else if (index == 0) {
-            return this.inventory.get(0).isEmpty() && (!EasyMagic.CONFIG.get(ServerConfig.class).filterTable || stack.isEnchantable() || stack.getItem() instanceof BookItem);
+            return this.inventory.get(0).isEmpty();
         }
         return false;
     }

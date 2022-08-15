@@ -69,6 +69,7 @@ public class S2CEnchantingDataMessage implements Message<S2CEnchantingDataMessag
     }
 
     private static class EnchantingDataHandler extends PacketHandler<S2CEnchantingDataMessage> {
+
         @Override
         public void handle(S2CEnchantingDataMessage packet, Player player, Object gameInstance) {
             if (((Minecraft) gameInstance).screen instanceof ModEnchantmentScreen screen) {

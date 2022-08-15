@@ -16,9 +16,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.EnchantmentTableBlockEntity;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +27,6 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
         super(pContext);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public void render(EnchantmentTableBlockEntity blockEntity, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
         super.render(blockEntity, partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn);
@@ -44,22 +41,9 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
                 this.renderFlatItemList(flatItems, blockEntity.getBlockPos(), poseStack, bufferIn, combinedLightIn, combinedOverlayIn, posData);
             }
             case FLOATING -> {
-                List<ItemStack> floatingItems = this.getInventoryItemList(itemToEnchant, catalystItem, catalystCount);
-                if (EasyMagic.CONFIG.get(ClientConfig.class).disappearingContents) {
-                    this.renderVanishingHoveringItemList(blockEntity, floatingItems, partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, false, posData);
-                } else {
-                    this.renderHoveringItemList(floatingItems, blockEntity.time + partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, false, posData);
-                }
-            }
-            case FANCY_FLOATING -> {
                 List<ItemStack> fancyFloatingItems = this.getInventoryItemList(ItemStack.EMPTY, catalystItem, catalystCount);
-                if (EasyMagic.CONFIG.get(ClientConfig.class).disappearingContents) {
-                    this.renderVanishingHoveringItem(blockEntity, itemToEnchant, partialTicks, poseStack, bufferIn, combinedLightIn);
-                    this.renderVanishingHoveringItemList(blockEntity, fancyFloatingItems, partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, true, posData);
-                } else {
-                    this.renderHoveringItem(itemToEnchant, blockEntity.getLevel(), blockEntity.time + partialTicks, poseStack, bufferIn, combinedLightIn);
-                    this.renderHoveringItemList(fancyFloatingItems, blockEntity.time + partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, true, posData);
-                }
+                this.renderHoveringItem(blockEntity, itemToEnchant, partialTicks, poseStack, bufferIn, combinedLightIn);
+                this.renderHoveringItemList(fancyFloatingItems, blockEntity.time + partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, true, posData);
             }
         }
     }
@@ -93,54 +77,7 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
         }
     }
 
-    private void renderHoveringItemList(List<ItemStack> inventoryItems, float age, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, boolean rotateItems, int posData) {
-        // mostly copied from botanias runic altar rendering code
-        float itemRenderAngle = 360.0F / inventoryItems.size();
-        for (int i = 0; i < inventoryItems.size(); ++i) {
-            matrixStackIn.pushPose();
-            matrixStackIn.translate(0.5F, 1.0F, 0.5F);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(i * itemRenderAngle + age));
-            matrixStackIn.translate(0.75F, 0.0F, 0.25F);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(rotateItems ? age % 360.0F : 90.0F));
-            matrixStackIn.translate(0.0, 0.075 * Math.sin((age + i * 10.0) / 5.0), 0.0F);
-            Minecraft.getInstance().getItemRenderer().renderStatic(inventoryItems.get(i), ItemTransforms.TransformType.GROUND, combinedLightIn, combinedOverlayIn, matrixStackIn, bufferIn, posData + i);
-            matrixStackIn.popPose();
-        }
-    }
-
-    private void renderHoveringItem(ItemStack itemToEnchant, @Nullable Level worldIn, float age, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn) {
-        matrixStackIn.pushPose();
-        matrixStackIn.translate(0.5F, 1.0F, 0.5F);
-        BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(itemToEnchant, worldIn, null, 0);
-        float hoverOffset = Mth.sin(age / 10.0F) * 0.1F + 0.1F;
-        float modelYScale = model.getTransforms().getTransform(ItemTransforms.TransformType.GROUND).scale.y();
-        matrixStackIn.translate(0.0, hoverOffset + 0.25F * modelYScale, 0.0);
-        matrixStackIn.mulPose(Vector3f.YP.rotation(age / 20.0F));
-        Minecraft.getInstance().getItemRenderer().render(itemToEnchant, ItemTransforms.TransformType.GROUND, false, matrixStackIn, bufferIn, combinedLightIn, OverlayTexture.NO_OVERLAY, model);
-        matrixStackIn.popPose();
-    }
-
-    private void renderVanishingHoveringItemList(EnchantmentTableBlockEntity blockEntity, List<ItemStack> inventoryItems, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, boolean rotateItems, int posData) {
-        if (blockEntity.open == 0.0F && blockEntity.oOpen == 0.0F) return;
-        // mostly copied from Botania's runic altar rendering code
-        float itemRenderAngle = 360.0F / inventoryItems.size();
-        float age = blockEntity.time + partialTicks;
-        float openness = Mth.lerp(partialTicks, blockEntity.oOpen, blockEntity.open);
-        float scale = Math.min(1.0F, openness * 1.4F + 0.2F);
-        for (int i = 0; i < inventoryItems.size(); ++i) {
-            poseStack.pushPose();
-            poseStack.translate(0.5F, 1.0F, 0.5F);
-            poseStack.mulPose(Vector3f.YP.rotationDegrees(i * itemRenderAngle + age));
-            poseStack.translate(0.75F, 0.0F, 0.25F);
-            poseStack.mulPose(Vector3f.YP.rotationDegrees(rotateItems ? age % 360.0F : 90.0F));
-            poseStack.translate(0.0, 0.075 * Math.sin((age + i * 10.0) / 5.0), 0.0F);
-            poseStack.scale(scale, scale, scale);
-            Minecraft.getInstance().getItemRenderer().renderStatic(inventoryItems.get(i), ItemTransforms.TransformType.GROUND, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, posData + i);
-            poseStack.popPose();
-        }
-    }
-
-    private void renderVanishingHoveringItem(EnchantmentTableBlockEntity blockEntity, ItemStack itemToEnchant, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn) {
+    private void renderHoveringItem(EnchantmentTableBlockEntity blockEntity, ItemStack itemToEnchant, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn) {
         if (blockEntity.open == 0.0F && blockEntity.oOpen == 0.0F) return;
         poseStack.pushPose();
         poseStack.translate(0.5F, 1.0F, 0.5F);
@@ -154,5 +91,20 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
         poseStack.mulPose(Vector3f.YP.rotation((blockEntity.time + partialTicks) / 20.0F));
         Minecraft.getInstance().getItemRenderer().render(itemToEnchant, ItemTransforms.TransformType.GROUND, false, poseStack, bufferIn, combinedLightIn, OverlayTexture.NO_OVERLAY, model);
         poseStack.popPose();
+    }
+
+    private void renderHoveringItemList(List<ItemStack> inventoryItems, float age, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, boolean rotateItems, int posData) {
+        // mostly copied from Botania's runic altar rendering code, thanks!
+        float itemRenderAngle = 360.0F / inventoryItems.size();
+        for (int i = 0; i < inventoryItems.size(); ++i) {
+            matrixStackIn.pushPose();
+            matrixStackIn.translate(0.5F, 1.0F, 0.5F);
+            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(i * itemRenderAngle + age));
+            matrixStackIn.translate(0.75F, 0.0F, 0.25F);
+            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(rotateItems ? age % 360.0F : 90.0F));
+            matrixStackIn.translate(0.0, 0.075 * Math.sin((age + i * 10.0) / 5.0), 0.0F);
+            Minecraft.getInstance().getItemRenderer().renderStatic(inventoryItems.get(i), ItemTransforms.TransformType.GROUND, combinedLightIn, combinedOverlayIn, matrixStackIn, bufferIn, posData + i);
+            matrixStackIn.popPose();
+        }
     }
 }

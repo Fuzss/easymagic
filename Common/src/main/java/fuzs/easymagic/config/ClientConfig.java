@@ -5,11 +5,11 @@ import fuzs.puzzleslib.config.annotation.Config;
 
 public class ClientConfig implements ConfigCore {
     @Config(name = "render_enchanting_table_contents", description = "Render inventory contents of an enchanting table.")
-    public ItemRenderType renderContentsType = ItemRenderType.FANCY_FLOATING;
-    @Config(name = "disappearing_enchanting_table_contents", description = "Makes inventory contents of enchanting tables vanish from rendering when the player gets to far away.")
-    public boolean disappearingContents = false;
+    public ItemRenderType renderContentsType = ItemRenderType.FLOATING;
+    @Config(description = {"Keep the vanilla book inside the enchantment screen instead of rendering a reroll button.", "The button is simply not visible, rerolling still works by clicking the book. Disabling the reroll feature itself is possible in the server config."})
+    public boolean keepEnchantmentScreenBook = false;
 
     public enum ItemRenderType {
-        NONE, FLAT, FLOATING, FANCY_FLOATING
+        NONE, FLAT, FLOATING
     }
 }

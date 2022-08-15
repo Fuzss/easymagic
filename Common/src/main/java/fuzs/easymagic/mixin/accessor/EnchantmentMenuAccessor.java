@@ -15,6 +15,7 @@ import java.util.List;
 
 @Mixin(EnchantmentMenu.class)
 public interface EnchantmentMenuAccessor {
+
     @Mutable
     @Accessor
     void setEnchantSlots(Container enchantSlots);

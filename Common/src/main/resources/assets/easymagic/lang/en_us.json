@@ -1,3 +1,5 @@
 {
-  "container.enchant.reRoll": "Re-roll current enchantments"
+  "container.enchant.reroll": "Reroll enchantments",
+  "container.enchant.experience.one": "1 Experience Point",
+  "container.enchant.experience.many": "%s Experience Points"
 }
