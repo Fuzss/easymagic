@@ -1,7 +1,7 @@
-package fuzs.easymagic.network.message;
+package fuzs.easymagic.network;
 
 import fuzs.easymagic.client.gui.screens.inventory.ModEnchantmentScreen;
-import fuzs.puzzleslib.network.message.Message;
+import fuzs.puzzleslib.network.Message;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
@@ -64,21 +64,19 @@ public class S2CEnchantingDataMessage implements Message<S2CEnchantingDataMessag
     }
 
     @Override
-    public PacketHandler<S2CEnchantingDataMessage> makeHandler() {
-        return new EnchantingDataHandler();
-    }
+    public MessageHandler<S2CEnchantingDataMessage> makeHandler() {
+        return new MessageHandler<>() {
 
-    private static class EnchantingDataHandler extends PacketHandler<S2CEnchantingDataMessage> {
-
-        @Override
-        public void handle(S2CEnchantingDataMessage packet, Player player, Object gameInstance) {
-            if (((Minecraft) gameInstance).screen instanceof ModEnchantmentScreen screen) {
-                if (player.containerMenu.containerId == packet.containerId) {
-                    screen.setSlotData(0, packet.firstSlotData);
-                    screen.setSlotData(1, packet.secondSlotData);
-                    screen.setSlotData(2, packet.thirdSlotData);
+            @Override
+            public void handle(S2CEnchantingDataMessage message, Player player, Object gameInstance) {
+                if (((Minecraft) gameInstance).screen instanceof ModEnchantmentScreen screen) {
+                    if (player.containerMenu.containerId == message.containerId) {
+                        screen.setSlotData(0, message.firstSlotData);
+                        screen.setSlotData(1, message.secondSlotData);
+                        screen.setSlotData(2, message.thirdSlotData);
+                    }
                 }
             }
-        }
+        };
     }
 }

@@ -3,7 +3,7 @@ package fuzs.easymagic;
 import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.init.ModRegistry;
-import fuzs.easymagic.network.message.S2CEnchantingDataMessage;
+import fuzs.easymagic.network.S2CEnchantingDataMessage;
 import fuzs.puzzleslib.config.ConfigHolder;
 import fuzs.puzzleslib.core.CoreServices;
 import fuzs.puzzleslib.core.ModConstructor;

@@ -7,7 +7,7 @@ import fuzs.easymagic.core.ModServices;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.mixin.accessor.EnchantmentMenuAccessor;
 import fuzs.easymagic.mixin.accessor.PlayerAccessor;
-import fuzs.easymagic.network.message.S2CEnchantingDataMessage;
+import fuzs.easymagic.network.S2CEnchantingDataMessage;
 import fuzs.easymagic.util.ExperienceUtil;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
