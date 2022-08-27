@@ -112,6 +112,8 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         int buttonY = this.topPos + 16;
         boolean hovered = this.isMouseOverReroll(mouseX, mouseY);
         this.blit(poseStack, buttonX, buttonY, 0, invalid ? 0 : hovered ? 54 : 27, 38, 27);
+        // don't render anything but the background just like vanilla for enchanting slots
+        if (!this.getMenu().hasItemToEnchant()) return;
         if (experienceCost == 0 && lapisCost == 0) {
             // arrow circle
             this.blit(poseStack, buttonX + 12, buttonY + 6, 64, invalid ? 0 : hovered ? 30 : 15, 15, 15);
@@ -184,7 +186,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                 this.renderComponentTooltip(matrixStack, tooltip, mouseX, mouseY);
             }
         } else if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments) {
-            if (this.isMouseOverReroll(mouseX, mouseY)) {
+            if (this.isMouseOverReroll(mouseX, mouseY) && this.getMenu().hasItemToEnchant()) {
                 List<Component> tooltip = Lists.newArrayList();
                 this.gatherRerollTooltip(tooltip);
                 this.renderComponentTooltip(matrixStack, tooltip, mouseX, mouseY);
