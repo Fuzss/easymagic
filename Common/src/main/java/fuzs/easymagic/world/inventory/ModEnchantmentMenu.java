@@ -211,10 +211,6 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         return super.clickMenuButton(player, data);
     }
 
-    public boolean hasItemToEnchant() {
-        return !this.enchantSlots.getItem(0).isEmpty();
-    }
-
     @Override
     public boolean stillValid(Player playerIn) {
         return this.enchantSlots.stillValid(playerIn);

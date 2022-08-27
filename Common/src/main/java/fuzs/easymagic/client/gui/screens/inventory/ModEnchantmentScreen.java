@@ -7,7 +7,6 @@ import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.util.ExperienceUtil;
-import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.puzzleslib.core.CoreServices;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.inventory.EnchantmentNames;
@@ -107,13 +106,13 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         RenderSystem.setShaderTexture(0, ENCHANTING_TABLE_REROLL_LOCATION);
         int experienceCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost;
         int lapisCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisLazuliCost;
-        boolean invalid = !this.canUseReroll();
+        boolean invalid = !this.minecraft.player.getAbilities().instabuild && (ExperienceUtil.getTotalExperience(this.minecraft.player) < experienceCost || this.menu.getGoldCount() < lapisCost);
         int buttonX = this.leftPos + 14;
         int buttonY = this.topPos + 16;
         boolean hovered = this.isMouseOverReroll(mouseX, mouseY);
-        this.blit(poseStack, buttonX, buttonY, 0, invalid ? 0 : hovered ? 54 : 27, 38, 27);
+        this.blit(poseStack, buttonX, buttonY, 0, !this.canUseReroll() || invalid ? 0 : hovered ? 54 : 27, 38, 27);
         // don't render anything but the background just like vanilla for enchanting slots
-        if (!this.getMenu().hasItemToEnchant()) return;
+        if (!this.canUseReroll()) return;
         if (experienceCost == 0 && lapisCost == 0) {
             // arrow circle
             this.blit(poseStack, buttonX + 12, buttonY + 6, 64, invalid ? 0 : hovered ? 30 : 15, 15, 15);
@@ -153,16 +152,15 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
     }
 
     private boolean canUseReroll() {
-        int experienceCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost;
-        int lapisCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisLazuliCost;
-        return this.getMenu().hasItemToEnchant() && ExperienceUtil.getTotalExperience(this.minecraft.player) >= experienceCost && this.menu.getGoldCount() >= lapisCost;
+        // checking if item is not empty is not enough, it might not be enchantable after all
+        return IntStream.of(this.menu.costs).sum() > 0;
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments) {
             if (this.isMouseOverReroll((int) mouseX, (int) mouseY)) {
-                if (this.canUseReroll() && this.menu.clickMenuButton(this.minecraft.player, 4)) {
+                if (this.menu.clickMenuButton(this.minecraft.player, 4)) {
                     this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 4);
                     // only play this locally
                     this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.ENCHANTMENT_TABLE_USE, 1.0F));
@@ -186,7 +184,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                 this.renderComponentTooltip(matrixStack, tooltip, mouseX, mouseY);
             }
         } else if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments) {
-            if (this.isMouseOverReroll(mouseX, mouseY) && this.getMenu().hasItemToEnchant()) {
+            if (this.isMouseOverReroll(mouseX, mouseY) && this.canUseReroll()) {
                 List<Component> tooltip = Lists.newArrayList();
                 this.gatherRerollTooltip(tooltip);
                 this.renderComponentTooltip(matrixStack, tooltip, mouseX, mouseY);
@@ -233,11 +231,6 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
             }
         }
         return -1;
-    }
-
-    @Override
-    public ModEnchantmentMenu getMenu() {
-        return (ModEnchantmentMenu) super.getMenu();
     }
 
     public void setSlotData(int slot, List<EnchantmentInstance> data) {

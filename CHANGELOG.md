@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog].
 
+## [v4.3.2-1.19.2] - 2022-08-27
+### Fixed
+- Reroll button now behaves as intended in creative mode
+
 ## [v4.3.1-1.19.2] - 2022-08-27
 ### Fixed
 - Minor fixes for the reroll button showing when it wasn't actually usable
