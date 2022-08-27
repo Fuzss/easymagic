@@ -180,8 +180,8 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
 
     @Override
     public boolean clickMenuButton(Player player, int data) {
-        if (data == 4 && !this.enchantSlots.getItem(0).isEmpty()) {
-            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments) {
+        if (data == 4) {
+            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments && !this.enchantSlots.getItem(0).isEmpty()) {
                 ItemStack itemstack = this.enchantSlots.getItem(1);
                 if (itemstack.getCount() >= EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisLazuliCost && ExperienceUtil.getTotalExperience(player) >= EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost || player.getAbilities().instabuild) {
                     this.access.execute((Level level, BlockPos pos) -> {
@@ -209,6 +209,10 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             return false;
         }
         return super.clickMenuButton(player, data);
+    }
+
+    public boolean hasItemToEnchant() {
+        return !this.enchantSlots.getItem(0).isEmpty();
     }
 
     @Override

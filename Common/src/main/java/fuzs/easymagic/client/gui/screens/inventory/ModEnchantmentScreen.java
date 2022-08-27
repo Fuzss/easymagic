@@ -7,6 +7,7 @@ import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.util.ExperienceUtil;
+import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.puzzleslib.core.CoreServices;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.inventory.EnchantmentNames;
@@ -106,7 +107,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         RenderSystem.setShaderTexture(0, ENCHANTING_TABLE_REROLL_LOCATION);
         int experienceCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost;
         int lapisCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisLazuliCost;
-        boolean invalid = ExperienceUtil.getTotalExperience(this.minecraft.player) < experienceCost || this.menu.getGoldCount() < lapisCost;
+        boolean invalid = !this.canUseReroll();
         int buttonX = this.leftPos + 14;
         int buttonY = this.topPos + 16;
         boolean hovered = this.isMouseOverReroll(mouseX, mouseY);
@@ -149,11 +150,17 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         this.font.draw(poseStack, text, posX, posY, color);
     }
 
+    private boolean canUseReroll() {
+        int experienceCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost;
+        int lapisCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisLazuliCost;
+        return this.getMenu().hasItemToEnchant() && ExperienceUtil.getTotalExperience(this.minecraft.player) >= experienceCost && this.menu.getGoldCount() >= lapisCost;
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments) {
             if (this.isMouseOverReroll((int) mouseX, (int) mouseY)) {
-                if (this.menu.clickMenuButton(this.minecraft.player, 4)) {
+                if (this.canUseReroll() && this.menu.clickMenuButton(this.minecraft.player, 4)) {
                     this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 4);
                     // only play this locally
                     this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.ENCHANTMENT_TABLE_USE, 1.0F));
@@ -224,6 +231,11 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
             }
         }
         return -1;
+    }
+
+    @Override
+    public ModEnchantmentMenu getMenu() {
+        return (ModEnchantmentMenu) super.getMenu();
     }
 
     public void setSlotData(int slot, List<EnchantmentInstance> data) {
