@@ -1,6 +1,5 @@
 package fuzs.easymagic.mixin.accessor;
 
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.EnchantmentMenu;
@@ -12,6 +11,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 import java.util.List;
+import java.util.Random;
 
 @Mixin(EnchantmentMenu.class)
 public interface EnchantmentMenuAccessor {
@@ -24,7 +24,7 @@ public interface EnchantmentMenuAccessor {
     DataSlot getEnchantmentSeed();
 
     @Accessor
-    RandomSource getRandom();
+    Random getRandom();
 
     @Invoker
     List<EnchantmentInstance> callGetEnchantmentList(ItemStack stack, int enchantSlot, int level);

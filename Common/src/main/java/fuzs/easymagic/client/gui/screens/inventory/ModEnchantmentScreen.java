@@ -13,9 +13,7 @@ import net.minecraft.client.gui.screens.inventory.EnchantmentNames;
 import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
@@ -245,7 +243,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                 if (EasyMagic.CONFIG.get(ServerConfig.class).enchantmentHint == ServerConfig.EnchantmentHint.ALL) {
                     slotTooltip.add(((MutableComponent) data.enchantment.getFullname(data.level)).withStyle(ChatFormatting.GRAY));
                 } else {
-                    slotTooltip.add((Component.translatable("container.enchant.clue", data.enchantment.getFullname(data.level))).withStyle(ChatFormatting.GRAY));
+                    slotTooltip.add((new TranslatableComponent("container.enchant.clue", data.enchantment.getFullname(data.level))).withStyle(ChatFormatting.GRAY));
                 }
                 hasValidEnchantment = true;
             }
@@ -256,11 +254,11 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
     private void gatherSlotCostsTooltip(int slot, List<Component> slotTooltip, boolean hasValidEnchantment) {
         List<Component> additionalTooltip = Lists.newArrayList();
         if (CoreServices.ENVIRONMENT.getModLoader().isForge() && !hasValidEnchantment) {
-            additionalTooltip.add(Component.translatable("forge.container.enchant.limitedEnchantability").withStyle(ChatFormatting.RED));
+            additionalTooltip.add(new TranslatableComponent("forge.container.enchant.limitedEnchantability").withStyle(ChatFormatting.RED));
         } else if (!this.minecraft.player.getAbilities().instabuild) {
             int enchantLevels = this.menu.costs[slot];
             if (this.minecraft.player.experienceLevel < enchantLevels) {
-                additionalTooltip.add((Component.translatable("container.enchant.level.requirement", enchantLevels)).withStyle(ChatFormatting.RED));
+                additionalTooltip.add((new TranslatableComponent("container.enchant.level.requirement", enchantLevels)).withStyle(ChatFormatting.RED));
             } else {
                 this.getEnchantingComponent(slot + 1, this.menu.getGoldCount(), "container.enchant.lapis.one", "container.enchant.lapis.many").ifPresent(additionalTooltip::add);
                 this.getEnchantingComponent(slot + 1, this.minecraft.player.experienceLevel, "container.enchant.level.one", "container.enchant.level.many").ifPresent(additionalTooltip::add);
@@ -268,21 +266,21 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         }
         if (!additionalTooltip.isEmpty()) {
             if (!slotTooltip.isEmpty()) {
-                slotTooltip.add(Component.empty());
+                slotTooltip.add(new TextComponent(""));
             }
             slotTooltip.addAll(additionalTooltip);
         }
     }
 
     private void gatherRerollTooltip(List<Component> tooltip) {
-        tooltip.add(Component.translatable("container.enchant.reroll").withStyle(ChatFormatting.GRAY));
+        tooltip.add(new TranslatableComponent("container.enchant.reroll").withStyle(ChatFormatting.GRAY));
         List<Component> additionalTooltip = Lists.newArrayList();
         if (!this.minecraft.player.getAbilities().instabuild) {
             this.getEnchantingComponent(EasyMagic.CONFIG.get(ServerConfig.class).rerollLapisLazuliCost, this.menu.getGoldCount(), "container.enchant.lapis.one", "container.enchant.lapis.many").ifPresent(additionalTooltip::add);
             this.getEnchantingComponent(EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost, ExperienceUtil.getTotalExperience(this.minecraft.player), "container.enchant.experience.one", "container.enchant.experience.many").ifPresent(additionalTooltip::add);
         }
         if (!additionalTooltip.isEmpty()) {
-            tooltip.add(Component.empty());
+            tooltip.add(new TextComponent(""));
             tooltip.addAll(additionalTooltip);
         }
     }
@@ -292,9 +290,9 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         if (requiredAmount < 1) {
             return Optional.empty();
         } else if (requiredAmount == 1) {
-            component = Component.translatable(singleKey);
+            component = new TranslatableComponent(singleKey);
         } else {
-            component = Component.translatable(manyKey, requiredAmount);
+            component = new TranslatableComponent(manyKey, requiredAmount);
         }
         return Optional.of(component.withStyle(currentAmount >= requiredAmount ? ChatFormatting.GRAY : ChatFormatting.RED));
     }

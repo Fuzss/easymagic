@@ -13,7 +13,6 @@ import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -26,12 +25,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EnchantmentTableBlock;
 
 import java.util.List;
+import java.util.Random;
 
 public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerListener {
     private final Container enchantSlots;
     private final ContainerLevelAccess access;
     private final Player player;
-    private final RandomSource random;
+    private final Random random;
     private final DataSlot enchantmentSeed;
 
     public ModEnchantmentMenu(int id, Inventory playerInventory) {
