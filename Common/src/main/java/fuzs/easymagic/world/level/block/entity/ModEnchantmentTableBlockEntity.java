@@ -1,6 +1,7 @@
 package fuzs.easymagic.world.level.block.entity;
 
-import fuzs.easymagic.core.ModServices;
+import fuzs.easymagic.EasyMagic;
+import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import net.minecraft.core.BlockPos;
@@ -24,11 +25,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import javax.annotation.Nullable;
 
 public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity implements Container, MenuProvider, WorldlyContainer {
-    private final NonNullList<ItemStack> inventory = NonNullList.withSize(2, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> inventory = NonNullList.withSize(3, ItemStack.EMPTY);
+    private final int[] itemSlots = new int[]{0};
+    private final int[] catalystSlots = EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst ? new int[]{1, 2} : new int[]{1};
     private LockCode code = LockCode.NO_LOCK;
 
-    public ModEnchantmentTableBlockEntity(BlockPos pWorldPosition, BlockState pBlockState) {
-        super(pWorldPosition, pBlockState);
+    public ModEnchantmentTableBlockEntity(BlockPos blockPos, BlockState blockState) {
+        super(blockPos, blockState);
     }
 
     @Override
@@ -73,7 +76,7 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
 
     @Override
     public int getContainerSize() {
-        return this.inventory.size();
+        return EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst ? 3 : 2;
     }
 
     @Override
@@ -105,8 +108,8 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
     public void setItem(int index, ItemStack stack) {
         if (index >= 0 && index < this.inventory.size()) {
             this.inventory.set(index, stack);
+            this.setChanged();
         }
-        this.setChanged();
     }
 
     @Override
@@ -126,8 +129,10 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
 
     @Override
     public boolean canPlaceItem(int index, ItemStack stack) {
-        if (index == 1) {
-            return ModServices.ABSTRACTIONS.isStackEnchantingFuel(stack);
+        if (index == 2) {
+            return stack.is(ModRegistry.REROLL_CATALYSTS_ITEM_TAG);
+        } else if (index == 1) {
+            return stack.is(ModRegistry.ENCHANTING_CATALYSTS_ITEM_TAG);
         } else if (index == 0) {
             return this.inventory.get(0).isEmpty();
         }
@@ -136,7 +141,7 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return side == Direction.UP || side == Direction.DOWN ? new int[]{0} : new int[]{1};
+        return side.getAxis().isHorizontal() ? this.catalystSlots : this.itemSlots;
     }
 
     @Override
@@ -155,8 +160,8 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
         return this.getName();
     }
 
-    public boolean canOpen(Player p_213904_1_) {
-        return BaseContainerBlockEntity.canUnlock(p_213904_1_, this.code, this.getDisplayName());
+    public boolean canOpen(Player player) {
+        return BaseContainerBlockEntity.canUnlock(player, this.code, this.getDisplayName());
     }
 
     @Nullable

@@ -11,6 +11,4 @@ public interface CommonAbstractions {
     ModEnchantmentTableBlockEntity createModEnchantmentTableBlockEntity(BlockPos worldPosition, BlockState state);
 
     float getEnchantPowerBonus(BlockState state, Level level, BlockPos pos);
-
-    boolean isStackEnchantingFuel(ItemStack stack);
 }
