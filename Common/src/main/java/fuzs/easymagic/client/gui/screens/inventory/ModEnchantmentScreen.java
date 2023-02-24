@@ -7,7 +7,8 @@ import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.util.ExperienceUtil;
-import fuzs.puzzleslib.core.CoreServices;
+import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
+import fuzs.puzzleslib.core.ModLoaderEnvironment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.inventory.EnchantmentNames;
 import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
@@ -116,7 +117,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         RenderSystem.setShaderTexture(0, ENCHANTING_TABLE_REROLL_LOCATION);
         int experienceCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost;
         int lapisCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost;
-        boolean invalid = !this.minecraft.player.getAbilities().instabuild && (ExperienceUtil.getTotalExperience(this.minecraft.player) < experienceCost || this.menu.getGoldCount() < lapisCost);
+        boolean invalid = !this.minecraft.player.getAbilities().instabuild && (ExperienceUtil.getTotalExperience(this.minecraft.player) < experienceCost || this.getMenu().getRerollCatalystCount() < lapisCost);
         int buttonX = this.leftPos + (EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst ? 12 : 14);
         int buttonY = this.topPos + 16;
         boolean hovered = this.isMouseOverReroll(mouseX, mouseY);
@@ -265,7 +266,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
 
     private void gatherSlotCostsTooltip(int slot, List<Component> slotTooltip, boolean hasValidEnchantment) {
         List<Component> additionalTooltip = Lists.newArrayList();
-        if (CoreServices.ENVIRONMENT.getModLoader().isForge() && !hasValidEnchantment) {
+        if (ModLoaderEnvironment.INSTANCE.getModLoader().isForge() && !hasValidEnchantment) {
             additionalTooltip.add(Component.translatable("forge.container.enchant.limitedEnchantability").withStyle(ChatFormatting.RED));
         } else if (!this.minecraft.player.getAbilities().instabuild) {
             int enchantLevels = this.menu.costs[slot];
@@ -291,9 +292,9 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
             int rerollCatalystCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost;
             if (EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst) {
                 MutableComponent component = Component.literal(rerollCatalystCost + " ").append(Items.AMETHYST_SHARD.getDescription());
-                getEnchantingComponent(rerollCatalystCost, this.menu.getGoldCount(), component).ifPresent(additionalTooltip::add);
+                getEnchantingComponent(rerollCatalystCost, this.getMenu().getRerollCatalystCount(), component).ifPresent(additionalTooltip::add);
             } else {
-                getEnchantingComponent(rerollCatalystCost, this.menu.getGoldCount(), "container.enchant.lapis.one", "container.enchant.lapis.many").ifPresent(additionalTooltip::add);
+                getEnchantingComponent(rerollCatalystCost, this.getMenu().getRerollCatalystCount(), "container.enchant.lapis.one", "container.enchant.lapis.many").ifPresent(additionalTooltip::add);
             }
             getEnchantingComponent(EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost, ExperienceUtil.getTotalExperience(this.minecraft.player), "container.enchant.experience.one", "container.enchant.experience.many").ifPresent(additionalTooltip::add);
         }
@@ -317,5 +318,10 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
     private static Optional<Component> getEnchantingComponent(int requiredAmount, int currentAmount, MutableComponent component) {
         if (requiredAmount < 1) return Optional.empty();
         return Optional.of(component.withStyle(currentAmount >= requiredAmount ? ChatFormatting.GRAY : ChatFormatting.RED));
+    }
+
+    @Override
+    public ModEnchantmentMenu getMenu() {
+        return (ModEnchantmentMenu) super.getMenu();
     }
 }

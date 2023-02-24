@@ -3,7 +3,7 @@ package fuzs.easymagic.world.inventory;
 import com.google.common.collect.Lists;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ServerConfig;
-import fuzs.easymagic.core.ModServices;
+import fuzs.easymagic.core.CommonAbstractions;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.mixin.accessor.EnchantmentMenuAccessor;
 import fuzs.easymagic.mixin.accessor.PlayerAccessor;
@@ -29,6 +29,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import java.util.List;
 
 public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerListener {
+    public static final int REROLL_CATALYST_SLOT = 38;
+
     private final Container enchantSlots;
     private final ContainerLevelAccess access;
     private final Player player;
@@ -50,6 +52,17 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         ((EnchantmentMenuAccessor) this).setEnchantSlots(container);
         boolean dedicatedRerollCatalyst = EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst;
 
+        // do these before the override slots, as remote slot list isn't reset properly and this will use the wrong index
+        if (dedicatedRerollCatalyst) {
+            this.addSlot(new Slot(container, 2, 41, 47) {
+
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    return stack.is(ModRegistry.REROLL_CATALYSTS_ITEM_TAG);
+                }
+            });
+        }
+
         //  manually set slot index as vanilla's AbstractContainerMenu::addSlot normally does that which we cannot use as we want to override default enchantment menu slots
         this.slots.set(0, Util.make(new Slot(container, 0, dedicatedRerollCatalyst ? 5 : 15, 47) {
 
@@ -66,16 +79,6 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
                 return stack.is(ModRegistry.ENCHANTING_CATALYSTS_ITEM_TAG);
             }
         }, slot -> slot.index = 1));
-
-        if (dedicatedRerollCatalyst) {
-            this.addSlot(new Slot(container, 2, 41, 47) {
-
-                @Override
-                public boolean mayPlace(ItemStack stack) {
-                    return stack.is(ModRegistry.REROLL_CATALYSTS_ITEM_TAG);
-                }
-            });
-        }
 
         this.addSlotListener(this);
     }
@@ -183,7 +186,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         float j = 0;
         for(BlockPos blockpos : EnchantmentTableBlock.BOOKSHELF_OFFSETS) {
             if (EnchantmentTableBlock.isValidBookShelf(level, pos, blockpos)) {
-                j += ModServices.ABSTRACTIONS.getEnchantPowerBonus(level.getBlockState(pos.offset(blockpos)), level, pos.offset(blockpos));
+                j += CommonAbstractions.INSTANCE.getEnchantPowerBonus(level.getBlockState(pos.offset(blockpos)), level, pos.offset(blockpos));
             }
         }
         return (int) j;
@@ -249,5 +252,58 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
                 this.setCarried(ItemStack.EMPTY);
             }
         }
+    }
+
+    public int getRerollCatalystCount() {
+        if (EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst) {
+            return this.enchantSlots.getItem(2).getCount();
+        }
+        return this.getGoldCount();
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        ItemStack itemStack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemStack2 = slot.getItem();
+            itemStack = itemStack2.copy();
+            boolean override = false;
+            boolean dedicatedRerollCatalyst = EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst;
+            if (dedicatedRerollCatalyst && index == REROLL_CATALYST_SLOT) {
+                override = true;
+                if (!this.moveItemStackTo(itemStack2, 2, 38, true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (index != 0 && index != 1) {
+                if (itemStack2.is(ModRegistry.ENCHANTING_CATALYSTS_ITEM_TAG)) {
+                    override = true;
+                    if (!this.moveItemStackTo(itemStack2, 1, 2, true)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (dedicatedRerollCatalyst && itemStack2.is(ModRegistry.REROLL_CATALYSTS_ITEM_TAG)) {
+                    override = true;
+                    if (!this.moveItemStackTo(itemStack2, 38, 39, true)) {
+                        return ItemStack.EMPTY;
+                    }
+                }
+            }
+
+            if (!override) return super.quickMoveStack(player, index);
+
+            if (itemStack2.isEmpty()) {
+                slot.set(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+
+            if (itemStack2.getCount() == itemStack.getCount()) {
+                return ItemStack.EMPTY;
+            }
+
+            slot.onTake(player, itemStack2);
+        }
+
+        return itemStack;
     }
 }

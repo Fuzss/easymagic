@@ -3,6 +3,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog].
 
+## [v4.3.3-1.19.2] - 2023-02-24
+### Added
+- Added an option to make reroll catalysts separate from enchanting catalysts
+  - This means rerolling no longer uses lapis lazuli, but a different dedicated item instead
+  - When the option is enabled, a new slot is added to enchanting tables for the reroll item
+- Enchanting catalyst items are now defined by the `easymagic:enchanting_catalysts` item tag
+- Reroll catalyst items are now defined by the `easymagic:reroll_catalysts` item tag
+### Changed
+- The lenient bookshelves option now makes enchanting tables ignore all blocks that do not have a full block collision shape (like carpet) when counting bookshelves, before this would only ignore blocks without a collision shape (like torches)
+
 ## [v4.3.2-1.19.2] - 2022-08-27
 ### Fixed
 - Reroll button now behaves as intended in creative mode

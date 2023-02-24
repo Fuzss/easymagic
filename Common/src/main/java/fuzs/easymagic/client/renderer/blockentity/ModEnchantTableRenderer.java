@@ -17,52 +17,57 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.EnchantmentTableBlockEntity;
+import org.apache.commons.compress.utils.Lists;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ModEnchantTableRenderer extends EnchantTableRenderer {
 
-    public ModEnchantTableRenderer(BlockEntityRendererProvider.Context pContext) {
-        super(pContext);
+    public ModEnchantTableRenderer(BlockEntityRendererProvider.Context context) {
+        super(context);
     }
 
     @Override
     public void render(EnchantmentTableBlockEntity blockEntity, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
         super.render(blockEntity, partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn);
-        // get inventory contents from two slots
-        ItemStack itemToEnchant = ((Container) blockEntity).getItem(0);
-        ItemStack catalystItem = ((Container) blockEntity).getItem(1);
-        int catalystCount = Math.min(catalystItem.getCount(), 3);
+        Container container = (Container) blockEntity;
+        ItemStack itemToEnchant = container.getItem(0);
+        ItemStack enchantingStack = container.getItem(1);
+        ItemStack rerollStack = container.getItem(2);
         int posData = (int) blockEntity.getBlockPos().asLong();
         switch (EasyMagic.CONFIG.get(ClientConfig.class).renderContentsType) {
             case FLAT -> {
-                List<ItemStack> flatItems = this.getInventoryItemList(itemToEnchant, catalystItem, catalystCount);
-                this.renderFlatItemList(flatItems, blockEntity.getBlockPos(), poseStack, bufferIn, combinedLightIn, combinedOverlayIn, posData);
+                List<ItemStack> items = getItemsList(itemToEnchant, enchantingStack, rerollStack);
+                this.renderFlatItemList(items, blockEntity.getBlockPos(), poseStack, bufferIn, combinedLightIn, combinedOverlayIn, posData);
             }
             case FLOATING -> {
-                List<ItemStack> fancyFloatingItems = this.getInventoryItemList(ItemStack.EMPTY, catalystItem, catalystCount);
+                List<ItemStack> items = getItemsList(ItemStack.EMPTY, enchantingStack, rerollStack);
                 this.renderHoveringItem(blockEntity, itemToEnchant, partialTicks, poseStack, bufferIn, combinedLightIn);
-                this.renderHoveringItemList(fancyFloatingItems, blockEntity.time + partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, true, posData);
+                this.renderHoveringItemList(items, blockEntity.time + partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, true, posData);
             }
         }
     }
 
-    private List<ItemStack> getInventoryItemList(ItemStack itemToEnchant, ItemStack catalystItem, int catalystCount) {
-        List<ItemStack> inventoryItems = new ArrayList<>(4);
-        inventoryItems.add(itemToEnchant);
-        for (int i = 0; i < catalystCount; i++) {
-            inventoryItems.add(catalystItem);
+    private static List<ItemStack> getItemsList(ItemStack itemToEnchant, ItemStack enchantingStack, ItemStack rerollStack) {
+        List<ItemStack> items = Lists.newArrayList();
+        items.add(itemToEnchant);
+        for (int i = 0; i < 3; i++) {
+            if (i < enchantingStack.getCount()) {
+                items.add(enchantingStack);
+            }
+            if (i < rerollStack.getCount()) {
+                items.add(rerollStack);
+            }
         }
-        inventoryItems.removeIf(ItemStack::isEmpty);
-        return inventoryItems;
+        items.removeIf(ItemStack::isEmpty);
+        return items;
     }
 
-    private void renderFlatItemList(List<ItemStack> inventoryItems, BlockPos pos, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, int posData) {
+    private void renderFlatItemList(List<ItemStack> items, BlockPos pos, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, int posData) {
         // randomise item placement depending on position
         int randomDirection = Math.abs(pos.getX() + pos.getZ()) % 4;
         // render everything just like the campfire does
-        for (int i = 0; i < inventoryItems.size(); ++i) {
+        for (int i = 0; i < Math.min(4, items.size()); ++i) {
             poseStack.pushPose();
             poseStack.translate(0.5, 0.76171875, 0.5);
             Direction direction = Direction.from2DDataValue((i + randomDirection) % 4);
@@ -71,7 +76,7 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
             poseStack.mulPose(Vector3f.XP.rotationDegrees(90.0F));
             poseStack.translate(-0.3125, -0.3125, 0.0);
             poseStack.scale(0.375F, 0.375F, 0.375F);
-            ItemStack renderStack = inventoryItems.get(i);
+            ItemStack renderStack = items.get(i);
             Minecraft.getInstance().getItemRenderer().renderStatic(renderStack, ItemTransforms.TransformType.FIXED, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, posData + i);
             poseStack.popPose();
         }
@@ -93,18 +98,18 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
         poseStack.popPose();
     }
 
-    private void renderHoveringItemList(List<ItemStack> inventoryItems, float age, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, boolean rotateItems, int posData) {
+    private void renderHoveringItemList(List<ItemStack> items, float age, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, boolean rotateItems, int posData) {
         // mostly copied from Botania's runic altar rendering code, thanks!
-        float itemRenderAngle = 360.0F / inventoryItems.size();
-        for (int i = 0; i < inventoryItems.size(); ++i) {
-            matrixStackIn.pushPose();
-            matrixStackIn.translate(0.5F, 1.0F, 0.5F);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(i * itemRenderAngle + age));
-            matrixStackIn.translate(0.75F, 0.0F, 0.25F);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(rotateItems ? age % 360.0F : 90.0F));
-            matrixStackIn.translate(0.0, 0.075 * Math.sin((age + i * 10.0) / 5.0), 0.0F);
-            Minecraft.getInstance().getItemRenderer().renderStatic(inventoryItems.get(i), ItemTransforms.TransformType.GROUND, combinedLightIn, combinedOverlayIn, matrixStackIn, bufferIn, posData + i);
-            matrixStackIn.popPose();
+        float itemRenderAngle = 360.0F / items.size();
+        for (int i = 0; i < items.size(); ++i) {
+            poseStack.pushPose();
+            poseStack.translate(0.5F, 1.0F, 0.5F);
+            poseStack.mulPose(Vector3f.YP.rotationDegrees(i * itemRenderAngle + age));
+            poseStack.translate(0.75F, 0.0F, 0.25F);
+            poseStack.mulPose(Vector3f.YP.rotationDegrees(rotateItems ? age % 360.0F : 90.0F));
+            poseStack.translate(0.0, 0.075 * Math.sin((age + i * 10.0) / 5.0), 0.0F);
+            Minecraft.getInstance().getItemRenderer().renderStatic(items.get(i), ItemTransforms.TransformType.GROUND, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, posData + i);
+            poseStack.popPose();
         }
     }
 }

@@ -91,7 +91,7 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
 
     @Override
     public ItemStack getItem(int index) {
-        return index >= 0 && index < this.inventory.size() ? this.inventory.get(index) : ItemStack.EMPTY;
+        return index >= 0 && index < this.getContainerSize() ? this.inventory.get(index) : ItemStack.EMPTY;
     }
 
     @Override
@@ -106,7 +106,7 @@ public class ModEnchantmentTableBlockEntity extends EnchantmentTableBlockEntity 
 
     @Override
     public void setItem(int index, ItemStack stack) {
-        if (index >= 0 && index < this.inventory.size()) {
+        if (index >= 0 && index < this.getContainerSize()) {
             this.inventory.set(index, stack);
             this.setChanged();
         }
