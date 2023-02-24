@@ -1,7 +1,7 @@
 package fuzs.easymagic;
 
 import fuzs.easymagic.data.ModItemTagsProvider;
-import fuzs.puzzleslib.core.CoreServices;
+import fuzs.puzzleslib.core.CommonFactories;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
@@ -15,7 +15,7 @@ public class EasyMagicForge {
 
     @SubscribeEvent
     public static void onConstructMod(final FMLConstructModEvent evt) {
-        CoreServices.FACTORIES.modConstructor(EasyMagic.MOD_ID).accept(new EasyMagic());
+        CommonFactories.INSTANCE.modConstructor(EasyMagic.MOD_ID).accept(new EasyMagic());
     }
 
     @SubscribeEvent

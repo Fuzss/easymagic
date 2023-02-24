@@ -1,7 +1,7 @@
 package fuzs.easymagic.client;
 
 import fuzs.easymagic.EasyMagic;
-import fuzs.puzzleslib.client.core.ClientCoreServices;
+import fuzs.puzzleslib.client.core.ClientFactories;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -12,6 +12,6 @@ public class EasyMagicForgeClient {
 
     @SubscribeEvent
     public static void onConstructMod(final FMLConstructModEvent evt) {
-        ClientCoreServices.FACTORIES.clientModConstructor(EasyMagic.MOD_ID).accept(new EasyMagicClient());
+        ClientFactories.INSTANCE.clientModConstructor(EasyMagic.MOD_ID).accept(new EasyMagicClient());
     }
 }
