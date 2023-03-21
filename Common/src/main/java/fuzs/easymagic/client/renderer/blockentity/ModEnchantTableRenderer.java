@@ -1,7 +1,7 @@
 package fuzs.easymagic.client.renderer.blockentity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ClientConfig;
 import net.minecraft.client.Minecraft;
@@ -72,8 +72,8 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
             poseStack.translate(0.5, 0.76171875, 0.5);
             Direction direction = Direction.from2DDataValue((i + randomDirection) % 4);
             float horizontalAngle = -direction.toYRot();
-            poseStack.mulPose(Vector3f.YP.rotationDegrees(horizontalAngle));
-            poseStack.mulPose(Vector3f.XP.rotationDegrees(90.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(horizontalAngle));
+            poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
             poseStack.translate(-0.3125, -0.3125, 0.0);
             poseStack.scale(0.375F, 0.375F, 0.375F);
             ItemStack renderStack = items.get(i);
@@ -93,7 +93,7 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
         poseStack.translate(0.0, hoverOffset + 0.25F * modelYScale * openness - 0.15F * (1.0F - openness), 0.0);
         final float scale = openness * 0.8F + 0.2F;
         poseStack.scale(scale, scale, scale);
-        poseStack.mulPose(Vector3f.YP.rotation((blockEntity.time + partialTicks) / 20.0F));
+        poseStack.mulPose(Axis.YP.rotation((blockEntity.time + partialTicks) / 20.0F));
         Minecraft.getInstance().getItemRenderer().render(itemToEnchant, ItemTransforms.TransformType.GROUND, false, poseStack, bufferIn, combinedLightIn, OverlayTexture.NO_OVERLAY, model);
         poseStack.popPose();
     }
@@ -104,9 +104,9 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
         for (int i = 0; i < items.size(); ++i) {
             poseStack.pushPose();
             poseStack.translate(0.5F, 1.0F, 0.5F);
-            poseStack.mulPose(Vector3f.YP.rotationDegrees(i * itemRenderAngle + age));
+            poseStack.mulPose(Axis.YP.rotationDegrees(i * itemRenderAngle + age));
             poseStack.translate(0.75F, 0.0F, 0.25F);
-            poseStack.mulPose(Vector3f.YP.rotationDegrees(rotateItems ? age % 360.0F : 90.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(rotateItems ? age % 360.0F : 90.0F));
             poseStack.translate(0.0, 0.075 * Math.sin((age + i * 10.0) / 5.0), 0.0F);
             Minecraft.getInstance().getItemRenderer().renderStatic(items.get(i), ItemTransforms.TransformType.GROUND, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, posData + i);
             poseStack.popPose();

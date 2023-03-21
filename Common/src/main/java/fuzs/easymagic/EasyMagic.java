@@ -4,11 +4,10 @@ import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.network.S2CEnchantingDataMessage;
-import fuzs.puzzleslib.config.ConfigHolder;
-import fuzs.puzzleslib.core.CommonFactories;
-import fuzs.puzzleslib.core.ModConstructor;
-import fuzs.puzzleslib.network.MessageDirection;
-import fuzs.puzzleslib.network.NetworkHandler;
+import fuzs.puzzleslib.api.config.v3.ConfigHolder;
+import fuzs.puzzleslib.api.core.v1.ModConstructor;
+import fuzs.puzzleslib.api.network.v2.MessageDirection;
+import fuzs.puzzleslib.api.network.v2.NetworkHandlerV2;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +17,9 @@ public class EasyMagic implements ModConstructor {
     public static final String MOD_NAME = "Easy Magic";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
 
-    public static final NetworkHandler NETWORK = CommonFactories.INSTANCE.network(MOD_ID);
+    public static final NetworkHandlerV2 NETWORK = NetworkHandlerV2.of(MOD_ID);
     @SuppressWarnings("Convert2MethodRef")
-    public static final ConfigHolder CONFIG = CommonFactories.INSTANCE
+    public static final ConfigHolder CONFIG = ConfigHolder
             .clientConfig(ClientConfig.class, () -> new ClientConfig())
             .serverConfig(ServerConfig.class, () -> new ServerConfig());
 

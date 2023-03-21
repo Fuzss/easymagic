@@ -11,7 +11,7 @@ import fuzs.easymagic.network.S2CEnchantingDataMessage;
 import fuzs.easymagic.util.ExperienceUtil;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
@@ -151,7 +151,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
                 List<EnchantmentInstance> list = this.createEnchantmentInstance(itemstack, j1);
                 if (list != null && !list.isEmpty()) {
                     EnchantmentInstance enchantmentdata = list.get(this.random.nextInt(list.size()));
-                    this.enchantClue[j1] = Registry.ENCHANTMENT.getId(enchantmentdata.enchantment);
+                    this.enchantClue[j1] = BuiltInRegistries.ENCHANTMENT.getId(enchantmentdata.enchantment);
                     this.levelClue[j1] = enchantmentdata.level;
                 }
             }

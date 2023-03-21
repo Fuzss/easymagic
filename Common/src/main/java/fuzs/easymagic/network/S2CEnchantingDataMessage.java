@@ -1,9 +1,9 @@
 package fuzs.easymagic.network;
 
 import fuzs.easymagic.client.gui.screens.inventory.ModEnchantmentScreen;
-import fuzs.puzzleslib.network.Message;
+import fuzs.puzzleslib.api.network.v2.MessageV2;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -12,7 +12,7 @@ import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import java.util.ArrayList;
 import java.util.List;
 
-public class S2CEnchantingDataMessage implements Message<S2CEnchantingDataMessage> {
+public class S2CEnchantingDataMessage implements MessageV2<S2CEnchantingDataMessage> {
     private int containerId;
     private List<EnchantmentInstance> firstSlotData;
     private List<EnchantmentInstance> secondSlotData;
@@ -48,7 +48,7 @@ public class S2CEnchantingDataMessage implements Message<S2CEnchantingDataMessag
     private void writeEnchantmentInstance(FriendlyByteBuf buf, List<EnchantmentInstance> dataList) {
         buf.writeByte(dataList.size());
         for (EnchantmentInstance data : dataList) {
-            buf.writeInt(Registry.ENCHANTMENT.getId(data.enchantment));
+            buf.writeInt(BuiltInRegistries.ENCHANTMENT.getId(data.enchantment));
             buf.writeShort(data.level);
         }
     }
@@ -57,7 +57,7 @@ public class S2CEnchantingDataMessage implements Message<S2CEnchantingDataMessag
         int listSize = buf.readByte();
         List<EnchantmentInstance> slotData = new ArrayList<>(listSize);
         for (int i = 0; i < listSize; i++) {
-            Enchantment enchantment = Registry.ENCHANTMENT.byId(buf.readInt());
+            Enchantment enchantment = BuiltInRegistries.ENCHANTMENT.byId(buf.readInt());
             slotData.add(new EnchantmentInstance(enchantment, buf.readShort()));
         }
         return slotData;

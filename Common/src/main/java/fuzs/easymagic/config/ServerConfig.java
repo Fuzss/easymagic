@@ -1,7 +1,7 @@
 package fuzs.easymagic.config;
 
-import fuzs.puzzleslib.config.ConfigCore;
-import fuzs.puzzleslib.config.annotation.Config;
+import fuzs.puzzleslib.api.config.v3.Config;
+import fuzs.puzzleslib.api.config.v3.ConfigCore;
 
 public class ServerConfig implements ConfigCore {
     @Config(description = {"Add a button in the enchanting screen to allow for re-rolling enchantments.", "This costs experience levels as well as lapis lazuli, or can be free when the costs are set to 0."})

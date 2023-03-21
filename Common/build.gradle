@@ -1,5 +1,6 @@
 plugins {
-    id 'org.quiltmc.loom' version '0.12.+'
+    id 'fabric-loom' version '1.0.+'
+    id 'io.github.juuxel.loom-quiltflower' version '1.7.1'
 }
 
 archivesBaseName = rootProject.name
@@ -14,21 +15,13 @@ dependencies {
         parchment("org.parchmentmc.data:parchment-${minecraftVersion}:${parchmentMappingsVersion}@zip")
     }
 
-    // Mixin Dependencies
-    implementation 'org.ow2.asm:asm-tree:9.2'
-    implementation 'org.ow2.asm:asm-commons:9.2'
-    implementation 'org.ow2.asm:asm-util:9.2'
-    implementation 'org.spongepowered:mixin:0.8.5'
-
-    // Config Dependencies
-    implementation 'com.electronwill.night-config:core:3.6.5'
-    implementation 'com.electronwill.night-config:toml:3.6.5'
-
     // Puzzles Lib
-    modImplementation "fuzs.puzzleslib:puzzleslib-common:${puzzlesVersion}"
+    modApi "fuzs.puzzleslib:puzzleslib-common:${puzzlesVersion}"
 }
 
 loom {
+//    accessWidenerPath = file("src/main/resources/${modId}.accesswidener")
+
     mixin {
         // not sure if this is necessary for common...
         defaultRefmapName = "${modId}.refmap.json"
@@ -54,25 +47,50 @@ loom {
 }
 
 processResources {
+    // we need fabric.mod.json in common for a transitive access transformer to correctly apply when this is used as an external library
+    // just having a dummy fabric.mod.json in common doesn't seem to work as it's occasionally loaded in the fabric project instead of the correct one, causing issues with the mod loading
+
     duplicatesStrategy DuplicatesStrategy.INCLUDE
 
     // this will ensure that this task is redone when a value changes
     inputs.property "modId", 					"${modId}"
+    inputs.property "modName", 					"${modName}"
     inputs.property "modVersion", 				"${modVersion}"
-    inputs.property "modGroup", 				project.group
     inputs.property "modDescription", 			"${modDescription}"
+    inputs.property "modGroup", 				project.group
+    inputs.property "modPageUrl", 				"${modSourceUrl}"
+    inputs.property "modIssueUrl", 				"${modIssueUrl}"
+    inputs.property "modAuthor", 				"${modAuthor}"
+    inputs.property "minFabricVersion", 		"${minFabricVersion}"
+    inputs.property "minFabricApiVersion", 		"${minFabricApiVersion}"
+    inputs.property "minecraftVersion", 		"${minecraftVersion}"
+    inputs.property "minPuzzlesVersion", 		"${minPuzzlesVersion}"
     inputs.property "packFormat", 				"${packFormat}"
+    inputs.property "mainEntryPoint", 			"${project.group}.${rootProject.name}Fabric"
+    inputs.property "clientEntryPoint", 		"${project.group}.client.${rootProject.name}FabricClient"
+    inputs.property "modFabricEnvironment", 	"${modFabricEnvironment}"
 
     // replace stuff in fabric.mod.json and pack.mcmeta
-    filesMatching ('quilt.mod.json') {
+    filesMatching ('fabric.mod.json') {
         expand (
                 'modId':                	"${modId}",
+                'modName':              	"${modName}",
                 'modVersion':           	"${modVersion}",
-                'modGroup':             	project.group
+                'modDescription':       	"${modDescription}",
+                'modGroup':             	project.group,
+                'modPageUrl':           	"${modSourceUrl}",
+                'modIssueUrl':          	"${modIssueUrl}",
+                'modAuthor':            	"${modAuthor}",
+                'minFabricVersion':     	"${minFabricVersion}",
+                'minFabricApiVersion':  	"${minFabricApiVersion}",
+                'minecraftVersion':  	    "${minecraftVersion}",
+                "minPuzzlesVersion":    	"${minPuzzlesVersion}",
+                "mainEntryPoint": 			"${project.group}.${rootProject.name}Fabric",
+                "clientEntryPoint": 		"${project.group}.client.${rootProject.name}FabricClient",
+                "modFabricEnvironment":		"${modFabricEnvironment}"
         )
     }
 
-    // replace stuff in pack.mcmeta
     filesMatching ('pack.mcmeta') {
         expand (
                 'modDescription':       "${modDescription}",
@@ -110,18 +128,6 @@ publishing {
                     developer {
                         id = "${modAuthor}".toLowerCase()
                         name = "${modAuthor}"
-                    }
-                }
-            }
-            afterEvaluate {
-                // exclude certain dependencies when publishing to maven
-                // from https://stackoverflow.com/a/50121790
-                pom.withXml {
-                    asNode().dependencies.dependency.each { dep ->
-                        // use this approach to make excluding dependencies from Curse Maven more convenient
-                        if ([].stream().anyMatch(mod -> "${dep.groupId.last().value().last()}:${dep.artifactId.last().value().last()}".startsWith(mod))) {
-                            assert dep.parent().remove(dep)
-                        }
                     }
                 }
             }
