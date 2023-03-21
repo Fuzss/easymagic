@@ -8,7 +8,8 @@ import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.mixin.accessor.EnchantmentMenuAccessor;
 import fuzs.easymagic.mixin.accessor.PlayerAccessor;
 import fuzs.easymagic.network.S2CEnchantingDataMessage;
-import fuzs.easymagic.util.ExperienceUtil;
+import fuzs.easymagic.util.ChiseledBookshelfHelper;
+import fuzs.easymagic.util.PlayerExperienceHelper;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -24,7 +25,6 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EnchantmentTableBlock;
-import net.minecraft.world.phys.shapes.Shapes;
 
 import java.util.List;
 
@@ -183,20 +183,15 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     }
 
     private int getEnchantingPower(Level level, BlockPos pos) {
-        float j = 0;
-        for(BlockPos blockpos : EnchantmentTableBlock.BOOKSHELF_OFFSETS) {
-            if (EnchantmentTableBlock.isValidBookShelf(level, pos, blockpos)) {
-                j += CommonAbstractions.INSTANCE.getEnchantPowerBonus(level.getBlockState(pos.offset(blockpos)), level, pos.offset(blockpos));
+        float enchantingPower = 0;
+        int chiseledBookshelfBooks = 0;
+        for(BlockPos offset : EnchantmentTableBlock.BOOKSHELF_OFFSETS) {
+            if (EnchantmentTableBlock.isValidBookShelf(level, pos, offset)) {
+                enchantingPower += CommonAbstractions.INSTANCE.getEnchantPowerBonus(level.getBlockState(pos.offset(offset)), level, pos.offset(offset));
+                chiseledBookshelfBooks += ChiseledBookshelfHelper.findValidBooks(level, pos, offset);
             }
         }
-        return (int) j;
-    }
-
-    public static boolean isBlockEmpty(Level world, BlockPos pos) {
-        if (EasyMagic.CONFIG.get(ServerConfig.class).lenientBookshelves) {
-            return world.getBlockState(pos).getCollisionShape(world, pos) != Shapes.block();
-        }
-        return world.isEmptyBlock(pos);
+        return (int) enchantingPower + chiseledBookshelfBooks / 3;
     }
 
     @Override
@@ -205,7 +200,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments && !this.enchantSlots.getItem(0).isEmpty()) {
                 int catalystSlot = EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst ? 2 : 1;
                 ItemStack itemstack = this.enchantSlots.getItem(catalystSlot);
-                if (itemstack.getCount() >= EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost && ExperienceUtil.getTotalExperience(player) >= EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost || player.getAbilities().instabuild) {
+                if (itemstack.getCount() >= EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost && PlayerExperienceHelper.getTotalExperience(player) >= EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost || player.getAbilities().instabuild) {
                     this.access.execute((Level level, BlockPos pos) -> {
                         // set a new enchantment seed every time a new item is placed into the enchanting slot
                         this.enchantmentSeed.set(this.player.getRandom().nextInt());

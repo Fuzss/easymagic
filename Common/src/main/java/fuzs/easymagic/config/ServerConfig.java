@@ -21,8 +21,14 @@ public class ServerConfig implements ConfigCore {
     public boolean lenientBookshelves = true;
     @Config(description = {"Catalyst items for re-rolling are defined by the 'easymagic:reroll_catalysts' item tag instead of 'easymagic:enchanting_catalysts' (which includes just lapis lazuli by default).", "Unlocks an additional slot for providing those items in the enchanting table interface."})
     public boolean dedicatedRerollCatalyst = false;
+    @Config(description = {"Do chiseled bookshelves provide enchanting power to an enchanting table, one for every three contained books.", "NONE: Vanilla behavior, no power is provided.", "FACING: The bookshelf must face the enchanting table to provide any power.", "ALL: Chiseled bookshelves provide enchanting power regardless of where they are facing."})
+    public ChiseledBookshelfPower chiseledBookshelfEnchantingPower = ChiseledBookshelfPower.FACING;
 
     public enum EnchantmentHint {
         NONE, SINGLE, ALL
+    }
+
+    public enum ChiseledBookshelfPower {
+        NONE, FACING, ALL
     }
 }

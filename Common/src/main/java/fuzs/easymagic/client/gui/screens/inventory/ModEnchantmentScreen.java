@@ -6,7 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.config.ServerConfig;
-import fuzs.easymagic.util.ExperienceUtil;
+import fuzs.easymagic.util.PlayerExperienceHelper;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.puzzleslib.api.core.v1.ModLoaderEnvironment;
 import net.minecraft.ChatFormatting;
@@ -117,7 +117,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         RenderSystem.setShaderTexture(0, ENCHANTING_TABLE_REROLL_LOCATION);
         int experienceCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost;
         int lapisCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost;
-        boolean invalid = !this.minecraft.player.getAbilities().instabuild && (ExperienceUtil.getTotalExperience(this.minecraft.player) < experienceCost || this.getMenu().getRerollCatalystCount() < lapisCost);
+        boolean invalid = !this.minecraft.player.getAbilities().instabuild && (PlayerExperienceHelper.getTotalExperience(this.minecraft.player) < experienceCost || this.getMenu().getRerollCatalystCount() < lapisCost);
         int buttonX = this.leftPos + (EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst ? 12 : 14);
         int buttonY = this.topPos + 16;
         boolean hovered = this.isMouseOverReroll(mouseX, mouseY);
@@ -296,7 +296,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
             } else {
                 getEnchantingComponent(rerollCatalystCost, this.getMenu().getRerollCatalystCount(), "container.enchant.lapis.one", "container.enchant.lapis.many").ifPresent(additionalTooltip::add);
             }
-            getEnchantingComponent(EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost, ExperienceUtil.getTotalExperience(this.minecraft.player), "container.enchant.experience.one", "container.enchant.experience.many").ifPresent(additionalTooltip::add);
+            getEnchantingComponent(EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost, PlayerExperienceHelper.getTotalExperience(this.minecraft.player), "container.enchant.experience.one", "container.enchant.experience.many").ifPresent(additionalTooltip::add);
         }
         if (!additionalTooltip.isEmpty()) {
             tooltip.add(Component.empty());

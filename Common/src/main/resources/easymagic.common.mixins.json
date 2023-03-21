@@ -6,11 +6,13 @@
   "refmap": "easymagic.refmap.json",
   "plugin": "fuzs.easymagic.mixin.ModMixinConfigPlugin",
   "mixins": [
+    "ChiseledBookShelfBlockEntityMixin",
     "EnchantmentTableBlockMixin",
     "accessor.EnchantmentMenuAccessor",
     "accessor.PlayerAccessor"
   ],
   "client": [
+    "client.accessor.ChiseledBookShelfBlockAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

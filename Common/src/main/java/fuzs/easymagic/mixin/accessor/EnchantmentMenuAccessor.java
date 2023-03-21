@@ -17,15 +17,15 @@ import java.util.List;
 public interface EnchantmentMenuAccessor {
 
     @Mutable
-    @Accessor
+    @Accessor("enchantSlots")
     void setEnchantSlots(Container enchantSlots);
 
-    @Accessor
+    @Accessor("enchantmentSeed")
     DataSlot getEnchantmentSeed();
 
-    @Accessor
+    @Accessor("random")
     RandomSource getRandom();
 
-    @Invoker
+    @Invoker("getEnchantmentList")
     List<EnchantmentInstance> callGetEnchantmentList(ItemStack stack, int enchantSlot, int level);
 }

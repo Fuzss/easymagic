@@ -5,7 +5,7 @@ import net.minecraft.world.entity.player.Player;
 /**
  * when retrieving total experience points (not enchantment levels) Player#totalExperience doesn't work as it isn't always updated when levels are added
  */
-public class ExperienceUtil {
+public class PlayerExperienceHelper {
 
     public static int getTotalExperience(Player player) {
         return getExperienceFromLevels(player.experienceLevel) + (int) (player.getXpNeededForNextLevel() * player.experienceProgress);

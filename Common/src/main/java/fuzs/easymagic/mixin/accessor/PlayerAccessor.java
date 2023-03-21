@@ -7,6 +7,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(Player.class)
 public interface PlayerAccessor {
 
-    @Accessor
+    @Accessor("enchantmentSeed")
     void setEnchantmentSeed(int enchantmentSeed);
 }

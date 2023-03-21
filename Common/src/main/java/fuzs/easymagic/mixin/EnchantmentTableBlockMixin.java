@@ -1,7 +1,10 @@
 package fuzs.easymagic.mixin;
 
+import fuzs.easymagic.EasyMagic;
+import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.core.CommonAbstractions;
 import fuzs.easymagic.init.ModRegistry;
+import fuzs.easymagic.util.ChiseledBookshelfHelper;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.easymagic.world.level.block.entity.ModEnchantmentTableBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -17,16 +20,17 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.EnchantmentTableBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.Shapes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 // higher mixin priority to resolve conflict with Lavalogged blocks mod (our implementation does what they do plus more)
 @SuppressWarnings("deprecation")
-@Mixin(value = EnchantmentTableBlock.class, priority = 1001)
-public abstract class EnchantmentTableBlockMixin extends BaseEntityBlock {
+@Mixin(value = EnchantmentTableBlock.class, priority = 500)
+abstract class EnchantmentTableBlockMixin extends BaseEntityBlock {
+
     protected EnchantmentTableBlockMixin(Properties builder) {
         super(builder);
     }
@@ -54,9 +58,22 @@ public abstract class EnchantmentTableBlockMixin extends BaseEntityBlock {
         }
     }
 
-    @Redirect(method = "isValidBookShelf", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;isEmptyBlock(Lnet/minecraft/core/BlockPos;)Z"))
-    private static boolean isEmptyBlock(Level level, BlockPos pos) {
-        return ModEnchantmentMenu.isBlockEmpty(level, pos);
+    @Inject(method = "isValidBookShelf", at = @At("HEAD"), cancellable = true)
+    private static void isValidBookShelf(Level level, BlockPos pos, BlockPos offset, CallbackInfoReturnable<Boolean> callback) {
+        if (CommonAbstractions.INSTANCE.getEnchantPowerBonus(level.getBlockState(pos.offset(offset)), level, pos.offset(offset)) == 0.0F) {
+            if (ChiseledBookshelfHelper.findValidBooks(level, pos, offset) == 0) {
+                callback.setReturnValue(false);
+                return;
+            }
+        }
+        BlockPos inBetweenPos = pos.offset(offset.getX() / 2, offset.getY(), offset.getZ() / 2);
+        boolean isEmpty;
+        if (EasyMagic.CONFIG.get(ServerConfig.class).lenientBookshelves) {
+            isEmpty = level.getBlockState(inBetweenPos).getCollisionShape(level, inBetweenPos) != Shapes.block();
+        } else {
+            isEmpty = level.isEmptyBlock(inBetweenPos);
+        }
+        callback.setReturnValue(isEmpty);
     }
 
     @Override
