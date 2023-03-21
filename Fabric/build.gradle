@@ -33,7 +33,7 @@ repositories {
 
 dependencies {
     // Common Project
-    implementation(project(path: ":Common", configuration: "namedElements")) {
+    compileOnly(project(path: ":Common", configuration: "namedElements")) {
         transitive = false
     }
 
@@ -83,8 +83,7 @@ processResources {
     from(project(":Forge").file('src/generated/resources')) {
         exclude('.cache/')
     }
-    // Forge's data gen doesn't work with assets placed in the common project,
-    // so we place them in Forge and include them here
+    // Forge's data gen doesn't work with assets placed in the common project, so we place them in Forge and include them here
     from(project(":Forge").sourceSets.main.resources) {
         include("assets/")
         include("data/")
@@ -110,7 +109,7 @@ processResources {
 	inputs.property "clientEntryPoint", 		"${project.group}.client.${rootProject.name}FabricClient"
     inputs.property "modFabricEnvironment", 	"${modFabricEnvironment}"
 
-    // replace stuff in fabric.mod.json and pack.mcmeta
+    // replace stuff in fabric.mod.json
     filesMatching ('fabric.mod.json') {
         expand (
                 'modId':                	"${modId}",
@@ -131,6 +130,7 @@ processResources {
         )
     }
 
+    // replace stuff in pack.mcmeta
     filesMatching ('pack.mcmeta') {
         expand (
                 'modDescription':       "${modDescription}",

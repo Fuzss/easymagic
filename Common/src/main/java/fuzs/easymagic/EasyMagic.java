@@ -17,15 +17,11 @@ public class EasyMagic implements ModConstructor {
     public static final String MOD_NAME = "Easy Magic";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
 
-    public static final NetworkHandlerV2 NETWORK = NetworkHandlerV2.of(MOD_ID);
-    @SuppressWarnings("Convert2MethodRef")
-    public static final ConfigHolder CONFIG = ConfigHolder
-            .clientConfig(ClientConfig.class, () -> new ClientConfig())
-            .serverConfig(ServerConfig.class, () -> new ServerConfig());
+    public static final NetworkHandlerV2 NETWORK = NetworkHandlerV2.build(MOD_ID);
+    public static final ConfigHolder CONFIG = ConfigHolder.builder(MOD_ID).client(ClientConfig.class).server(ServerConfig.class);
 
     @Override
     public void onConstructMod() {
-        CONFIG.bakeConfigs(MOD_ID);
         ModRegistry.touch();
         registerMessages();
     }

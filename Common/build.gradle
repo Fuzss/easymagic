@@ -20,8 +20,6 @@ dependencies {
 }
 
 loom {
-//    accessWidenerPath = file("src/main/resources/${modId}.accesswidener")
-
     mixin {
         // not sure if this is necessary for common...
         defaultRefmapName = "${modId}.refmap.json"
@@ -47,50 +45,13 @@ loom {
 }
 
 processResources {
-    // we need fabric.mod.json in common for a transitive access transformer to correctly apply when this is used as an external library
-    // just having a dummy fabric.mod.json in common doesn't seem to work as it's occasionally loaded in the fabric project instead of the correct one, causing issues with the mod loading
-
     duplicatesStrategy DuplicatesStrategy.INCLUDE
 
     // this will ensure that this task is redone when a value changes
-    inputs.property "modId", 					"${modId}"
-    inputs.property "modName", 					"${modName}"
-    inputs.property "modVersion", 				"${modVersion}"
     inputs.property "modDescription", 			"${modDescription}"
-    inputs.property "modGroup", 				project.group
-    inputs.property "modPageUrl", 				"${modSourceUrl}"
-    inputs.property "modIssueUrl", 				"${modIssueUrl}"
-    inputs.property "modAuthor", 				"${modAuthor}"
-    inputs.property "minFabricVersion", 		"${minFabricVersion}"
-    inputs.property "minFabricApiVersion", 		"${minFabricApiVersion}"
-    inputs.property "minecraftVersion", 		"${minecraftVersion}"
-    inputs.property "minPuzzlesVersion", 		"${minPuzzlesVersion}"
     inputs.property "packFormat", 				"${packFormat}"
-    inputs.property "mainEntryPoint", 			"${project.group}.${rootProject.name}Fabric"
-    inputs.property "clientEntryPoint", 		"${project.group}.client.${rootProject.name}FabricClient"
-    inputs.property "modFabricEnvironment", 	"${modFabricEnvironment}"
 
-    // replace stuff in fabric.mod.json and pack.mcmeta
-    filesMatching ('fabric.mod.json') {
-        expand (
-                'modId':                	"${modId}",
-                'modName':              	"${modName}",
-                'modVersion':           	"${modVersion}",
-                'modDescription':       	"${modDescription}",
-                'modGroup':             	project.group,
-                'modPageUrl':           	"${modSourceUrl}",
-                'modIssueUrl':          	"${modIssueUrl}",
-                'modAuthor':            	"${modAuthor}",
-                'minFabricVersion':     	"${minFabricVersion}",
-                'minFabricApiVersion':  	"${minFabricApiVersion}",
-                'minecraftVersion':  	    "${minecraftVersion}",
-                "minPuzzlesVersion":    	"${minPuzzlesVersion}",
-                "mainEntryPoint": 			"${project.group}.${rootProject.name}Fabric",
-                "clientEntryPoint": 		"${project.group}.client.${rootProject.name}FabricClient",
-                "modFabricEnvironment":		"${modFabricEnvironment}"
-        )
-    }
-
+    // replace stuff in pack.mcmeta
     filesMatching ('pack.mcmeta') {
         expand (
                 'modDescription':       "${modDescription}",
@@ -144,3 +105,23 @@ publishing {
 signing {
     sign publishing.publications.mavenJava
 }
+
+import net.fabricmc.loom.task.AbstractRemapJarTask
+
+// thanks to lukebemish for this comment: https://github.com/jaredlll08/MultiLoader-Template/issues/17#issuecomment-1221598082
+tasks.withType(AbstractRemapJarTask).each {
+    it.targetNamespace = "named"
+}
+
+task copyJarToDir(type: Copy) {
+    onlyIf { project.hasProperty('buildJarOutputDir') && project.hasProperty('uniqueBuildNumber') }
+    if (project.findProperty('copyBuildJar').toBoolean()) {
+        from remapJar
+        into project.findProperty('buildJarOutputDir')
+        // add build number to be able to distinguish jars when testing thorough official launcher
+        // build number is stored in global gradle.properties
+        rename { fileName -> fileName.replace("v${modVersion}", "v${modVersion}.${uniqueBuildNumber}") }
+    }
+}
+
+build.finalizedBy project.tasks.copyJarToDir, rootProject.tasks.incrementBuildNumber

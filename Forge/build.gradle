@@ -107,7 +107,7 @@ minecraft {
 
 dependencies {
     // Common Project
-    implementation(project(":Common")) {
+    compileOnly(project(":Common")) {
         transitive = false
     }
 
@@ -136,13 +136,6 @@ mixin {
     }
 }
 
-project(":Common").sourceSets.main.resources {
-    // we need fabric.mod.json in common for a transitive access transformer to correctly apply when this is used as an external library
-    // just having a dummy fabric.mod.json in common doesn't seem to work as it's occasionally loaded in the fabric project instead of the correct one, causing issues with the mod loading
-    exclude "fabric.mod.json"
-    exclude("${modId}.accesswidener")
-}
-
 processResources {
     from(project(":Common").sourceSets.main.resources)
     from(file('src/generated/resources')) {
@@ -168,7 +161,7 @@ processResources {
     inputs.property "packFormat", "${packFormat}"
     inputs.property "modForgeDisplayTest", "${modForgeDisplayTest}"
 
-    // replace stuff in mods.toml and pack.mcmeta
+    // replace stuff in mods.toml
     filesMatching ('META-INF/mods.toml') {
         expand (
                 'modId':                "${modId}",
@@ -188,6 +181,7 @@ processResources {
         )
     }
 
+    // replace stuff in pack.mcmeta
     filesMatching ('pack.mcmeta') {
         expand (
                 'modDescription':       "${modDescription}",
@@ -331,10 +325,7 @@ modrinth {
 //	debugMode = true
 }
 
-
-import groovy.json.JsonBuilder
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
+import groovy.json.*
 
 task copyJarToDir(type: Copy) {
     onlyIf { project.hasProperty('buildJarOutputDir') && project.hasProperty('uniqueBuildNumber') }
