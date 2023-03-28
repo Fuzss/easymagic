@@ -6,14 +6,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.mixin.client.accessor.ChiseledBookShelfBlockAccessor;
+import fuzs.puzzleslib.api.client.screen.v2.TooltipRenderHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
@@ -27,19 +25,8 @@ import net.minecraft.world.phys.Vec2;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class ChiseledBookshelfTooltipHandler {
-    private static final Screen SCREEN;
-
-    static {
-        // a dummy screen instance we need  for access to the tooltip rendering method
-        SCREEN = new Screen(Component.empty()) {
-
-        };
-        // prevent tooltips from being rendered to the left when they would otherwise reach beyond screen border
-        SCREEN.init(Minecraft.getInstance(), Integer.MAX_VALUE, Integer.MAX_VALUE);
-    }
 
     public static void setupOverlayRenderState() {
         // Forge has a dedicated method for this, so here it gets quite big
@@ -88,25 +75,13 @@ public class ChiseledBookshelfTooltipHandler {
     private static void renderBookTooltip(PoseStack poseStack, int screenWidth, int screenHeight, ItemStack stack) {
         int posX = screenWidth / 2 - 12 + 22 + EasyMagic.CONFIG.get(ClientConfig.class).offsetX;
         int posY = screenHeight / 2 + 12 - getFullTooltipHeight(stack) / 2 + EasyMagic.CONFIG.get(ClientConfig.class).offsetY;
-        SCREEN.renderTooltip(poseStack, SCREEN.getTooltipFromItem(stack), stack.getTooltipImage(), posX, posY);
+        TooltipRenderHelper.renderTooltip(poseStack, posX, posY, stack);
     }
 
     private static int getFullTooltipHeight(ItemStack stack) {
-        List<ClientTooltipComponent> components = getClientTooltipComponent(stack);
+        List<ClientTooltipComponent> components = TooltipRenderHelper.getTooltip(stack);
         int height = components.size() == 1 ? -2 : 0;
         height += components.stream().mapToInt(ClientTooltipComponent::getHeight).sum();
         return height;
-    }
-
-    private static List<ClientTooltipComponent> getClientTooltipComponent(ItemStack stack) {
-        return getClientTooltipComponent(SCREEN.getTooltipFromItem(stack), stack.getTooltipImage());
-    }
-
-    private static List<ClientTooltipComponent> getClientTooltipComponent(List<Component> tooltips, Optional<TooltipComponent> visualTooltipComponent) {
-        List<ClientTooltipComponent> list = tooltips.stream().map(Component::getVisualOrderText).map(ClientTooltipComponent::create).collect(Collectors.toList());
-        visualTooltipComponent.ifPresent((tooltipComponent) -> {
-            list.add(1, ClientTooltipComponent.create(tooltipComponent));
-        });
-        return list;
     }
 }

@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog].
 
+## [v5.0.1-1.19.3] - 2023-03-28
+### Changed
+- Updated to Puzzles Lib v5.0.19
+
 ## [v5.0.0-1.19.3] - 2023-03-21
 - Ported to Minecraft 1.19.3
 ### Added

@@ -1,9 +1,9 @@
 {
   "values": [
+    "minecraft:lapis_lazuli",
     {
       "id": "#forge:enchanting_fuels",
       "required": false
-    },
-    "minecraft:lapis_lazuli"
+    }
   ]
 }

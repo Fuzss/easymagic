@@ -1,7 +1,7 @@
 package fuzs.easymagic.data;
 
 import fuzs.easymagic.init.ModRegistry;
-import fuzs.puzzleslib.api.data.v1.AbstractTagsProvider;
+import fuzs.puzzleslib.api.data.v1.AbstractTagProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.Items;
@@ -10,7 +10,7 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 
 import java.util.concurrent.CompletableFuture;
 
-public class ModItemTagsProvider extends AbstractTagsProvider.Items {
+public class ModItemTagsProvider extends AbstractTagProvider.Items {
 
     public ModItemTagsProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider, String modId, ExistingFileHelper fileHelper) {
         super(packOutput, lookupProvider, modId, fileHelper);
