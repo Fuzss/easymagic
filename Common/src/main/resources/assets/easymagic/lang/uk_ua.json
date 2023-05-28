@@ -1,5 +1,5 @@
 {
-  "container.enchant.reroll": "Перегорнути чари",
-  "container.enchant.experience.one": "1 очко досвіду",
-  "container.enchant.experience.many": "Очків досвіду: %s"
+  "container.enchant.reroll": "Показати інші зачарування",
+  "container.enchant.experience.one": "1 сфера досвіду",
+  "container.enchant.experience.many": "%s сфер досвіду"
 }
