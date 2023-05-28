@@ -8,9 +8,7 @@ import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.mixin.client.accessor.ChiseledBookShelfBlockAccessor;
 import fuzs.puzzleslib.api.client.screen.v2.TooltipRenderHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
@@ -28,18 +26,7 @@ import java.util.Optional;
 
 public class ChiseledBookshelfTooltipHandler {
 
-    public static void setupOverlayRenderState() {
-        // Forge has a dedicated method for this, so here it gets quite big
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.disableDepthTest();
-        RenderSystem.enableTexture();
-        RenderSystem.setShaderTexture(0, Gui.GUI_ICONS_LOCATION);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-    }
-
-    public static void tryRenderBookTooltip(Minecraft minecraft, PoseStack poseStack, int screenWidth, int screenHeight) {
+    public static void tryRenderBookTooltip(Minecraft minecraft, PoseStack poseStack, float tickDelta, int screenWidth, int screenHeight) {
         if (!canRenderTooltip(minecraft)) return;
         BlockHitResult hitResult = (BlockHitResult) minecraft.hitResult;
         BlockState state = minecraft.level.getBlockState(hitResult.getBlockPos());
@@ -51,7 +38,10 @@ public class ChiseledBookshelfTooltipHandler {
                     if (minecraft.level.getBlockEntity(hitResult.getBlockPos()) instanceof ChiseledBookShelfBlockEntity blockEntity) {
                         ItemStack stack = blockEntity.getItem(hitSlot);
                         if (stack.isEmpty()) return;
+                        RenderSystem.enableBlend();
                         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+                        RenderSystem.disableDepthTest();
+                        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                         renderBookTooltip(poseStack, screenWidth, screenHeight, stack);
                     }
                 }

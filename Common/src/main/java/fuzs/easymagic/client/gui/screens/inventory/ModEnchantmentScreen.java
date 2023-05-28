@@ -10,6 +10,7 @@ import fuzs.easymagic.util.PlayerExperienceHelper;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.puzzleslib.api.core.v1.ModLoaderEnvironment;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.screens.inventory.EnchantmentNames;
 import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -53,10 +54,10 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderTexture(0, ENCHANTING_TABLE_LOCATION);
-            this.blit(poseStack, this.leftPos + 4, this.topPos + 46, 14, 46, 18, 18);
-            this.blit(poseStack, this.leftPos + 22, this.topPos + 46, 34, 46, 18, 18);
+            blit(poseStack, this.leftPos + 4, this.topPos + 46, 14, 46, 18, 18);
+            blit(poseStack, this.leftPos + 22, this.topPos + 46, 34, 46, 18, 18);
             RenderSystem.setShaderTexture(0, ENCHANTING_TABLE_REROLL_LOCATION);
-            this.blit(poseStack, this.leftPos + 40, this.topPos + 46, 0, 81, 18, 18);
+            blit(poseStack, this.leftPos + 40, this.topPos + 46, 0, 81, 18, 18);
         }
     }
 
@@ -66,43 +67,42 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         RenderSystem.setShaderTexture(0, ENCHANTING_TABLE_LOCATION);
         int k = (this.width - this.imageWidth) / 2;
         int l = (this.height - this.imageHeight) / 2;
-        this.blit(poseStack, k, l, 0, 0, this.imageWidth, this.imageHeight);
+        blit(poseStack, k, l, 0, 0, this.imageWidth, this.imageHeight);
         EnchantmentNames.getInstance().initSeed(this.menu.getEnchantmentSeed());
         int q = this.menu.getGoldCount();
 
         for (int r = 0; r < 3; ++r) {
             int s = k + 60;
             int t = s + 20;
-            this.setBlitOffset(0);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderTexture(0, ENCHANTING_TABLE_LOCATION);
             int u = this.menu.costs[r];
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             if (u == 0) {
-                this.blit(poseStack, s, l + 14 + 19 * r, 0, 185, 108, 19);
+                blit(poseStack, s, l + 14 + 19 * r, 0, 185, 108, 19);
             } else {
-                String string = "" + u;
+                String string = String.valueOf(u);
                 int v = 86 - this.font.width(string);
                 FormattedText formattedText = EnchantmentNames.getInstance().getRandomName(this.font, v);
                 int w = 6839882;
                 if ((q < r + 1 || this.minecraft.player.experienceLevel < u) && !this.minecraft.player.getAbilities().instabuild) {
-                    this.blit(poseStack, s, l + 14 + 19 * r, 0, 185, 108, 19);
-                    this.blit(poseStack, s + 1, l + 15 + 19 * r, 16 * r, 239, 16, 16);
-                    this.font.drawWordWrap(formattedText, t, l + 16 + 19 * r, v, (w & 16711422) >> 1);
+                    blit(poseStack, s, l + 14 + 19 * r, 0, 185, 108, 19);
+                    blit(poseStack, s + 1, l + 15 + 19 * r, 16 * r, 239, 16, 16);
+                    this.font.drawWordWrap(poseStack, formattedText, t, l + 16 + 19 * r, v, (w & 16711422) >> 1);
                     w = 4226832;
                 } else {
                     int x = mouseX - (k + 60);
                     int y = mouseY - (l + 14 + 19 * r);
                     if (x >= 0 && y >= 0 && x < 108 && y < 19) {
-                        this.blit(poseStack, s, l + 14 + 19 * r, 0, 204, 108, 19);
+                        blit(poseStack, s, l + 14 + 19 * r, 0, 204, 108, 19);
                         w = 16777088;
                     } else {
-                        this.blit(poseStack, s, l + 14 + 19 * r, 0, 166, 108, 19);
+                        blit(poseStack, s, l + 14 + 19 * r, 0, 166, 108, 19);
                     }
 
-                    this.blit(poseStack, s + 1, l + 15 + 19 * r, 16 * r, 223, 16, 16);
-                    this.font.drawWordWrap(formattedText, t, l + 16 + 19 * r, v, w);
+                    blit(poseStack, s + 1, l + 15 + 19 * r, 16 * r, 223, 16, 16);
+                    this.font.drawWordWrap(poseStack, formattedText, t, l + 16 + 19 * r, v, w);
                     w = 8453920;
                 }
 
@@ -121,15 +121,15 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         int buttonX = this.leftPos + (EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst ? 12 : 14);
         int buttonY = this.topPos + 16;
         boolean hovered = this.isMouseOverReroll(mouseX, mouseY);
-        this.blit(poseStack, buttonX, buttonY, 0, !this.canUseReroll() || invalid ? 0 : hovered ? 54 : 27, 38, 27);
+        blit(poseStack, buttonX, buttonY, 0, !this.canUseReroll() || invalid ? 0 : hovered ? 54 : 27, 38, 27);
         // don't render anything but the background just like vanilla for enchanting slots
         if (!this.canUseReroll()) return;
         if (experienceCost == 0 && lapisCost == 0) {
             // arrow circle
-            this.blit(poseStack, buttonX + 12, buttonY + 6, 64, invalid ? 0 : hovered ? 30 : 15, 15, 15);
+            blit(poseStack, buttonX + 12, buttonY + 6, 64, invalid ? 0 : hovered ? 30 : 15, 15, 15);
         } else {
             // arrow circle
-            this.blit(poseStack, buttonX + 3, buttonY + 6, 64, invalid ? 0 : hovered ? 30 : 15, 15, 15);
+            blit(poseStack, buttonX + 3, buttonY + 6, 64, invalid ? 0 : hovered ? 30 : 15, 15, 15);
             if (experienceCost > 0 && lapisCost > 0) {
                 // level orb
                 this.renderCostOrb(poseStack, buttonX + (experienceCost > 9 ? 17 : 20), buttonY + 13, 38, invalid ? 39 : 0, experienceCost, invalid ? ChatFormatting.RED : ChatFormatting.GREEN);
@@ -149,7 +149,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, ENCHANTING_TABLE_REROLL_LOCATION);
-        this.blit(poseStack, posX, posY, textureX, textureY + Math.min(2, cost / 5) * 13, 13, 13);
+        blit(poseStack, posX, posY, textureX, textureY + Math.min(2, cost / 5) * 13, 13, 13);
         this.renderReadableText(poseStack, posX + 8, posY + 3, String.valueOf(cost), color.getColor());
     }
 

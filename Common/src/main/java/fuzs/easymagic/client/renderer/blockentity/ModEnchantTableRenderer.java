@@ -6,7 +6,6 @@ import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.EnchantTableRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -15,7 +14,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.EnchantmentTableBlockEntity;
 import org.apache.commons.compress.utils.Lists;
 
@@ -38,12 +39,12 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
         switch (EasyMagic.CONFIG.get(ClientConfig.class).renderContentsType) {
             case FLAT -> {
                 List<ItemStack> items = getItemsList(itemToEnchant, enchantingStack, rerollStack);
-                this.renderFlatItemList(items, blockEntity.getBlockPos(), poseStack, bufferIn, combinedLightIn, combinedOverlayIn, posData);
+                this.renderFlatItemList(items, blockEntity.getBlockPos(), poseStack, bufferIn, combinedLightIn, combinedOverlayIn, blockEntity.getLevel(), posData);
             }
             case FLOATING -> {
                 List<ItemStack> items = getItemsList(ItemStack.EMPTY, enchantingStack, rerollStack);
                 this.renderHoveringItem(blockEntity, itemToEnchant, partialTicks, poseStack, bufferIn, combinedLightIn);
-                this.renderHoveringItemList(items, blockEntity.time + partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, true, posData);
+                this.renderHoveringItemList(items, blockEntity.time + partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, true, blockEntity.getLevel(), posData);
             }
         }
     }
@@ -63,7 +64,7 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
         return items;
     }
 
-    private void renderFlatItemList(List<ItemStack> items, BlockPos pos, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, int posData) {
+    private void renderFlatItemList(List<ItemStack> items, BlockPos pos, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, Level level, int posData) {
         // randomise item placement depending on position
         int randomDirection = Math.abs(pos.getX() + pos.getZ()) % 4;
         // render everything just like the campfire does
@@ -77,7 +78,7 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
             poseStack.translate(-0.3125, -0.3125, 0.0);
             poseStack.scale(0.375F, 0.375F, 0.375F);
             ItemStack renderStack = items.get(i);
-            Minecraft.getInstance().getItemRenderer().renderStatic(renderStack, ItemTransforms.TransformType.FIXED, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, posData + i);
+            Minecraft.getInstance().getItemRenderer().renderStatic(renderStack, ItemDisplayContext.FIXED, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, level, posData + i);
             poseStack.popPose();
         }
     }
@@ -88,17 +89,17 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
         poseStack.translate(0.5F, 1.0F, 0.5F);
         BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(itemToEnchant, blockEntity.getLevel(), null, 0);
         float hoverOffset = Mth.sin((blockEntity.time + partialTicks) / 10.0F) * 0.1F + 0.1F;
-        float modelYScale = model.getTransforms().getTransform(ItemTransforms.TransformType.GROUND).scale.y();
+        float modelYScale = model.getTransforms().getTransform(ItemDisplayContext.GROUND).scale.y();
         float openness = Mth.lerp(partialTicks, blockEntity.oOpen, blockEntity.open);
         poseStack.translate(0.0, hoverOffset + 0.25F * modelYScale * openness - 0.15F * (1.0F - openness), 0.0);
         final float scale = openness * 0.8F + 0.2F;
         poseStack.scale(scale, scale, scale);
         poseStack.mulPose(Axis.YP.rotation((blockEntity.time + partialTicks) / 20.0F));
-        Minecraft.getInstance().getItemRenderer().render(itemToEnchant, ItemTransforms.TransformType.GROUND, false, poseStack, bufferIn, combinedLightIn, OverlayTexture.NO_OVERLAY, model);
+        Minecraft.getInstance().getItemRenderer().render(itemToEnchant, ItemDisplayContext.GROUND, false, poseStack, bufferIn, combinedLightIn, OverlayTexture.NO_OVERLAY, model);
         poseStack.popPose();
     }
 
-    private void renderHoveringItemList(List<ItemStack> items, float age, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, boolean rotateItems, int posData) {
+    private void renderHoveringItemList(List<ItemStack> items, float age, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, boolean rotateItems, Level level, int posData) {
         // mostly copied from Botania's runic altar rendering code, thanks!
         float itemRenderAngle = 360.0F / items.size();
         for (int i = 0; i < items.size(); ++i) {
@@ -108,7 +109,7 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
             poseStack.translate(0.75F, 0.0F, 0.25F);
             poseStack.mulPose(Axis.YP.rotationDegrees(rotateItems ? age % 360.0F : 90.0F));
             poseStack.translate(0.0, 0.075 * Math.sin((age + i * 10.0) / 5.0), 0.0F);
-            Minecraft.getInstance().getItemRenderer().renderStatic(items.get(i), ItemTransforms.TransformType.GROUND, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, posData + i);
+            Minecraft.getInstance().getItemRenderer().renderStatic(items.get(i), ItemDisplayContext.GROUND, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, level, posData + i);
             poseStack.popPose();
         }
     }

@@ -16,8 +16,9 @@ public class ModRegistry {
     private static final RegistryManager REGISTRY = RegistryManager.instant(EasyMagic.MOD_ID);
     public static final RegistryReference<BlockEntityType<ModEnchantmentTableBlockEntity>> ENCHANTING_TABLE_BLOCK_ENTITY_TYPE = REGISTRY.registerBlockEntityType("enchanting_table", () -> BlockEntityType.Builder.of(CommonAbstractions.INSTANCE::createModEnchantmentTableBlockEntity, Blocks.ENCHANTING_TABLE));
     public static final RegistryReference<MenuType<ModEnchantmentMenu>> ENCHANTMENT_MENU_TYPE = REGISTRY.registerMenuType("enchanting", () -> ModEnchantmentMenu::new);
-    public static final TagKey<Item> ENCHANTING_CATALYSTS_ITEM_TAG = REGISTRY.createItemTag("enchanting_catalysts");
-    public static final TagKey<Item> REROLL_CATALYSTS_ITEM_TAG = REGISTRY.createItemTag("reroll_catalysts");
+
+    public static final TagKey<Item> ENCHANTING_CATALYSTS_ITEM_TAG = REGISTRY.registerItemTag("enchanting_catalysts");
+    public static final TagKey<Item> REROLL_CATALYSTS_ITEM_TAG = REGISTRY.registerItemTag("reroll_catalysts");
 
     public static void touch() {
 
