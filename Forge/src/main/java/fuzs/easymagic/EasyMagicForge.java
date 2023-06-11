@@ -1,6 +1,7 @@
 package fuzs.easymagic;
 
 import fuzs.easymagic.data.ModItemTagsProvider;
+import fuzs.easymagic.init.ForgeModRegistry;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
@@ -20,6 +21,7 @@ public class EasyMagicForge {
     @SubscribeEvent
     public static void onConstructMod(final FMLConstructModEvent evt) {
         ModConstructor.construct(EasyMagic.MOD_ID, EasyMagic::new);
+        ForgeModRegistry.touch();
     }
 
     @SubscribeEvent

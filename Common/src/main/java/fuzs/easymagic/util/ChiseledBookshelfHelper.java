@@ -5,7 +5,7 @@ import fuzs.easymagic.config.ServerConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ChiseledBookShelfBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.ChiseledBookShelfBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -15,7 +15,7 @@ public class ChiseledBookshelfHelper {
     public static int findValidBooks(Level level, BlockPos pos, BlockPos offset) {
         BlockState state = level.getBlockState(pos.offset(offset));
         $1:
-        if (state.is(Blocks.CHISELED_BOOKSHELF)) {
+        if (state.getBlock() instanceof ChiseledBookShelfBlock && state.hasProperty(HorizontalDirectionalBlock.FACING)) {
             if (EasyMagic.CONFIG.get(ServerConfig.class).chiseledBookshelfEnchantingPower == ServerConfig.ChiseledBookshelfPower.NONE) {
                 return 0;
             }

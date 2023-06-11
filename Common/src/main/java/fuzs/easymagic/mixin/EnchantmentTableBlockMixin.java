@@ -2,11 +2,11 @@ package fuzs.easymagic.mixin;
 
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ServerConfig;
-import fuzs.easymagic.core.CommonAbstractions;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.util.ChiseledBookshelfHelper;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.easymagic.world.level.block.entity.ModEnchantmentTableBlockEntity;
+import fuzs.puzzleslib.api.core.v1.CommonAbstractions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Player;
@@ -36,8 +36,8 @@ abstract class EnchantmentTableBlockMixin extends BaseEntityBlock {
     }
 
     @Inject(method = "newBlockEntity", at = @At("HEAD"), cancellable = true)
-    public void newBlockEntity(BlockPos pPos, BlockState pState, CallbackInfoReturnable<BlockEntity> callbackInfo) {
-        callbackInfo.setReturnValue(CommonAbstractions.INSTANCE.createModEnchantmentTableBlockEntity(pPos, pState));
+    public void newBlockEntity(BlockPos pos, BlockState state, CallbackInfoReturnable<BlockEntity> callbackInfo) {
+        callbackInfo.setReturnValue(ModRegistry.ENCHANTING_TABLE_BLOCK_ENTITY_TYPE.get().create(pos, state));
     }
 
     @Inject(method = "getTicker", at = @At("HEAD"), cancellable = true)
