@@ -110,26 +110,28 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         int buttonX = this.leftPos + (EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst ? 12 : 14);
         int buttonY = this.topPos + 16;
         boolean hovered = this.isMouseOverReroll(mouseX, mouseY);
-        guiGraphics.blit(ENCHANTING_TABLE_REROLL_LOCATION, buttonX, buttonY, 0, !this.canUseReroll() || invalid ? 0 : hovered ? 54 : 27, 38, 27);
+        boolean canUseReroll = this.getMenu().canUseReroll();
+        guiGraphics.blit(ENCHANTING_TABLE_REROLL_LOCATION, buttonX, buttonY, 0, !canUseReroll || invalid ? 0 : hovered ? 54 : 27, 38, 27);
         // don't render anything but the background just like vanilla for enchanting slots
-        if (!this.canUseReroll()) return;
-        if (experienceCost == 0 && lapisCost == 0) {
-            // arrow circle
-            guiGraphics.blit(ENCHANTING_TABLE_REROLL_LOCATION, buttonX + 12, buttonY + 6, 64, invalid ? 0 : hovered ? 30 : 15, 15, 15);
-        } else {
-            // arrow circle
-            guiGraphics.blit(ENCHANTING_TABLE_REROLL_LOCATION, buttonX + 3, buttonY + 6, 64, invalid ? 0 : hovered ? 30 : 15, 15, 15);
-            if (experienceCost > 0 && lapisCost > 0) {
-                // level orb
-                this.renderCostOrb(guiGraphics, buttonX + (experienceCost > 9 ? 17 : 20), buttonY + 13, 38, invalid ? 39 : 0, experienceCost, invalid ? ChatFormatting.RED : ChatFormatting.GREEN);
-                // lapis orb
-                this.renderCostOrb(guiGraphics, buttonX + (lapisCost > 9 ? 17 : 20), buttonY + 1, 51, invalid ? 39 : 0, lapisCost, invalid ? ChatFormatting.RED : ChatFormatting.BLUE);
-            } else if (experienceCost > 0) {
-                // level orb
-                this.renderCostOrb(guiGraphics, buttonX + (experienceCost > 9 ? 17 : 20), buttonY + 7, 38, invalid ? 39 : 0, experienceCost, invalid ? ChatFormatting.RED : ChatFormatting.GREEN);
-            } else if (lapisCost > 0) {
-                // lapis orb
-                this.renderCostOrb(guiGraphics, buttonX + (lapisCost > 9 ? 17 : 20), buttonY + 7, 51, invalid ? 39 : 0, lapisCost, invalid ? ChatFormatting.RED : ChatFormatting.BLUE);
+        if (canUseReroll) {
+            if (experienceCost == 0 && lapisCost == 0) {
+                // arrow circle
+                guiGraphics.blit(ENCHANTING_TABLE_REROLL_LOCATION, buttonX + 12, buttonY + 6, 64, invalid ? 0 : hovered ? 30 : 15, 15, 15);
+            } else {
+                // arrow circle
+                guiGraphics.blit(ENCHANTING_TABLE_REROLL_LOCATION, buttonX + 3, buttonY + 6, 64, invalid ? 0 : hovered ? 30 : 15, 15, 15);
+                if (experienceCost > 0 && lapisCost > 0) {
+                    // level orb
+                    this.renderCostOrb(guiGraphics, buttonX + (experienceCost > 9 ? 17 : 20), buttonY + 13, 38, invalid ? 39 : 0, experienceCost, invalid ? ChatFormatting.RED : ChatFormatting.GREEN);
+                    // lapis orb
+                    this.renderCostOrb(guiGraphics, buttonX + (lapisCost > 9 ? 17 : 20), buttonY + 1, 51, invalid ? 39 : 0, lapisCost, invalid ? ChatFormatting.RED : ChatFormatting.BLUE);
+                } else if (experienceCost > 0) {
+                    // level orb
+                    this.renderCostOrb(guiGraphics, buttonX + (experienceCost > 9 ? 17 : 20), buttonY + 7, 38, invalid ? 39 : 0, experienceCost, invalid ? ChatFormatting.RED : ChatFormatting.GREEN);
+                } else if (lapisCost > 0) {
+                    // lapis orb
+                    this.renderCostOrb(guiGraphics, buttonX + (lapisCost > 9 ? 17 : 20), buttonY + 7, 51, invalid ? 39 : 0, lapisCost, invalid ? ChatFormatting.RED : ChatFormatting.BLUE);
+                }
             }
         }
     }
@@ -147,11 +149,6 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         guiGraphics.drawString(this.font, text, posX, posY - 1, 0, false);
         guiGraphics.drawString(this.font, text, posX, posY + 1, 0, false);
         guiGraphics.drawString(this.font, text, posX, posY, color, false);
-    }
-
-    private boolean canUseReroll() {
-        // checking if item is not empty is not enough, it might not be enchantable after all
-        return IntStream.of(this.menu.costs).sum() > 0;
     }
 
     @Override
@@ -182,7 +179,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                 guiGraphics.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
             }
         } else if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments) {
-            if (this.isMouseOverReroll(mouseX, mouseY) && this.canUseReroll()) {
+            if (this.isMouseOverReroll(mouseX, mouseY) && this.getMenu().canUseReroll()) {
                 List<Component> tooltip = Lists.newArrayList();
                 this.gatherRerollTooltip(tooltip);
                 guiGraphics.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
