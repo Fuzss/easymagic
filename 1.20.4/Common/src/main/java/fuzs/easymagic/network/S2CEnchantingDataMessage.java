@@ -1,7 +1,7 @@
 package fuzs.easymagic.network;
 
 import fuzs.easymagic.client.gui.screens.inventory.ModEnchantmentScreen;
-import fuzs.puzzleslib.api.network.v2.MessageV2;
+import fuzs.puzzleslib.api.network.v2.WritableMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
@@ -12,15 +12,11 @@ import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import java.util.ArrayList;
 import java.util.List;
 
-public class S2CEnchantingDataMessage implements MessageV2<S2CEnchantingDataMessage> {
-    private int containerId;
-    private List<EnchantmentInstance> firstSlotData;
-    private List<EnchantmentInstance> secondSlotData;
-    private List<EnchantmentInstance> thirdSlotData;
-
-    public S2CEnchantingDataMessage() {
-
-    }
+public class S2CEnchantingDataMessage implements WritableMessage<S2CEnchantingDataMessage> {
+    private final int containerId;
+    private final List<EnchantmentInstance> firstSlotData;
+    private final List<EnchantmentInstance> secondSlotData;
+    private final List<EnchantmentInstance> thirdSlotData;
 
     public S2CEnchantingDataMessage(int containerId, List<EnchantmentInstance> firstSlotData, List<EnchantmentInstance> secondSlotData, List<EnchantmentInstance> thirdSlotData) {
         this.containerId = containerId;
@@ -29,20 +25,19 @@ public class S2CEnchantingDataMessage implements MessageV2<S2CEnchantingDataMess
         this.thirdSlotData = thirdSlotData;
     }
 
+    public S2CEnchantingDataMessage(FriendlyByteBuf buf) {
+        this.containerId = buf.readByte();
+        this.firstSlotData = this.readEnchantmentInstance(buf);
+        this.secondSlotData = this.readEnchantmentInstance(buf);
+        this.thirdSlotData = this.readEnchantmentInstance(buf);
+    }
+
     @Override
     public void write(FriendlyByteBuf buf) {
         buf.writeByte(this.containerId);
         this.writeEnchantmentInstance(buf, this.firstSlotData);
         this.writeEnchantmentInstance(buf, this.secondSlotData);
         this.writeEnchantmentInstance(buf, this.thirdSlotData);
-    }
-
-    @Override
-    public void read(FriendlyByteBuf buf) {
-        this.containerId = buf.readByte();
-        this.firstSlotData = this.readEnchantmentInstance(buf);
-        this.secondSlotData = this.readEnchantmentInstance(buf);
-        this.thirdSlotData = this.readEnchantmentInstance(buf);
     }
 
     private void writeEnchantmentInstance(FriendlyByteBuf buf, List<EnchantmentInstance> dataList) {

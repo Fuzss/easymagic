@@ -5,7 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.mixin.client.accessor.ChiseledBookShelfBlockAccessor;
-import fuzs.puzzleslib.api.client.screen.v2.TooltipRenderHelper;
+import fuzs.puzzleslib.api.client.gui.v2.components.TooltipRenderHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;

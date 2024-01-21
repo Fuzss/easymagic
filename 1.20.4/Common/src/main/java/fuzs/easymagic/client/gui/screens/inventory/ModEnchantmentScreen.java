@@ -10,11 +10,9 @@ import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.puzzleslib.api.core.v1.ModLoaderEnvironment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.EnchantmentNames;
 import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -31,21 +29,26 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ModEnchantmentScreen extends EnchantmentScreen {
+    public static final String KEY_ONE_LAPIS_LAZULI = "container.enchant.lapis.one";
+    public static final String KEY_MANY_LAPIS_LAZULI = "container.enchant.lapis.many";
+    public static final String KEY_ONE_ENCHANTMENT_LEVEL = "container.enchant.level.one";
+    public static final String KEY_MANY_ENCHANTMENT_LEVELS = "container.enchant.level.many";
+    public static final String KEY_ONE_EXPERIENCE_POINT = "container.enchant.experience.one";
+    public static final String KEY_MANY_EXPERIENCE_POINTS = "container.enchant.experience.many";
+    public static final String KEY_REROLL = "container.enchant.reroll";
     private static final ResourceLocation ENCHANTING_TABLE_LOCATION = new ResourceLocation("textures/gui/container/enchanting_table.png");
-    private static final ResourceLocation ENCHANTING_TABLE_REROLL_LOCATION = new ResourceLocation(EasyMagic.MOD_ID, "textures/gui/container/enchanting_table_reroll.png");
+    private static final ResourceLocation ENCHANTING_TABLE_REROLL_LOCATION = EasyMagic.id("textures/gui/container/enchanting_table_reroll.png");
 
     private final List<List<EnchantmentInstance>> slotData = IntStream.range(0, 3).mapToObj(i -> Lists.<EnchantmentInstance>newArrayList()).collect(Collectors.toList());
 
-    public ModEnchantmentScreen(EnchantmentMenu container, Inventory playerInventory, Component textComponent) {
-        super(container, playerInventory, textComponent);
+    public ModEnchantmentScreen(EnchantmentMenu enchantmentMenu, Inventory inventory, Component title) {
+        super(enchantmentMenu, inventory, title);
     }
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float tickDelta, int mouseX, int mouseY) {
-        if (!EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments || EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook) {
-            super.renderBg(guiGraphics, tickDelta, mouseX, mouseY);
-        } else {
-            this.renderVanillaBg(guiGraphics, tickDelta, mouseX, mouseY);
+        super.renderBg(guiGraphics, tickDelta, mouseX, mouseY);
+        if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments && !EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook) {
             this.renderRerollButton(guiGraphics, tickDelta, mouseX, mouseY);
         }
         if (EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst) {
@@ -56,50 +59,9 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         }
     }
 
-    private void renderVanillaBg(GuiGraphics guiGraphics, float tickDelta, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        int k = (this.width - this.imageWidth) / 2;
-        int l = (this.height - this.imageHeight) / 2;
-        guiGraphics.blit(ENCHANTING_TABLE_LOCATION, k, l, 0, 0, this.imageWidth, this.imageHeight);
-        EnchantmentNames.getInstance().initSeed(this.menu.getEnchantmentSeed());
-        int q = this.menu.getGoldCount();
-
-        for (int r = 0; r < 3; ++r) {
-            int s = k + 60;
-            int t = s + 20;
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            int u = this.menu.costs[r];
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            if (u == 0) {
-                guiGraphics.blit(ENCHANTING_TABLE_LOCATION, s, l + 14 + 19 * r, 0, 185, 108, 19);
-            } else {
-                String string = String.valueOf(u);
-                int v = 86 - this.font.width(string);
-                FormattedText formattedText = EnchantmentNames.getInstance().getRandomName(this.font, v);
-                int w = 6839882;
-                if ((q < r + 1 || this.minecraft.player.experienceLevel < u) && !this.minecraft.player.getAbilities().instabuild) {
-                    guiGraphics.blit(ENCHANTING_TABLE_LOCATION, s, l + 14 + 19 * r, 0, 185, 108, 19);
-                    guiGraphics.blit(ENCHANTING_TABLE_LOCATION, s + 1, l + 15 + 19 * r, 16 * r, 239, 16, 16);
-                    guiGraphics.drawWordWrap(this.font, formattedText, t, l + 16 + 19 * r, v, (w & 16711422) >> 1);
-                    w = 4226832;
-                } else {
-                    int x = mouseX - (k + 60);
-                    int y = mouseY - (l + 14 + 19 * r);
-                    if (x >= 0 && y >= 0 && x < 108 && y < 19) {
-                        guiGraphics.blit(ENCHANTING_TABLE_LOCATION, s, l + 14 + 19 * r, 0, 204, 108, 19);
-                        w = 16777088;
-                    } else {
-                        guiGraphics.blit(ENCHANTING_TABLE_LOCATION, s, l + 14 + 19 * r, 0, 166, 108, 19);
-                    }
-
-                    guiGraphics.blit(ENCHANTING_TABLE_LOCATION, s + 1, l + 15 + 19 * r, 16 * r, 223, 16, 16);
-                    guiGraphics.drawWordWrap(this.font, formattedText, t, l + 16 + 19 * r, v, w);
-                    w = 8453920;
-                }
-
-                guiGraphics.drawString(this.font, string, t + 86 - this.font.width(string), l + 16 + 19 * r + 7, w);
-            }
-        }
+    @Override
+    protected void renderBook(GuiGraphics guiGraphics, int x, int y, float partialTick) {
+        // NO-OP
     }
 
     private void renderRerollButton(GuiGraphics guiGraphics, float tickDelta, int mouseX, int mouseY) {
@@ -250,15 +212,17 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
 
     private void gatherSlotCostsTooltip(int slot, List<Component> slotTooltip, boolean hasValidEnchantment) {
         List<Component> additionalTooltip = Lists.newArrayList();
-        if (ModLoaderEnvironment.INSTANCE.getModLoader().isForge() && !hasValidEnchantment) {
+        if (ModLoaderEnvironment.INSTANCE.getModLoader().isNeoForge() && !hasValidEnchantment) {
+            additionalTooltip.add(Component.translatable("neoforge.container.enchant.limitedEnchantability").withStyle(ChatFormatting.RED));
+        } else if (ModLoaderEnvironment.INSTANCE.getModLoader().isForge() && !hasValidEnchantment) {
             additionalTooltip.add(Component.translatable("forge.container.enchant.limitedEnchantability").withStyle(ChatFormatting.RED));
         } else if (!this.minecraft.player.getAbilities().instabuild) {
             int enchantLevels = this.menu.costs[slot];
             if (this.minecraft.player.experienceLevel < enchantLevels) {
                 additionalTooltip.add((Component.translatable("container.enchant.level.requirement", enchantLevels)).withStyle(ChatFormatting.RED));
             } else {
-                getEnchantingComponent(slot + 1, this.menu.getGoldCount(), "container.enchant.lapis.one", "container.enchant.lapis.many").ifPresent(additionalTooltip::add);
-                getEnchantingComponent(slot + 1, this.minecraft.player.experienceLevel, "container.enchant.level.one", "container.enchant.level.many").ifPresent(additionalTooltip::add);
+                getEnchantingComponent(slot + 1, this.menu.getGoldCount(), KEY_ONE_LAPIS_LAZULI, KEY_MANY_LAPIS_LAZULI).ifPresent(additionalTooltip::add);
+                getEnchantingComponent(slot + 1, this.minecraft.player.experienceLevel, KEY_ONE_ENCHANTMENT_LEVEL, KEY_MANY_ENCHANTMENT_LEVELS).ifPresent(additionalTooltip::add);
             }
         }
         if (!additionalTooltip.isEmpty()) {
@@ -270,7 +234,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
     }
 
     private void gatherRerollTooltip(List<Component> tooltip) {
-        tooltip.add(Component.translatable("container.enchant.reroll").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.translatable(KEY_REROLL).withStyle(ChatFormatting.GRAY));
         List<Component> additionalTooltip = Lists.newArrayList();
         if (!this.minecraft.player.getAbilities().instabuild) {
             int rerollCatalystCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost;
@@ -278,9 +242,11 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                 MutableComponent component = Component.literal(rerollCatalystCost + " ").append(Items.AMETHYST_SHARD.getDescription());
                 getEnchantingComponent(rerollCatalystCost, this.getMenu().getRerollCatalystCount(), component).ifPresent(additionalTooltip::add);
             } else {
-                getEnchantingComponent(rerollCatalystCost, this.getMenu().getRerollCatalystCount(), "container.enchant.lapis.one", "container.enchant.lapis.many").ifPresent(additionalTooltip::add);
+                getEnchantingComponent(rerollCatalystCost, this.getMenu().getRerollCatalystCount(), KEY_ONE_LAPIS_LAZULI, KEY_MANY_LAPIS_LAZULI).ifPresent(additionalTooltip::add);
             }
-            getEnchantingComponent(EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost, PlayerExperienceHelper.getTotalExperience(this.minecraft.player), "container.enchant.experience.one", "container.enchant.experience.many").ifPresent(additionalTooltip::add);
+            String singleKey = EasyMagic.CONFIG.get(ServerConfig.class).rerollingTakesEnchantmentLevels ? KEY_ONE_ENCHANTMENT_LEVEL : KEY_ONE_EXPERIENCE_POINT;
+            String manyKey = EasyMagic.CONFIG.get(ServerConfig.class).rerollingTakesEnchantmentLevels ? KEY_MANY_ENCHANTMENT_LEVELS : KEY_MANY_EXPERIENCE_POINTS;
+            getEnchantingComponent(EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost, PlayerExperienceHelper.getTotalExperience(this.minecraft.player), singleKey, manyKey).ifPresent(additionalTooltip::add);
         }
         if (!additionalTooltip.isEmpty()) {
             tooltip.add(Component.empty());

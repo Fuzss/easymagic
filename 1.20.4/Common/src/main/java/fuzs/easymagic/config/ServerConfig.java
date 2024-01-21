@@ -12,6 +12,8 @@ public class ServerConfig implements ConfigCore {
     @Config(description = {"Amount of experience points (not enchantment levels) taken as a cost for re-rolling enchantments. Set to 0 to disable this kind of cost.", "Requires the re-rolling option to be enabled."})
     @Config.IntRange(min = 0)
     public int rerollExperiencePointsCost = 5;
+    @Config(description = "Switch re-rolling cost from experience points to full enchantment levels, making re-rolls considerable more expensive.")
+    public boolean rerollingTakesEnchantmentLevels = false;
     @Config(description = "Choose how many enchantments are shown on the enchanting tooltip, if any at all.")
     public EnchantmentHint enchantmentHint = EnchantmentHint.SINGLE;
     @Config(description = "Amount of bookshelves required to perform enchantments at the highest level.")
@@ -23,6 +25,8 @@ public class ServerConfig implements ConfigCore {
     public boolean dedicatedRerollCatalyst = false;
     @Config(description = {"Do chiseled bookshelves provide enchanting power to an enchanting table, one for every three contained books.", "NONE: Vanilla behavior, no power is provided.", "FACING: The bookshelf must face the enchanting table to provide any power.", "ALL: Chiseled bookshelves provide enchanting power regardless of where they are facing."})
     public ChiseledBookshelfPower chiseledBookshelfEnchantingPower = ChiseledBookshelfPower.FACING;
+    @Config(description = "Leftover vanilla enchanting tables in a world become unusable until they are broken and replaced.")
+    public boolean disableVanillaEnchantingTable = true;
 
     public enum EnchantmentHint {
         NONE, SINGLE, ALL

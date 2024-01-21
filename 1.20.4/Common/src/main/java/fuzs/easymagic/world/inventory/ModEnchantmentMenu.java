@@ -1,6 +1,7 @@
 package fuzs.easymagic.world.inventory;
 
 import com.google.common.collect.Lists;
+import com.mojang.datafixers.util.Pair;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.init.ModRegistry;
@@ -13,6 +14,7 @@ import fuzs.puzzleslib.api.core.v1.CommonAbstractions;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
@@ -29,6 +31,7 @@ import net.minecraft.world.level.block.EnchantmentTableBlock;
 import java.util.List;
 
 public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerListener {
+    static final ResourceLocation EMPTY_SLOT_LAPIS_LAZULI = new ResourceLocation("item/empty_slot_lapis_lazuli");
     public static final int REROLL_CATALYST_SLOT = 38;
 
     private final Container enchantSlots;
@@ -64,28 +67,39 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         }
 
         //  manually set slot index as vanilla's AbstractContainerMenu::addSlot normally does that which we cannot use as we want to override default enchantment menu slots
-        this.slots.set(0, Util.make(new Slot(container, 0, dedicatedRerollCatalyst ? 5 : 15, 47) {
+        this.setSlot(0, new Slot(container, 0, dedicatedRerollCatalyst ? 5 : 15, 47) {
 
             @Override
             public int getMaxStackSize() {
                 return 1;
             }
-        }, slot -> slot.index = 0));
+        });
 
-        this.slots.set(1, Util.make(new Slot(container, 1, dedicatedRerollCatalyst ? 23 : 35, 47) {
+        this.setSlot(1, new Slot(container, 1, dedicatedRerollCatalyst ? 23 : 35, 47) {
 
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(ModRegistry.ENCHANTING_CATALYSTS_ITEM_TAG);
             }
-        }, slot -> slot.index = 1));
+
+            @Override
+            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                return Pair.of(InventoryMenu.BLOCK_ATLAS, EMPTY_SLOT_LAPIS_LAZULI);
+            }
+        });
 
         this.addSlotListener(this);
     }
 
+    public Slot setSlot(int index, Slot slot) {
+        slot.index = index;
+        this.slots.set(index, slot);
+        return slot;
+    }
+
     @Override
     public MenuType<?> getType() {
-        return ModRegistry.ENCHANTMENT_MENU_TYPE.get();
+        return ModRegistry.ENCHANTMENT_MENU_TYPE.value();
     }
 
     @Override
@@ -200,27 +214,34 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments && this.canUseReroll()) {
                 int catalystSlot = EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst ? 2 : 1;
                 ItemStack itemstack = this.enchantSlots.getItem(catalystSlot);
-                if (itemstack.getCount() >= EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost && PlayerExperienceHelper.getTotalExperience(player) >= EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost || player.getAbilities().instabuild) {
-                    this.access.execute((Level level, BlockPos pos) -> {
-                        // set a new enchantment seed every time a new item is placed into the enchanting slot
-                        this.enchantmentSeed.set(this.player.getRandom().nextInt());
-                        ((PlayerAccessor) this.player).setEnchantmentSeed(this.enchantmentSeed.get());
-                        if (!player.getAbilities().instabuild) {
-                            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost > 0) {
-                                itemstack.shrink(EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost);
-                                if (itemstack.isEmpty()) {
-                                    this.enchantSlots.setItem(catalystSlot, ItemStack.EMPTY);
+                if (player.getAbilities().instabuild || itemstack.getCount() >= EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost) {
+                    int totalExperience = EasyMagic.CONFIG.get(ServerConfig.class).rerollingTakesEnchantmentLevels ? player.experienceLevel : PlayerExperienceHelper.getTotalExperience(player);
+                    if (player.getAbilities().instabuild || totalExperience >= EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost) {
+                        this.access.execute((Level level, BlockPos pos) -> {
+                            // set a new enchantment seed every time a new item is placed into the enchanting slot
+                            this.enchantmentSeed.set(this.player.getRandom().nextInt());
+                            ((PlayerAccessor) this.player).setEnchantmentSeed(this.enchantmentSeed.get());
+                            if (!player.getAbilities().instabuild) {
+                                if (EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost > 0) {
+                                    itemstack.shrink(EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost);
+                                    if (itemstack.isEmpty()) {
+                                        this.enchantSlots.setItem(catalystSlot, ItemStack.EMPTY);
+                                    }
+                                }
+                                if (EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost > 0) {
+                                    if (EasyMagic.CONFIG.get(ServerConfig.class).rerollingTakesEnchantmentLevels) {
+                                        player.giveExperienceLevels(-EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost);
+                                    } else {
+                                        player.giveExperiencePoints(-EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost);
+                                    }
                                 }
                             }
-                            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost > 0) {
-                                player.giveExperiencePoints(-EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost);
-                            }
-                        }
-                        this.enchantSlots.setChanged();
-                        // needed for creative mode since slots don't actually change
-                        this.slotsChanged(this.enchantSlots);
-                    });
-                    return true;
+                            this.enchantSlots.setChanged();
+                            // needed for creative mode since slots don't actually change
+                            this.slotsChanged(this.enchantSlots);
+                        });
+                        return true;
+                    }
                 }
             }
             return false;
