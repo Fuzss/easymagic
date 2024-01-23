@@ -5,10 +5,7 @@ import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.easymagic.world.level.block.entity.EnchantmentTableWithInventoryBlockEntity;
 import fuzs.puzzleslib.api.block.v1.entity.TickingEntityBlock;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.Container;
-import net.minecraft.world.Containers;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -54,9 +51,14 @@ public class EnchantmentTableWithInventoryBlock extends EnchantmentTableBlock im
                     player.containerMenu.slotsChanged(blockEntity);
                 }
             }
-
             return InteractionResult.CONSUME;
         }
+    }
+
+    @Nullable
+    public MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
+        // copied from BaseEntityBlock, used for spectator mode
+        return level.getBlockEntity(pos) instanceof MenuProvider menuProvider ? menuProvider : null;
     }
 
     @Override
