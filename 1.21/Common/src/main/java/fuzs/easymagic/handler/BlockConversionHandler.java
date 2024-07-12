@@ -19,9 +19,7 @@ public class BlockConversionHandler {
     public static final Component INVALID_BLOCK_COMPONENT = Component.translatable("container.invalidBlock");
 
     public static void onTagsUpdated(RegistryAccess registryAccess, boolean client) {
-        if (!client) {
-            BlockConversionHelper.copyBoundTags(Blocks.ENCHANTING_TABLE, ModRegistry.ENCHANTMENT_TABLE_BLOCK.value());
-        }
+        BlockConversionHelper.copyBoundTags(Blocks.ENCHANTING_TABLE, ModRegistry.ENCHANTMENT_TABLE_BLOCK.value());
     }
 
     public static EventResultHolder<InteractionResult> onUseBlock(Player player, Level level, InteractionHand interactionHand, BlockHitResult hitResult) {
