@@ -11,7 +11,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EnchantingTableBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -21,14 +21,16 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class EnchantmentTableWithInventoryBlock extends EnchantingTableBlock implements TickingEntityBlock<EnchantmentTableWithInventoryBlockEntity> {
+    private final Block block;
 
-    public EnchantmentTableWithInventoryBlock(Properties properties) {
-        super(properties);
+    public EnchantmentTableWithInventoryBlock(Block block) {
+        super(Properties.ofFullCopy(block).dropsLike(block));
+        this.block = block;
     }
 
     @Override
     public String getDescriptionId() {
-        return Blocks.ENCHANTING_TABLE.getDescriptionId();
+        return this.block.getDescriptionId();
     }
 
     @Override

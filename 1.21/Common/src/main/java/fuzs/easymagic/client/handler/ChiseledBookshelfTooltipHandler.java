@@ -26,7 +26,7 @@ import java.util.OptionalInt;
 
 public class ChiseledBookshelfTooltipHandler {
 
-    public static void tryRenderBookTooltip(Minecraft minecraft, GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+    public static void onRenderGui(Minecraft minecraft, GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
         if (!canRenderTooltip(minecraft)) return;
         BlockHitResult hitResult = (BlockHitResult) minecraft.hitResult;
         BlockState blockState = minecraft.level.getBlockState(hitResult.getBlockPos());

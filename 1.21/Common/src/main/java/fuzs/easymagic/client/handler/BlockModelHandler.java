@@ -2,15 +2,16 @@ package fuzs.easymagic.client.handler;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
-import fuzs.easymagic.init.ModRegistry;
+import fuzs.easymagic.handler.BlockConversionHandler;
+import fuzs.puzzleslib.api.client.core.v1.ClientAbstractions;
 import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
 import net.minecraft.Util;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.Property;
@@ -26,10 +27,18 @@ public class BlockModelHandler {
 
     static {
         MODEL_LOCATIONS = Suppliers.memoize(() -> {
-            return Map.of(ModRegistry.ENCHANTMENT_TABLE_BLOCK.value(), Blocks.ENCHANTING_TABLE).entrySet().stream().flatMap(entry -> {
-                return convertAllBlockStates(entry.getKey(), entry.getValue()).entrySet().stream();
+            return BlockConversionHandler.getBlockConversions().entrySet().stream().flatMap(entry -> {
+                return convertAllBlockStates(entry.getValue(), entry.getKey()).entrySet().stream();
             }).collect(Util.toMap());
         });
+    }
+
+    public static void onLoadComplete() {
+        // run a custom implementation here, the appropriate method in client mod constructor runs together with other mods, so we might miss some entries
+        for (Map.Entry<Block, Block> entry : BlockConversionHandler.getBlockConversions().entrySet()) {
+            RenderType renderType = ClientAbstractions.INSTANCE.getRenderType(entry.getKey());
+            ClientAbstractions.INSTANCE.registerRenderType(entry.getValue(), renderType);
+        }
     }
 
     public static EventResultHolder<UnbakedModel> onModifyUnbakedModel(ModelResourceLocation modelLocation, Supplier<UnbakedModel> unbakedModel, Function<ModelResourceLocation, UnbakedModel> modelGetter, BiConsumer<ResourceLocation, UnbakedModel> modelAdder) {

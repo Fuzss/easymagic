@@ -17,7 +17,7 @@ public class ServerConfig implements ConfigCore {
     @Config(description = "Choose how many enchantments are shown on the enchanting tooltip, if any at all.")
     public EnchantmentHint enchantmentHint = EnchantmentHint.SINGLE;
     @Config(description = "Amount of bookshelves required to perform enchantments at the highest level.")
-    @Config.IntRange(min = 0)
+    @Config.IntRange(min = 0, max = 50)
     public int maxEnchantingPower = 15;
     @Config(description = "Blocks without a full collision shape (e.g. torches & carpet) do not block bookshelves placed behind from counting towards current enchanting power.")
     public boolean lenientBookshelves = true;
@@ -25,8 +25,6 @@ public class ServerConfig implements ConfigCore {
     public boolean dedicatedRerollCatalyst = false;
     @Config(description = {"Do chiseled bookshelves provide enchanting power to an enchanting table, one for every three contained books.", "NONE: Vanilla behavior, no power is provided.", "FACING: The bookshelf must face the enchanting table to provide any power.", "ALL: Chiseled bookshelves provide enchanting power regardless of where they are facing."})
     public ChiseledBookshelfPower chiseledBookshelfEnchantingPower = ChiseledBookshelfPower.FACING;
-    @Config(description = "Leftover vanilla enchanting tables in a world become unusable until they are broken and replaced.")
-    public boolean disableVanillaEnchantingTable = true;
 
     public enum EnchantmentHint {
         NONE, SINGLE, ALL
