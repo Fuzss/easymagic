@@ -36,7 +36,7 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
         ItemStack enchantingStack = container.getItem(1);
         ItemStack rerollStack = container.getItem(2);
         int posData = (int) blockEntity.getBlockPos().asLong();
-        switch (EasyMagic.CONFIG.get(ClientConfig.class).renderContentsType) {
+        switch (EasyMagic.CONFIG.get(ClientConfig.class).renderEnchantingTableContents) {
             case FLAT -> {
                 List<ItemStack> items = getItemsList(itemToEnchant, enchantingStack, rerollStack);
                 this.renderFlatItemList(items, blockEntity.getBlockPos(), poseStack, bufferIn, combinedLightIn, combinedOverlayIn, blockEntity.getLevel(), posData);

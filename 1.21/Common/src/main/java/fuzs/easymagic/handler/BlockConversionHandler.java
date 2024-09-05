@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
+import fuzs.easymagic.init.ModRegistry;
 import fuzs.puzzleslib.api.block.v1.BlockConversionHelper;
 import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
 import fuzs.puzzleslib.api.event.v1.AddBlockEntityTypeBlocksCallback;
@@ -28,6 +29,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
@@ -66,6 +68,8 @@ public class BlockConversionHandler {
             for (Map.Entry<Block, Block> entry : BLOCK_CONVERSIONS.entrySet()) {
                 consumer.accept(blockEntityType.value(), entry.getValue());
             }
+            // TODO remove old block
+            consumer.accept(blockEntityType.value(), ModRegistry.ENCHANTMENT_TABLE_BLOCK.value());
         };
     }
 
@@ -93,6 +97,8 @@ public class BlockConversionHandler {
                 }
             }
             BLOCK_CONVERSIONS.forEach(BlockConversionHelper::copyBoundTags);
+            // TODO remove old block
+            BlockConversionHelper.copyBoundTags(Blocks.ENCHANTING_TABLE, ModRegistry.ENCHANTMENT_TABLE_BLOCK.value());
         };
     }
 

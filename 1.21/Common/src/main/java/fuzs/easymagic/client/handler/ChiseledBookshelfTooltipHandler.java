@@ -78,9 +78,9 @@ public class ChiseledBookshelfTooltipHandler {
 
     private static void renderBookTooltip(GuiGraphics guiGraphics, int screenWidth, int screenHeight, ItemStack itemStack) {
         List<ClientTooltipComponent> components = TooltipRenderHelper.getTooltip(itemStack, TooltipFlag.NORMAL);
-        int posX = screenWidth / 2 - 12 + 22 + EasyMagic.CONFIG.get(ClientConfig.class).offsetX;
+        int posX = screenWidth / 2 - 12 + 22 + EasyMagic.CONFIG.get(ClientConfig.class).chiseledBookshelfTooltipOffsetX;
         int posY = screenHeight / 2 + 12 - getFullTooltipHeight(components) / 2 +
-                EasyMagic.CONFIG.get(ClientConfig.class).offsetY;
+                EasyMagic.CONFIG.get(ClientConfig.class).chiseledBookshelfTooltipOffsetY;
         TooltipRenderHelper.renderTooltipComponents(guiGraphics, posX, posY, components);
     }
 

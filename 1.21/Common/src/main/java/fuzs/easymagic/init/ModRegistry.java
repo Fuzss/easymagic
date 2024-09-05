@@ -2,6 +2,7 @@ package fuzs.easymagic.init;
 
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
+import fuzs.easymagic.world.level.block.EnchantmentTableWithInventoryBlock;
 import fuzs.easymagic.world.level.block.entity.EnchantmentTableWithInventoryBlockEntity;
 import fuzs.puzzleslib.api.core.v1.ModLoader;
 import fuzs.puzzleslib.api.init.v3.registry.RegistryManager;
@@ -11,15 +12,19 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public class ModRegistry {
     static final RegistryManager REGISTRIES = RegistryManager.from(EasyMagic.MOD_ID);
+    // TODO remove old block
+    public static final Holder.Reference<Block> ENCHANTMENT_TABLE_BLOCK = REGISTRIES.registerBlock("enchanting_table",
+            () -> new EnchantmentTableWithInventoryBlock(Blocks.ENCHANTING_TABLE)
+    );
     public static final Holder.Reference<BlockEntityType<EnchantmentTableWithInventoryBlockEntity>> ENCHANTING_TABLE_BLOCK_ENTITY_TYPE = REGISTRIES.whenNotOn(
-                    ModLoader.FORGE)
-            .registerBlockEntityType("enchanting_table",
-                    () -> BlockEntityType.Builder.of(EnchantmentTableWithInventoryBlockEntity::new)
-            );
+            ModLoader.FORGE).registerBlockEntityType("enchanting_table",
+            () -> BlockEntityType.Builder.of(EnchantmentTableWithInventoryBlockEntity::new)
+    );
     public static final Holder.Reference<MenuType<ModEnchantmentMenu>> ENCHANTMENT_MENU_TYPE = REGISTRIES.registerMenuType(
             "enchanting", () -> ModEnchantmentMenu::new);
 

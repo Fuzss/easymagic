@@ -1,6 +1,7 @@
 package fuzs.easymagic.data.client;
 
 import fuzs.easymagic.handler.BlockConversionHandler;
+import fuzs.easymagic.init.ModRegistry;
 import fuzs.puzzleslib.api.client.data.v2.AbstractModelProvider;
 import fuzs.puzzleslib.api.data.v2.core.DataProviderContext;
 import net.minecraft.data.models.BlockModelGenerators;
@@ -29,5 +30,9 @@ public class DynamicModelProvider extends AbstractModelProvider {
             ));
             builder.skipAutoItemBlock(block);
         });
+        // TODO remove old block
+        Variant variant = Variant.variant().with(VariantProperties.MODEL, ModelLocationUtils.getModelLocation(Blocks.STONE));
+        builder.blockStateOutput.accept(MultiVariantGenerator.multiVariant(ModRegistry.ENCHANTMENT_TABLE_BLOCK.value(), variant));
+        builder.skipAutoItemBlock(ModRegistry.ENCHANTMENT_TABLE_BLOCK.value());
     }
 }
