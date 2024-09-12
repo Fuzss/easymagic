@@ -1,5 +1,9 @@
 {
-  "container.enchant.reroll": "Cập nhật phép thuật",
-  "container.enchant.experience.one": "1 điểm kinh nghiệm",
-  "container.enchant.experience.many": "%s điểm kinh nghiệm"
+  "container.enchant.experience.many": "%s Điểm Kinh Nghiệm",
+  "container.enchant.experience.one": "1 Điểm Kinh Nghiệm",
+  "container.enchant.reroll": "Xáo trộn lại phép thuật",
+  "container.invalidBlock": "Không thể mở. Hãy phá và thay thế để sử dụng.",
+  "tag.block.easymagic.unaltered_enchanting_tables": "Bàn Phép Thuật Không Thay Đổi",
+  "tag.item.easymagic.enchanting_catalysts": "Chất Xúc Tác Phép Thuật",
+  "tag.item.easymagic.reroll_catalysts": "Chất Xúc Tác Xáo Trộn"
 }
