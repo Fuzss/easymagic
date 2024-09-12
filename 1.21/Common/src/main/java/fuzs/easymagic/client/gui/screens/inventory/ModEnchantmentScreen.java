@@ -63,7 +63,9 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
 
     @Override
     protected void renderBook(GuiGraphics guiGraphics, int x, int y, float partialTick) {
-        // NO-OP
+        if (EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook) {
+            super.renderBook(guiGraphics, x, y, partialTick);
+        }
     }
 
     private void renderRerollButton(GuiGraphics guiGraphics, float tickDelta, int mouseX, int mouseY) {

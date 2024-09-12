@@ -2,9 +2,12 @@ package fuzs.easymagic.client.handler;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
+import fuzs.easymagic.handler.BlockConversionHandler;
 import fuzs.easymagic.init.ModRegistry;
+import fuzs.puzzleslib.api.client.core.v1.ClientAbstractions;
 import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
 import net.minecraft.Util;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
@@ -26,10 +29,26 @@ public class BlockModelHandler {
 
     static {
         MODEL_LOCATIONS = Suppliers.memoize(() -> {
-            return Map.of(ModRegistry.ENCHANTMENT_TABLE_BLOCK.value(), Blocks.ENCHANTING_TABLE).entrySet().stream().flatMap(entry -> {
-                return convertAllBlockStates(entry.getKey(), entry.getValue()).entrySet().stream();
-            }).collect(Util.toMap());
+            Map<ModelResourceLocation, ModelResourceLocation> modelResourceLocationMap = BlockConversionHandler.getBlockConversions()
+                    .entrySet()
+                    .stream()
+                    .flatMap(entry -> {
+                        return convertAllBlockStates(entry.getValue(), entry.getKey()).entrySet().stream();
+                    })
+                    .collect(Util.toMap());
+            // TODO remove old block
+            modelResourceLocationMap.putAll(
+                    convertAllBlockStates(ModRegistry.ENCHANTMENT_TABLE_BLOCK.value(), Blocks.ENCHANTING_TABLE));
+            return modelResourceLocationMap;
         });
+    }
+
+    public static void onLoadComplete() {
+        // run a custom implementation here, the appropriate method in client mod constructor runs together with other mods, so we might miss some entries
+        for (Map.Entry<Block, Block> entry : BlockConversionHandler.getBlockConversions().entrySet()) {
+            RenderType renderType = ClientAbstractions.INSTANCE.getRenderType(entry.getKey());
+            ClientAbstractions.INSTANCE.registerRenderType(entry.getValue(), renderType);
+        }
     }
 
     public static EventResultHolder<UnbakedModel> onModifyUnbakedModel(ModelResourceLocation modelLocation, Supplier<UnbakedModel> unbakedModel, Function<ModelResourceLocation, UnbakedModel> modelGetter, BiConsumer<ResourceLocation, UnbakedModel> modelAdder) {
@@ -44,7 +63,9 @@ public class BlockModelHandler {
         Map<ModelResourceLocation, ModelResourceLocation> modelLocations = Maps.newHashMap();
         for (BlockState oldBlockState : oldBlock.getStateDefinition().getPossibleStates()) {
             BlockState newBlockState = convertBlockState(newBlock.getStateDefinition(), oldBlockState);
-            modelLocations.put(BlockModelShaper.stateToModelLocation(oldBlockState), BlockModelShaper.stateToModelLocation(newBlockState));
+            modelLocations.put(BlockModelShaper.stateToModelLocation(oldBlockState),
+                    BlockModelShaper.stateToModelLocation(newBlockState)
+            );
         }
         return modelLocations;
     }
@@ -52,7 +73,9 @@ public class BlockModelHandler {
     private static BlockState convertBlockState(StateDefinition<Block, BlockState> newStateDefinition, BlockState oldBlockState) {
         BlockState newBlockState = newStateDefinition.any();
         for (Map.Entry<Property<?>, Comparable<?>> entry : oldBlockState.getValues().entrySet()) {
-            newBlockState = setBlockStateValue(entry.getKey(), entry.getValue(), newStateDefinition::getProperty, newBlockState);
+            newBlockState = setBlockStateValue(entry.getKey(), entry.getValue(), newStateDefinition::getProperty,
+                    newBlockState
+            );
         }
         return newBlockState;
     }

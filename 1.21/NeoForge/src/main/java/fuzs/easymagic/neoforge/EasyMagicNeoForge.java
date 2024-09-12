@@ -1,6 +1,7 @@
 package fuzs.easymagic.neoforge;
 
 import fuzs.easymagic.EasyMagic;
+import fuzs.easymagic.data.ModBlockTagsProvider;
 import fuzs.easymagic.data.ModItemTagsProvider;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
@@ -13,7 +14,7 @@ public class EasyMagicNeoForge {
 
     public EasyMagicNeoForge() {
         ModConstructor.construct(EasyMagic.MOD_ID, EasyMagic::new);
-        DataProviderHelper.registerDataProviders(EasyMagic.MOD_ID, ModItemTagsProvider::new);
+        DataProviderHelper.registerDataProviders(EasyMagic.MOD_ID, ModItemTagsProvider::new, ModBlockTagsProvider::new);
         NeoForgeCapabilityHelper.registerWorldlyBlockEntityContainer(ModRegistry.ENCHANTING_TABLE_BLOCK_ENTITY_TYPE);
     }
 }

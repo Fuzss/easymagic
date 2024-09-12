@@ -1,5 +1,6 @@
 package fuzs.easymagic.data.client;
 
+import fuzs.easymagic.handler.BlockConversionHandler;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.puzzleslib.api.client.data.v2.AbstractModelProvider;
 import fuzs.puzzleslib.api.data.v2.core.DataProviderContext;
@@ -8,11 +9,13 @@ import net.minecraft.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.data.models.blockstates.Variant;
 import net.minecraft.data.models.blockstates.VariantProperties;
 import net.minecraft.data.models.model.ModelLocationUtils;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
-public class ModModelProvider extends AbstractModelProvider {
+public class DynamicModelProvider extends AbstractModelProvider {
 
-    public ModModelProvider(DataProviderContext context) {
+    public DynamicModelProvider(DataProviderContext context) {
         super(context);
     }
 
@@ -20,6 +23,14 @@ public class ModModelProvider extends AbstractModelProvider {
     public void addBlockModels(BlockModelGenerators builder) {
         // dynamically generate a basic stone block model for every diagonal block so the model bakery logs no missing model
         // don't use an air model so the blocks remain visible
+        ResourceLocation resourceLocation = ModelLocationUtils.getModelLocation(Blocks.STONE);
+        BlockConversionHandler.getBlockConversions().values().forEach((Block block) -> {
+            builder.blockStateOutput.accept(MultiVariantGenerator.multiVariant(block,
+                    Variant.variant().with(VariantProperties.MODEL, resourceLocation)
+            ));
+            builder.skipAutoItemBlock(block);
+        });
+        // TODO remove old block
         Variant variant = Variant.variant().with(VariantProperties.MODEL, ModelLocationUtils.getModelLocation(Blocks.STONE));
         builder.blockStateOutput.accept(MultiVariantGenerator.multiVariant(ModRegistry.ENCHANTMENT_TABLE_BLOCK.value(), variant));
         builder.skipAutoItemBlock(ModRegistry.ENCHANTMENT_TABLE_BLOCK.value());

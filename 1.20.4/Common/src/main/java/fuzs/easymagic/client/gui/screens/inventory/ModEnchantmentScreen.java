@@ -156,7 +156,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
     }
 
     @Override
-    protected boolean isHovering(int x, int y, int width, int height, double mouseX, double mouseY) {
+    public boolean isHovering(int x, int y, int width, int height, double mouseX, double mouseY) {
         // small hack to prevent EnchantmentScreen::render from rendering vanilla enchanting tooltips
         if (this.getSelectedSlot(mouseX, mouseY) != null) {
             return super.isHovering(x, y, width, height, mouseX, mouseY);
