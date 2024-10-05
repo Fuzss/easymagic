@@ -34,7 +34,7 @@ public class ModRegistry {
     public static final TagKey<Block> UNALTERED_ENCHANTING_TABLES_BLOCK_TAG = TAGS.registerBlockTag(
             "unaltered_enchanting_tables");
 
-    public static void touch() {
+    public static void bootstrap() {
         // NO-OP
     }
 }

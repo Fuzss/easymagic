@@ -5,7 +5,6 @@ import fuzs.easymagic.config.CommonConfig;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.handler.BlockConversionHandler;
 import fuzs.easymagic.init.ModRegistry;
-import fuzs.easymagic.network.ClientboundEnchantingDataMessage;
 import fuzs.easymagic.world.level.block.EnchantmentTableWithInventoryBlock;
 import fuzs.puzzleslib.api.block.v1.BlockConversionHelper;
 import fuzs.puzzleslib.api.config.v3.ConfigHolder;
@@ -16,7 +15,6 @@ import fuzs.puzzleslib.api.event.v1.RegistryEntryAddedCallback;
 import fuzs.puzzleslib.api.event.v1.core.EventPhase;
 import fuzs.puzzleslib.api.event.v1.entity.player.PlayerInteractEvents;
 import fuzs.puzzleslib.api.event.v1.server.TagsUpdatedCallback;
-import fuzs.puzzleslib.api.network.v3.NetworkHandler;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
@@ -32,18 +30,16 @@ public class EasyMagic implements ModConstructor {
     public static final String MOD_NAME = "Easy Magic";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
 
-    public static final NetworkHandler NETWORK = NetworkHandler.builder(MOD_ID).registerSerializer(
-            ClientboundEnchantingDataMessage.class, ClientboundEnchantingDataMessage.STREAM_CODEC).registerClientbound(
-            ClientboundEnchantingDataMessage.class);
     public static final ConfigHolder CONFIG = ConfigHolder.builder(MOD_ID).client(ClientConfig.class).common(
             CommonConfig.class).server(ServerConfig.class);
+
     public static final Predicate<Block> BLOCK_PREDICATE = (Block block) -> {
         return block instanceof EnchantingTableBlock && !(block instanceof EnchantmentTableWithInventoryBlock);
     };
 
     @Override
     public void onConstructMod() {
-        ModRegistry.touch();
+        ModRegistry.bootstrap();
         registerEventHandlers();
     }
 
