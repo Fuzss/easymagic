@@ -3,7 +3,6 @@ package fuzs.easymagic.client.handler;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
 import fuzs.easymagic.handler.BlockConversionHandler;
-import fuzs.easymagic.init.ModRegistry;
 import fuzs.puzzleslib.api.client.core.v1.ClientAbstractions;
 import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
 import net.minecraft.Util;
@@ -13,7 +12,6 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.Property;
@@ -29,17 +27,9 @@ public class BlockModelHandler {
 
     static {
         MODEL_LOCATIONS = Suppliers.memoize(() -> {
-            Map<ModelResourceLocation, ModelResourceLocation> modelResourceLocationMap = BlockConversionHandler.getBlockConversions()
-                    .entrySet()
-                    .stream()
-                    .flatMap(entry -> {
-                        return convertAllBlockStates(entry.getValue(), entry.getKey()).entrySet().stream();
-                    })
-                    .collect(Util.toMap());
-            // TODO remove old block
-            modelResourceLocationMap.putAll(
-                    convertAllBlockStates(ModRegistry.ENCHANTMENT_TABLE_BLOCK.value(), Blocks.ENCHANTING_TABLE));
-            return modelResourceLocationMap;
+            return BlockConversionHandler.getBlockConversions().entrySet().stream().flatMap(entry -> {
+                return convertAllBlockStates(entry.getValue(), entry.getKey()).entrySet().stream();
+            }).collect(Util.toMap());
         });
     }
 
@@ -64,8 +54,7 @@ public class BlockModelHandler {
         for (BlockState oldBlockState : oldBlock.getStateDefinition().getPossibleStates()) {
             BlockState newBlockState = convertBlockState(newBlock.getStateDefinition(), oldBlockState);
             modelLocations.put(BlockModelShaper.stateToModelLocation(oldBlockState),
-                    BlockModelShaper.stateToModelLocation(newBlockState)
-            );
+                    BlockModelShaper.stateToModelLocation(newBlockState));
         }
         return modelLocations;
     }
@@ -73,9 +62,10 @@ public class BlockModelHandler {
     private static BlockState convertBlockState(StateDefinition<Block, BlockState> newStateDefinition, BlockState oldBlockState) {
         BlockState newBlockState = newStateDefinition.any();
         for (Map.Entry<Property<?>, Comparable<?>> entry : oldBlockState.getValues().entrySet()) {
-            newBlockState = setBlockStateValue(entry.getKey(), entry.getValue(), newStateDefinition::getProperty,
-                    newBlockState
-            );
+            newBlockState = setBlockStateValue(entry.getKey(),
+                    entry.getValue(),
+                    newStateDefinition::getProperty,
+                    newBlockState);
         }
         return newBlockState;
     }

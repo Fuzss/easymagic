@@ -21,8 +21,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.EnchantingTableBlockEntity;
@@ -45,7 +45,7 @@ public class EnchantmentTableWithInventoryBlockEntity extends EnchantingTableBlo
     @Override
     public void loadAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
         super.loadAdditional(compoundTag, registries);
-        this.code = LockCode.fromTag(compoundTag);
+        this.code = LockCode.fromTag(compoundTag, registries);
         this.items.clear();
         ContainerHelper.loadAllItems(compoundTag, this.items, registries);
     }
@@ -53,7 +53,7 @@ public class EnchantmentTableWithInventoryBlockEntity extends EnchantingTableBlo
     @Override
     protected void saveAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
         super.saveAdditional(compoundTag, registries);
-        this.code.addToTag(compoundTag);
+        this.code.addToTag(compoundTag, registries);
         ContainerHelper.saveAllItems(compoundTag, this.items, true, registries);
     }
 
@@ -91,7 +91,9 @@ public class EnchantmentTableWithInventoryBlockEntity extends EnchantingTableBlo
         if (this.level != null && this.level.getBlockEntity(this.worldPosition) != this) {
             return false;
         } else {
-            return !(player.distanceToSqr(this.worldPosition.getX() + 0.5, this.worldPosition.getY() + 0.5, this.worldPosition.getZ() + 0.5) > 64.0);
+            return !(player.distanceToSqr(this.worldPosition.getX() + 0.5,
+                    this.worldPosition.getY() + 0.5,
+                    this.worldPosition.getZ() + 0.5) > 64.0);
         }
     }
 
@@ -124,7 +126,7 @@ public class EnchantmentTableWithInventoryBlockEntity extends EnchantingTableBlo
     @Override
     public boolean canTakeItemThroughFace(int index, ItemStack itemStack, Direction direction) {
         // only allow extracting of enchantable item
-        return index == 0 && (itemStack.isEnchanted() || itemStack.getItem() instanceof EnchantedBookItem);
+        return index == 0 && (itemStack.isEnchanted() || itemStack.is(Items.ENCHANTED_BOOK));
     }
 
     @Override
@@ -144,7 +146,10 @@ public class EnchantmentTableWithInventoryBlockEntity extends EnchantingTableBlo
 
     @SuppressWarnings("ConstantConditions")
     protected AbstractContainerMenu createMenu(int id, Inventory playerInventory) {
-        return new ModEnchantmentMenu(id, playerInventory, this, ContainerLevelAccess.create(this.level, this.worldPosition));
+        return new ModEnchantmentMenu(id,
+                playerInventory,
+                this,
+                ContainerLevelAccess.create(this.level, this.worldPosition));
     }
 
     @Override

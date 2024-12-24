@@ -46,10 +46,10 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     private final DataSlot enchantmentSeed;
 
     public ModEnchantmentMenu(int id, Inventory playerInventory) {
-        this(id, playerInventory,
+        this(id,
+                playerInventory,
                 new SimpleContainer(EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst ? 3 : 2),
-                ContainerLevelAccess.NULL
-        );
+                ContainerLevelAccess.NULL);
     }
 
     public ModEnchantmentMenu(int id, Inventory inventory, Container container, ContainerLevelAccess access) {
@@ -117,8 +117,8 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             if (!itemStack.isEmpty() && itemStack.isEnchantable()) {
                 this.access.execute((Level level, BlockPos pos) -> {
                     int power = EasyMagic.CONFIG.get(ServerConfig.class).maxEnchantingPower == 0 ? 15 :
-                            (this.getEnchantingPower(level, pos) * 15) / EasyMagic.CONFIG.get(
-                                    ServerConfig.class).maxEnchantingPower;
+                            (this.getEnchantingPower(level, pos) * 15) /
+                                    EasyMagic.CONFIG.get(ServerConfig.class).maxEnchantingPower;
                     this.random.setSeed(this.enchantmentSeed.get());
                     this.updateLevels(itemStack, level, pos, power);
                     // need to run this always as enchanting buttons will otherwise be greyed out
@@ -161,7 +161,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         }
     }
 
-    private void updateLevels(ItemStack itemstack, Level world, BlockPos pos, int power) {
+    private void updateLevels(ItemStack itemstack, Level level, BlockPos pos, int power) {
         for (int i1 = 0; i1 < 3; ++i1) {
             this.costs[i1] = EnchantmentHelper.getEnchantmentCost(this.random, i1, power, itemstack);
             if (this.costs[i1] < i1 + 1) {
@@ -171,7 +171,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     }
 
     private void createClues(RegistryAccess registryAccess, ItemStack itemstack) {
-        IdMap<Holder<Enchantment>> idMap = registryAccess.registryOrThrow(Registries.ENCHANTMENT).asHolderIdMap();
+        IdMap<Holder<Enchantment>> idMap = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).asHolderIdMap();
         for (int i = 0; i < 3; ++i) {
             if (this.costs[i] > 0) {
                 List<EnchantmentInstance> list = this.createEnchantmentInstance(registryAccess, itemstack, i);
@@ -195,18 +195,19 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     }
 
     private List<EnchantmentInstance> createEnchantmentInstance(RegistryAccess registryAccess, ItemStack itemStack, int enchantSlot) {
-        return ((EnchantmentMenuAccessor) this).callGetEnchantmentList(registryAccess, itemStack, enchantSlot,
-                this.costs[enchantSlot]
-        );
+        return ((EnchantmentMenuAccessor) this).callGetEnchantmentList(registryAccess,
+                itemStack,
+                enchantSlot,
+                this.costs[enchantSlot]);
     }
 
     private List<EnchantmentInstance> getEnchantmentHint(RegistryAccess registryAccess, ItemStack itemStack, int enchantSlot, ServerConfig.EnchantmentHint enchantmentHint) {
         return switch (enchantmentHint) {
             case NONE -> Collections.emptyList();
             case SINGLE -> {
-                List<EnchantmentInstance> enchantmentData = this.createEnchantmentInstance(registryAccess, itemStack,
-                        enchantSlot
-                );
+                List<EnchantmentInstance> enchantmentData = this.createEnchantmentInstance(registryAccess,
+                        itemStack,
+                        enchantSlot);
                 if (enchantmentData.isEmpty()) {
                     yield Collections.emptyList();
                 } else {
@@ -222,8 +223,8 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         int chiseledBookshelfBooks = 0;
         for (BlockPos offset : EnchantingTableBlock.BOOKSHELF_OFFSETS) {
             if (EnchantingTableBlock.isValidBookShelf(level, pos, offset)) {
-                enchantingPower += CommonAbstractions.INSTANCE.getEnchantPowerBonus(
-                        level.getBlockState(pos.offset(offset)), level, pos.offset(offset));
+                enchantingPower += CommonAbstractions.INSTANCE.getEnchantPowerBonus(level.getBlockState(pos.offset(
+                        offset)), level, pos.offset(offset));
                 chiseledBookshelfBooks += ChiseledBookshelfHelper.findValidBooks(level, pos, offset);
             }
         }
@@ -236,12 +237,12 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments && this.canUseReroll()) {
                 int catalystSlot = EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst ? 2 : 1;
                 ItemStack itemstack = this.enchantSlots.getItem(catalystSlot);
-                if (player.getAbilities().instabuild || itemstack.getCount() >= EasyMagic.CONFIG.get(
-                        ServerConfig.class).rerollCatalystCost) {
+                if (player.getAbilities().instabuild ||
+                        itemstack.getCount() >= EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost) {
                     int totalExperience = EasyMagic.CONFIG.get(ServerConfig.class).rerollingTakesEnchantmentLevels ?
                             player.experienceLevel : PlayerExperienceHelper.getTotalExperience(player);
-                    if (player.getAbilities().instabuild || totalExperience >= EasyMagic.CONFIG.get(
-                            ServerConfig.class).rerollExperiencePointsCost) {
+                    if (player.getAbilities().instabuild ||
+                            totalExperience >= EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost) {
                         this.access.execute((Level level, BlockPos pos) -> {
                             // set a new enchantment seed every time a new item is placed into the enchanting slot
                             this.enchantmentSeed.set(this.player.getRandom().nextInt());
@@ -255,11 +256,9 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
                                 }
                                 if (EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost > 0) {
                                     if (EasyMagic.CONFIG.get(ServerConfig.class).rerollingTakesEnchantmentLevels) {
-                                        player.giveExperienceLevels(
-                                                -EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost);
+                                        player.giveExperienceLevels(-EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost);
                                     } else {
-                                        player.giveExperiencePoints(
-                                                -EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost);
+                                        player.giveExperiencePoints(-EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost);
                                     }
                                 }
                             }

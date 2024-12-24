@@ -8,6 +8,8 @@ import fuzs.easymagic.mixin.client.accessor.ChiseledBookShelfBlockAccessor;
 import fuzs.puzzleslib.api.client.gui.v2.components.TooltipRenderHelper;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.world.entity.player.Player;
@@ -26,30 +28,28 @@ import java.util.OptionalInt;
 
 public class ChiseledBookshelfTooltipHandler {
 
-    public static void onRenderGui(Minecraft minecraft, GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
-        if (!canRenderTooltip(minecraft)) return;
-        BlockHitResult hitResult = (BlockHitResult) minecraft.hitResult;
-        BlockState blockState = minecraft.level.getBlockState(hitResult.getBlockPos());
+    public static void onAfterRenderGui(Gui gui, GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+        if (!canRenderTooltip(gui.minecraft)) return;
+        BlockHitResult hitResult = (BlockHitResult) gui.minecraft.hitResult;
+        BlockState blockState = gui.minecraft.level.getBlockState(hitResult.getBlockPos());
         if (blockState.getBlock() instanceof ChiseledBookShelfBlock) {
             OptionalInt hitSlot = ((ChiseledBookShelfBlockAccessor) blockState.getBlock()).easymagic$callGetHitSlot(
                     hitResult,
-                    blockState
-            );
+                    blockState);
             if (hitSlot.isPresent()) {
                 BooleanProperty property = ChiseledBookShelfBlock.SLOT_OCCUPIED_PROPERTIES.get(hitSlot.getAsInt());
                 if (blockState.getValue(property)) {
-                    if (minecraft.level.getBlockEntity(hitResult.getBlockPos()) instanceof ChiseledBookShelfBlockEntity blockEntity) {
+                    if (gui.minecraft.level.getBlockEntity(hitResult.getBlockPos()) instanceof ChiseledBookShelfBlockEntity blockEntity) {
                         ItemStack itemStack = blockEntity.getItem(hitSlot.getAsInt());
                         if (!itemStack.isEmpty()) {
                             RenderSystem.enableBlend();
                             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR,
                                     GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
                                     GlStateManager.SourceFactor.ONE,
-                                    GlStateManager.DestFactor.ZERO
-                            );
+                                    GlStateManager.DestFactor.ZERO);
                             RenderSystem.disableDepthTest();
                             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                            renderBookTooltip(guiGraphics, guiGraphics.guiWidth(), guiGraphics.guiHeight(), itemStack);
+                            renderBookTooltip(guiGraphics, guiGraphics.guiWidth(), guiGraphics.guiHeight(), itemStack, gui.getFont());
                         }
                     }
                 }
@@ -76,17 +76,19 @@ public class ChiseledBookshelfTooltipHandler {
         return false;
     }
 
-    private static void renderBookTooltip(GuiGraphics guiGraphics, int screenWidth, int screenHeight, ItemStack itemStack) {
+    private static void renderBookTooltip(GuiGraphics guiGraphics, int screenWidth, int screenHeight, ItemStack itemStack, Font font) {
         List<ClientTooltipComponent> components = TooltipRenderHelper.getTooltip(itemStack, TooltipFlag.NORMAL);
         int posX = screenWidth / 2 - 12 + 22 + EasyMagic.CONFIG.get(ClientConfig.class).chiseledBookshelfTooltipOffsetX;
-        int posY = screenHeight / 2 + 12 - getFullTooltipHeight(components) / 2 +
+        int posY = screenHeight / 2 + 12 - getFullTooltipHeight(components, font) / 2 +
                 EasyMagic.CONFIG.get(ClientConfig.class).chiseledBookshelfTooltipOffsetY;
-        TooltipRenderHelper.renderTooltipComponents(guiGraphics, posX, posY, components);
+        TooltipRenderHelper.renderTooltipComponents(guiGraphics, posX, posY, components, null);
     }
 
-    private static int getFullTooltipHeight(List<ClientTooltipComponent> components) {
+    private static int getFullTooltipHeight(List<ClientTooltipComponent> components, Font font) {
         int height = components.size() == 1 ? -2 : 0;
-        height += components.stream().mapToInt(ClientTooltipComponent::getHeight).sum();
+        height += components.stream().mapToInt((ClientTooltipComponent component) -> {
+            return component.getHeight(font);
+        }).sum();
         return height;
     }
 }
