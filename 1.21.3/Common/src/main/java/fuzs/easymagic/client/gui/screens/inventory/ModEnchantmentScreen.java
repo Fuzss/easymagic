@@ -1,7 +1,6 @@
 package fuzs.easymagic.client.gui.screens.inventory;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.systems.RenderSystem;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.config.ServerConfig;
@@ -9,7 +8,7 @@ import fuzs.easymagic.util.PlayerExperienceHelper;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.puzzleslib.api.core.v1.ModLoaderEnvironment;
 import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
-import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,6 +20,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
@@ -28,6 +28,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.EnchantmentMenu;
 import net.minecraft.world.inventory.Slot;
@@ -35,8 +36,10 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ModEnchantmentScreen extends EnchantmentScreen {
@@ -61,12 +64,10 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float tickDelta, int mouseX, int mouseY) {
         super.renderBg(guiGraphics, tickDelta, mouseX, mouseY);
-        if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments &&
-                !EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook) {
+        if (this.renderRerollButton()) {
             this.renderRerollButton(guiGraphics, tickDelta, mouseX, mouseY);
         }
         if (EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst) {
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             guiGraphics.blit(RenderType::guiTextured,
                     ENCHANTING_TABLE_LOCATION,
                     this.leftPos + 4,
@@ -100,15 +101,19 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         }
     }
 
+    private boolean renderRerollButton() {
+        return EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments &&
+                !EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook;
+    }
+
     @Override
     protected void renderBook(GuiGraphics guiGraphics, int x, int y, float partialTick) {
-        if (EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook) {
+        if (!this.renderRerollButton()) {
             super.renderBook(guiGraphics, x, y, partialTick);
         }
     }
 
     private void renderRerollButton(GuiGraphics guiGraphics, float tickDelta, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         int experienceCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost;
         int lapisCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost;
         boolean invalid = !this.minecraft.player.getAbilities().instabuild &&
@@ -195,7 +200,6 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
     }
 
     private void renderCostOrb(GuiGraphics guiGraphics, int posX, int posY, int textureX, int textureY, int cost, ChatFormatting color) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         guiGraphics.blit(RenderType::guiTextured,
                 ENCHANTING_TABLE_REROLL_LOCATION,
                 posX,
@@ -206,16 +210,18 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                 13,
                 256,
                 256);
-        this.renderReadableText(guiGraphics, posX + 8, posY + 3, String.valueOf(cost), color.getColor());
-    }
-
-    private void renderReadableText(GuiGraphics guiGraphics, int posX, int posY, String text, int color) {
         // render shadow on every side to avoid readability issues with colorful background
-        guiGraphics.drawString(this.font, text, posX - 1, posY, 0, false);
-        guiGraphics.drawString(this.font, text, posX + 1, posY, 0, false);
-        guiGraphics.drawString(this.font, text, posX, posY - 1, 0, false);
-        guiGraphics.drawString(this.font, text, posX, posY + 1, 0, false);
-        guiGraphics.drawString(this.font, text, posX, posY, color, false);
+        FormattedCharSequence formattedCharSequence = Component.literal(String.valueOf(cost)).getVisualOrderText();
+        guiGraphics.drawSpecial(bufferSource -> {
+            this.font.drawInBatch8xOutline(formattedCharSequence,
+                    posX + 8,
+                    posY + 3,
+                    color.getColor(),
+                    0,
+                    guiGraphics.pose().last().pose(),
+                    bufferSource,
+                    0XF000F0);
+        });
     }
 
     @Override
@@ -242,14 +248,14 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         if (slot != -1) {
             List<EnchantmentInstance> slotData = this.getSlotData(slot);
             if (!slotData.isEmpty()) {
-                List<Component> tooltip = Lists.newArrayList();
-                boolean hasValidEnchantment = this.gatherSlotEnchantmentsTooltip(slotData, tooltip);
+                List<Component> tooltip = new ArrayList<>();
+                boolean hasValidEnchantment = this.gatherSlotEnchantmentsTooltip(slotData, tooltip::add);
                 this.gatherSlotCostsTooltip(slot, tooltip, hasValidEnchantment);
                 guiGraphics.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
             }
         } else if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments) {
             if (this.isMouseOverReroll(mouseX, mouseY) && this.getMenu().canUseReroll()) {
-                List<Component> tooltip = Lists.newArrayList();
+                List<Component> tooltip = new ArrayList<>();
                 this.gatherRerollTooltip(tooltip);
                 guiGraphics.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
             }
@@ -266,66 +272,50 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         return startX < mouseX && mouseX <= startX + 38 && startY < mouseY && mouseY <= startY + 27;
     }
 
-    @Override
-    public boolean isHovering(int x, int y, int width, int height, double mouseX, double mouseY) {
-        // small hack to prevent EnchantmentScreen::render from rendering vanilla enchanting tooltips
-        if (this.getSelectedSlot(mouseX, mouseY) != null) {
-            return super.isHovering(x, y, width, height, mouseX, mouseY);
-        }
-        return false;
-    }
-
-    @Nullable
-    private Slot getSelectedSlot(double mouseX, double mouseY) {
-        for (int i = 0; i < this.menu.slots.size(); ++i) {
-            Slot slot = this.menu.slots.get(i);
-            if (this.isSlotSelected(slot, mouseX, mouseY) && slot.isActive()) {
-                return slot;
-            }
-        }
-        return null;
-    }
-
-    private boolean isSlotSelected(Slot slotIn, double mouseX, double mouseY) {
-        return super.isHovering(slotIn.x, slotIn.y, 16, 16, mouseX, mouseY);
-    }
-
     private int getEnchantingSlot(int mouseX, int mouseY) {
         for (int j = 0; j < 3; ++j) {
             int levels = this.menu.costs[j];
             // coordinates are off, but the rest of the tooltip is computed using the same coordinates
-            if (super.isHovering(60, 14 + 19 * j, 108, 17, mouseX, mouseY) && levels > 0) {
+            if (this.isHovering(60, 14 + 19 * j, 108, 17, mouseX, mouseY) && levels > 0) {
                 return j;
             }
         }
         return -1;
     }
 
-    private boolean gatherSlotEnchantmentsTooltip(List<EnchantmentInstance> slotData, List<Component> slotTooltip) {
+    private boolean gatherSlotEnchantmentsTooltip(List<EnchantmentInstance> slotData, Consumer<Component> tooltipAdder) {
         Object2IntMap<Holder<Enchantment>> enchantments = slotData.stream()
                 .collect(Collectors.toMap((EnchantmentInstance enchantmentInstance) -> {
                     return enchantmentInstance.enchantment;
                 }, (EnchantmentInstance enchantmentInstance) -> {
                     return enchantmentInstance.level;
-                }, (o1, o2) -> o2, Object2IntArrayMap::new));
-
+                }, (o1, o2) -> o2, Object2IntLinkedOpenHashMap::new));
         HolderSet<Enchantment> holderSet = getTagOrEmpty(this.minecraft.getConnection().registryAccess(),
                 Registries.ENCHANTMENT,
                 EnchantmentTags.TOOLTIP_ORDER);
         for (Holder<Enchantment> holder : holderSet) {
             int enchantmentLevel = enchantments.getInt(holder);
             if (enchantmentLevel > 0) {
-                Component component = Component.empty()
-                        .append(Enchantment.getFullname(holder, enchantmentLevel))
-                        .withStyle(ChatFormatting.GRAY);
-                if (EasyMagic.CONFIG.get(ServerConfig.class).enchantmentHint == ServerConfig.EnchantmentHint.ALL) {
-                    slotTooltip.add(component);
-                } else {
-                    slotTooltip.add(Component.translatable("container.enchant.clue", component));
-                }
+                this.addTooltipLine(holder, enchantmentLevel, tooltipAdder);
+            }
+        }
+        for (Object2IntMap.Entry<Holder<Enchantment>> entry : enchantments.object2IntEntrySet()) {
+            if (!holderSet.contains(entry.getKey())) {
+                this.addTooltipLine(entry.getKey(), entry.getIntValue(), tooltipAdder);
             }
         }
         return !slotData.isEmpty();
+    }
+
+    private void addTooltipLine(Holder<Enchantment> holder, int enchantmentLevel, Consumer<Component> tooltipAdder) {
+        Component component = Component.empty()
+                .append(Enchantment.getFullname(holder, enchantmentLevel))
+                .withStyle(ChatFormatting.GRAY);
+        if (EasyMagic.CONFIG.get(ServerConfig.class).enchantmentHint == ServerConfig.EnchantmentHint.ALL) {
+            tooltipAdder.accept(component);
+        } else {
+            tooltipAdder.accept(Component.translatable("container.enchant.clue", component));
+        }
     }
 
     private static <T> HolderSet<T> getTagOrEmpty(@Nullable HolderLookup.Provider registries, ResourceKey<Registry<T>> registryKey, TagKey<T> key) {
@@ -362,7 +352,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
         }
         if (!additionalTooltip.isEmpty()) {
             if (!slotTooltip.isEmpty()) {
-                slotTooltip.add(Component.empty());
+                slotTooltip.add(CommonComponents.EMPTY);
             }
             slotTooltip.addAll(additionalTooltip);
         }
@@ -411,9 +401,12 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
     }
 
     private static Optional<Component> getEnchantingComponent(int requiredAmount, int currentAmount, MutableComponent component) {
-        if (requiredAmount < 1) return Optional.empty();
-        return Optional.of(component.withStyle(
-                currentAmount >= requiredAmount ? ChatFormatting.GRAY : ChatFormatting.RED));
+        if (requiredAmount < 1) {
+            return Optional.empty();
+        } else {
+            return Optional.of(component.withStyle(
+                    currentAmount >= requiredAmount ? ChatFormatting.GRAY : ChatFormatting.RED));
+        }
     }
 
     @Override

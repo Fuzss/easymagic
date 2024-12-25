@@ -121,8 +121,6 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
                                     EasyMagic.CONFIG.get(ServerConfig.class).maxEnchantingPower;
                     this.random.setSeed(this.enchantmentSeed.get());
                     this.updateLevels(itemStack, level, pos, power);
-                    // need to run this always as enchanting buttons will otherwise be greyed out
-                    this.createClues(level.registryAccess(), itemStack);
                     this.broadcastChanges();
                 });
             } else {
@@ -166,20 +164,6 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             this.costs[i1] = EnchantmentHelper.getEnchantmentCost(this.random, i1, power, itemstack);
             if (this.costs[i1] < i1 + 1) {
                 this.costs[i1] = 0;
-            }
-        }
-    }
-
-    private void createClues(RegistryAccess registryAccess, ItemStack itemstack) {
-        IdMap<Holder<Enchantment>> idMap = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).asHolderIdMap();
-        for (int i = 0; i < 3; ++i) {
-            if (this.costs[i] > 0) {
-                List<EnchantmentInstance> list = this.createEnchantmentInstance(registryAccess, itemstack, i);
-                if (list != null && !list.isEmpty()) {
-                    EnchantmentInstance enchantmentdata = list.get(this.random.nextInt(list.size()));
-                    this.enchantClue[i] = idMap.getId(enchantmentdata.enchantment);
-                    this.levelClue[i] = enchantmentdata.level;
-                }
             }
         }
     }
