@@ -29,8 +29,8 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
     }
 
     @Override
-    public void render(EnchantingTableBlockEntity blockEntity, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
-        super.render(blockEntity, partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn);
+    public void render(EnchantingTableBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        super.render(blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
         Container container = (Container) blockEntity;
         ItemStack itemToEnchant = container.getItem(0);
         ItemStack enchantingStack = container.getItem(1);
@@ -39,12 +39,12 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
         switch (EasyMagic.CONFIG.get(ClientConfig.class).renderEnchantingTableContents) {
             case FLAT -> {
                 List<ItemStack> items = getItemsList(itemToEnchant, enchantingStack, rerollStack);
-                this.renderFlatItemList(items, blockEntity.getBlockPos(), poseStack, bufferIn, combinedLightIn, combinedOverlayIn, blockEntity.getLevel(), posData);
+                this.renderFlatItemList(items, blockEntity.getBlockPos(), poseStack, bufferSource, packedLight, packedOverlay, blockEntity.getLevel(), posData);
             }
             case FLOATING -> {
                 List<ItemStack> items = getItemsList(ItemStack.EMPTY, enchantingStack, rerollStack);
-                this.renderHoveringItem(blockEntity, itemToEnchant, partialTicks, poseStack, bufferIn, combinedLightIn);
-                this.renderHoveringItemList(items, blockEntity.time + partialTicks, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, true, blockEntity.getLevel(), posData);
+                this.renderHoveringItem(blockEntity, itemToEnchant, partialTick, poseStack, bufferSource, packedLight);
+                this.renderHoveringItemList(items, blockEntity.time + partialTick, poseStack, bufferSource, packedLight, packedOverlay, true, blockEntity.getLevel(), posData);
             }
         }
     }

@@ -1,2 +1,15 @@
 accessWidener   v2  named
 extendable  method  net/minecraft/client/gui/screens/inventory/EnchantmentScreen    renderBook  (Lnet/minecraft/client/gui/GuiGraphics;IIF)V
+accessible  field   net/minecraft/client/gui/screens/inventory/EnchantmentScreen    ENABLED_LEVEL_SPRITES   [Lnet/minecraft/resources/ResourceLocation;
+accessible  field   net/minecraft/client/gui/screens/inventory/EnchantmentScreen    DISABLED_LEVEL_SPRITES  [Lnet/minecraft/resources/ResourceLocation;
+accessible  field   net/minecraft/client/gui/screens/inventory/EnchantmentScreen    ENCHANTMENT_SLOT_DISABLED_SPRITE    Lnet/minecraft/resources/ResourceLocation;
+accessible  field   net/minecraft/client/gui/screens/inventory/EnchantmentScreen    ENCHANTMENT_SLOT_HIGHLIGHTED_SPRITE Lnet/minecraft/resources/ResourceLocation;
+accessible  field   net/minecraft/client/gui/screens/inventory/EnchantmentScreen    ENCHANTMENT_SLOT_SPRITE Lnet/minecraft/resources/ResourceLocation;
+accessible  field   net/minecraft/client/gui/screens/inventory/EnchantmentScreen    ENCHANTING_TABLE_LOCATION   Lnet/minecraft/resources/ResourceLocation;
+accessible  field   net/minecraft/world/inventory/EnchantmentMenu   enchantSlots    Lnet/minecraft/world/Container;
+mutable field   net/minecraft/world/inventory/EnchantmentMenu   enchantSlots    Lnet/minecraft/world/Container;
+accessible  field   net/minecraft/world/inventory/EnchantmentMenu   access  Lnet/minecraft/world/inventory/ContainerLevelAccess;
+accessible  field   net/minecraft/world/inventory/EnchantmentMenu   random  Lnet/minecraft/util/RandomSource;
+accessible  field   net/minecraft/world/inventory/EnchantmentMenu   enchantmentSeed Lnet/minecraft/world/inventory/DataSlot;
+accessible  method  net/minecraft/world/inventory/EnchantmentMenu   getEnchantmentList  (Lnet/minecraft/core/RegistryAccess;Lnet/minecraft/world/item/ItemStack;II)Ljava/util/List;
+accessible  field   net/minecraft/world/entity/player/Player    enchantmentSeed I

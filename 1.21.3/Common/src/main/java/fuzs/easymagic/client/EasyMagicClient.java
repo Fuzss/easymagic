@@ -12,6 +12,7 @@ import fuzs.puzzleslib.api.client.core.v1.context.BlockEntityRenderersContext;
 import fuzs.puzzleslib.api.client.core.v1.context.MenuScreensContext;
 import fuzs.puzzleslib.api.client.event.v1.ModelEvents;
 import fuzs.puzzleslib.api.client.event.v1.gui.RenderGuiEvents;
+import fuzs.puzzleslib.api.client.event.v1.gui.RenderTooltipCallback;
 import fuzs.puzzleslib.api.core.v1.context.PackRepositorySourcesContext;
 import fuzs.puzzleslib.api.event.v1.LoadCompleteCallback;
 import fuzs.puzzleslib.api.resources.v1.DynamicPackResources;
@@ -28,6 +29,7 @@ public class EasyMagicClient implements ClientModConstructor {
         ModelEvents.MODIFY_UNBAKED_MODEL.register(BlockModelHandler::onModifyUnbakedModel);
         LoadCompleteCallback.EVENT.register(BlockModelHandler::onLoadComplete);
         RenderGuiEvents.AFTER.register(ChiseledBookshelfTooltipHandler::onAfterRenderGui);
+        RenderTooltipCallback.EVENT.register(ModEnchantmentScreen::onRenderTooltip);
     }
 
     @Override

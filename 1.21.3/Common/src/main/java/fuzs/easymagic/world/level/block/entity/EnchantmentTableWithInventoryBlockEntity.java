@@ -13,10 +13,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.LockCode;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -83,18 +80,12 @@ public class EnchantmentTableWithInventoryBlockEntity extends EnchantingTableBlo
 
     @Override
     public int getContainerSize() {
-        return EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst ? 3 : 2;
+        return this.items.size();
     }
 
     @Override
     public boolean stillValid(Player player) {
-        if (this.level != null && this.level.getBlockEntity(this.worldPosition) != this) {
-            return false;
-        } else {
-            return !(player.distanceToSqr(this.worldPosition.getX() + 0.5,
-                    this.worldPosition.getY() + 0.5,
-                    this.worldPosition.getZ() + 0.5) > 64.0);
-        }
+        return Container.stillValidBlockEntity(this, player);
     }
 
     @Override
@@ -105,14 +96,15 @@ public class EnchantmentTableWithInventoryBlockEntity extends EnchantingTableBlo
             return itemStack.is(ModRegistry.ENCHANTING_CATALYSTS_ITEM_TAG);
         } else if (index == 0) {
             return this.items.get(0).isEmpty();
+        } else {
+            return false;
         }
-        return false;
     }
 
     @Override
     public int[] getSlotsForFace(Direction direction) {
         if (direction.getAxis().isHorizontal()) {
-            return EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst ? new int[]{1, 2} : new int[]{1};
+            return EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst() ? new int[]{1, 2} : new int[]{1};
         } else {
             return new int[]{0};
         }

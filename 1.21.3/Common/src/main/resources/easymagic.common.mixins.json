@@ -6,9 +6,7 @@
   "mixins": [
     "ChiseledBookShelfBlockEntityMixin",
     "EnchantingTableBlockMixin",
-    "WorldGenRegionMixin",
-    "accessor.EnchantmentMenuAccessor",
-    "accessor.PlayerAccessor"
+    "WorldGenRegionMixin"
   ],
   "client": [
     "client.accessor.ChiseledBookShelfBlockAccessor"

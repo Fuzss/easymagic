@@ -1,5 +1,6 @@
 package fuzs.easymagic.config;
 
+import fuzs.easymagic.EasyMagic;
 import fuzs.puzzleslib.api.config.v3.Config;
 import fuzs.puzzleslib.api.config.v3.ConfigCore;
 
@@ -14,6 +15,10 @@ public class ClientConfig implements ConfigCore {
     public int chiseledBookshelfTooltipOffsetX = 0;
     @Config(description = "Offset on y-axis for chiseled bookshelf book tooltips from original position.")
     public int chiseledBookshelfTooltipOffsetY = 0;
+
+    public boolean keepEnchantmentScreenBook() {
+        return this.keepEnchantmentScreenBook || !EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments;
+    }
 
     public enum ItemRenderType {
         NONE, FLAT, FLOATING
