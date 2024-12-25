@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+/**
+ * A utility for handling {@link AbstractContainerMenu#quickMoveStack(Player, int)} more conveniently.
+ */
 public final class QuickMoveRuleSet {
     private static final Predicate<Slot> IS_INVENTORY = (Slot slot) -> slot.container instanceof Inventory;
     private static final Predicate<Slot> IS_HOTBAR = (Slot slot) -> IS_INVENTORY.test(slot) &&
@@ -30,15 +33,39 @@ public final class QuickMoveRuleSet {
         this.isLenient = isLenient;
     }
 
+    /**
+     * Creates a new rule set instance.
+     *
+     * @param menu   the container menu
+     * @param action access to the protected {@link AbstractContainerMenu#moveItemStackTo(ItemStack, int, int, boolean)}
+     *               method
+     * @return the rule set
+     */
     public static QuickMoveRuleSet of(AbstractContainerMenu menu, Action action) {
         return of(menu, action, false);
     }
 
+    /**
+     * Creates a new rule set instance.
+     *
+     * @param menu      the container menu
+     * @param action    access to the protected
+     *                  {@link AbstractContainerMenu#moveItemStackTo(ItemStack, int, int, boolean)} method
+     * @param isLenient should rules not stop applying after a match has been found
+     * @return the rule set
+     */
     public static QuickMoveRuleSet of(AbstractContainerMenu menu, Action action, boolean isLenient) {
         return new QuickMoveRuleSet(menu, action, isLenient);
     }
 
-    public ItemStack apply(Player player, int index) {
+    /**
+     * Applies the rule set, functions the same as {@link AbstractContainerMenu#quickMoveStack(Player, int)}.
+     *
+     * @param player the player entity
+     * @param index  the clicked slot index
+     * @return the remaining item stack (?)
+     */
+    public ItemStack quickMoveStack(Player player, int index) {
 
         ItemStack itemStack = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
@@ -82,14 +109,35 @@ public final class QuickMoveRuleSet {
         return itemStack;
     }
 
+    /**
+     * Move an item from anywhere to a specific slot.
+     *
+     * @param index the slot index
+     * @return the rule set
+     */
     public QuickMoveRuleSet addContainerRule(int index) {
         return this.addContainerRule(index, Predicates.alwaysTrue());
     }
 
+    /**
+     * Move an item from anywhere to a specific slot.
+     *
+     * @param index  the slot index
+     * @param filter an additional filter for testing if the item can be placed into the slot at this index
+     * @return the rule set
+     */
     public QuickMoveRuleSet addContainerRule(int index, Predicate<Slot> filter) {
         return this.addContainerRule(index, false, filter);
     }
 
+    /**
+     * Move an item from anywhere to a specific slot.
+     *
+     * @param index            the slot index
+     * @param reverseDirection iterate backwards when placing the item
+     * @param filter           an additional filter for testing if the item can be placed into the slot at this index
+     * @return the rule set
+     */
     public QuickMoveRuleSet addContainerRule(int index, boolean reverseDirection, Predicate<Slot> filter) {
         this.addRule(new Rule(index, index + 1, reverseDirection, (Slot slot) -> {
             Slot slotAtIndex = this.slots.get(index);
@@ -98,11 +146,28 @@ public final class QuickMoveRuleSet {
         return this;
     }
 
+    /**
+     * Move an item from the player inventory to a container.
+     * <p>
+     * Useful for containers that only have general purpose storage slots (e.g. chest).
+     *
+     * @param container the container
+     * @return the rule set
+     */
     public QuickMoveRuleSet addContainerRule(Container container) {
         return this.addContainerRule(this.getInclusiveStartIndex((Slot slot) -> slot.container == container),
                 this.getExclusiveEndIndex((Slot slot) -> slot.container == container));
     }
 
+    /**
+     * Move an item from the player inventory to a set of indices.
+     * <p>
+     * Useful for containers that only have general purpose storage slots (e.g. chest).
+     *
+     * @param startIndex the first index (inclusive)
+     * @param endIndex   the last index (exclusive)
+     * @return the rule set
+     */
     public QuickMoveRuleSet addContainerRule(int startIndex, int endIndex) {
         this.addRule(new Rule(startIndex, endIndex, false, (Slot slot) -> {
             return slot.index >= this.getInclusiveStartIndex(IS_INVENTORY) &&
@@ -111,10 +176,21 @@ public final class QuickMoveRuleSet {
         return this;
     }
 
+    /**
+     * Move an item to the player inventory.
+     *
+     * @return the rule set
+     */
     public QuickMoveRuleSet addInventoryRule() {
         return this.addInventoryRule(false);
     }
 
+    /**
+     * Move an item to the player inventory.
+     *
+     * @param reverseDirection iterate backwards when placing the item
+     * @return the rule set
+     */
     public QuickMoveRuleSet addInventoryRule(boolean reverseDirection) {
         this.addRule(new Rule(this.getInclusiveStartIndex(IS_INVENTORY),
                 this.getExclusiveEndIndex(IS_INVENTORY),
@@ -125,6 +201,14 @@ public final class QuickMoveRuleSet {
         return this;
     }
 
+    /**
+     * Move an item from the hotbar to the rest of player inventory, and the other way around.
+     * <p>
+     * Useful for containers that only have functional slots and no general purpose storage slots (e.g. enchanting
+     * table).
+     *
+     * @return the rule set
+     */
     public QuickMoveRuleSet addHotbarRule() {
         this.addRule(new Rule(this.getInclusiveStartIndex(IS_HOTBAR),
                 this.getExclusiveEndIndex(IS_HOTBAR),
@@ -167,6 +251,9 @@ public final class QuickMoveRuleSet {
         return -1;
     }
 
+    /**
+     * An abstraction for {@link AbstractContainerMenu#moveItemStackTo(ItemStack, int, int, boolean)}.
+     */
     @FunctionalInterface
     public interface Action {
 

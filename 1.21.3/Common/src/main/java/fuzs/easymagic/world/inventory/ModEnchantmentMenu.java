@@ -35,7 +35,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             "item/empty_slot_lapis_lazuli");
     static final ResourceLocation EMPTY_SLOT_AMETHYST_SHARD = ResourceLocation.withDefaultNamespace(
             "item/empty_slot_amethyst_shard");
-    public static final int REROLL_CATALYST_SLOT = 38;
+    static final int REROLL_CATALYST_SLOT = 38;
     public static final int REROLL_DATA_SLOT = 4;
 
     public final Player player;
@@ -140,6 +140,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     private void resetLevelsAndClues() {
         for (int i = 0; i < 3; ++i) {
             this.costs[i] = 0;
+            // we do not want any of vanilla's clue handling, this is otherwise not touched anywhere
             this.enchantClue[i] = -1;
             this.levelClue[i] = -1;
         }
@@ -155,6 +156,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
                     itemStack,
                     i,
                     this.costs[i]);
+            // set this to zero, so that the enchantment slot does not show anything
             if (enchantmentList.isEmpty()) {
                 this.costs[i] = 0;
             }
@@ -179,6 +181,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
+        // will not attempt sending anything on the client when the entity is not a server player
         EasyMagic.NETWORK.sendMessage(PlayerSet.ofEntity(this.player),
                 new ClientboundCluesMessage(this.containerId, this.clues));
     }
@@ -271,7 +274,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
 
     @Override
     public void removed(Player player) {
-        // copied from container super method
+        // copied from container super method to bypass items being placed back into the player inventory
         if (player instanceof ServerPlayer serverPlayer) {
             ItemStack itemStack = this.getCarried();
             if (!itemStack.isEmpty()) {
@@ -287,66 +290,14 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-
-        if (true) {
-            return QuickMoveRuleSet.of(this, this::moveItemStackTo, true)
-                    .addContainerRule(1)
-                    .addContainerRule(REROLL_CATALYST_SLOT, (Slot slot) -> {
-                        return EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst();
-                    })
-                    .addContainerRule(0, (Slot slot) -> slot.getItem().isEnchantable())
-                    .addInventoryRule()
-                    .addHotbarRule()
-                    .apply(player, index);
-        }
-
-        Slot slot = this.slots.get(index);
-        if (slot.hasItem()) {
-            ItemStack itemInSlot = slot.getItem();
-            ItemStack resultItem = itemInSlot.copy();
-
-            if (this.slots.get(1).container != slot.container && this.slots.get(1).mayPlace(itemInSlot)) {
-                if (!this.moveItemStackTo(itemInSlot, 1, 2, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst() &&
-                    this.slots.get(REROLL_CATALYST_SLOT).container != slot.container &&
-                    this.slots.get(REROLL_CATALYST_SLOT).mayPlace(itemInSlot)) {
-                if (!this.moveItemStackTo(itemInSlot, REROLL_CATALYST_SLOT, REROLL_CATALYST_SLOT + 1, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (this.slots.get(0).container != slot.container && this.slots.get(0).mayPlace(itemInSlot) &&
-                    itemInSlot.isEnchantable()) {
-                if (!this.moveItemStackTo(itemInSlot, 0, 1, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (!(slot.container instanceof Inventory)) {
-                if (!this.moveItemStackTo(itemInSlot, 2, 38, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (index >= 2 && index < 29) {
-                if (!this.moveItemStackTo(itemInSlot, 29, 38, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (index >= 29 && index < 38) {
-                if (!this.moveItemStackTo(itemInSlot, 2, 29, false)) {
-                    return ItemStack.EMPTY;
-                }
-            }
-
-            if (itemInSlot.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
-            } else {
-                slot.setChanged();
-            }
-
-            if (itemInSlot.getCount() == resultItem.getCount()) {
-                return ItemStack.EMPTY;
-            }
-
-            slot.onTake(player, itemInSlot);
-        }
-
-        return ItemStack.EMPTY;
+        return QuickMoveRuleSet.of(this, this::moveItemStackTo, true)
+                .addContainerRule(1)
+                .addContainerRule(REROLL_CATALYST_SLOT, (Slot slot) -> {
+                    return EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst();
+                })
+                .addContainerRule(0, (Slot slot) -> slot.getItem().isEnchantable())
+                .addInventoryRule()
+                .addHotbarRule()
+                .quickMoveStack(player, index);
     }
 }
