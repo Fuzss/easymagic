@@ -1,6 +1,7 @@
 package fuzs.easymagic.client.gui.components;
 
 import fuzs.easymagic.EasyMagic;
+import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.puzzleslib.api.client.gui.v2.components.SpritelessImageButton;
@@ -35,7 +36,13 @@ public class RerollButton extends SpritelessImageButton implements Tickable {
 
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
+        if (!EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook()) {
+            super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
+            this.renderWidgetDecorations(guiGraphics);
+        }
+    }
+
+    private void renderWidgetDecorations(GuiGraphics guiGraphics) {
         if (this.rerollExperiencePointsCost == 0 && this.rerollCatalystCost == 0) {
             // arrow circle
             guiGraphics.blit(RenderType::guiTextured,

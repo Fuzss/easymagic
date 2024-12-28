@@ -89,27 +89,25 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                 }
             }).build(enchantmentSlotButton);
         }
-        if (!EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook()) {
-            AbstractWidget rerollButton = this.addRenderableWidget(new RerollButton(this.getRerollButtonX(),
-                    this.getRerollButtonY(),
-                    (Button button) -> {
-                        if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments) {
-                            if (this.menu.clickMenuButton(this.minecraft.player, ModEnchantmentMenu.REROLL_DATA_SLOT)) {
-                                this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId,
-                                        ModEnchantmentMenu.REROLL_DATA_SLOT);
-                                // only play this locally as it can easily be spammed
-                                this.minecraft.getSoundManager()
-                                        .play(SimpleSoundInstance.forUI(SoundEvents.ENCHANTMENT_TABLE_USE, 1.0F));
-                            }
+        AbstractWidget rerollButton = this.addRenderableWidget(new RerollButton(this.getRerollButtonX(),
+                this.getRerollButtonY(),
+                (Button button) -> {
+                    if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments) {
+                        if (this.menu.clickMenuButton(this.minecraft.player, ModEnchantmentMenu.REROLL_DATA_SLOT)) {
+                            this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId,
+                                    ModEnchantmentMenu.REROLL_DATA_SLOT);
+                            // only play this locally as it can easily be spammed
+                            this.minecraft.getSoundManager()
+                                    .play(SimpleSoundInstance.forUI(SoundEvents.ENCHANTMENT_TABLE_USE, 1.0F));
                         }
-                    },
-                    this.getMenu()));
-            TooltipBuilder.create().setLines(() -> {
-                List<Component> tooltipLines = new ArrayList<>();
-                EnchantmentTooltipHelper.gatherRerollTooltip(tooltipLines, this.minecraft.player, this.getMenu());
-                return tooltipLines;
-            }).build(rerollButton);
-        }
+                    }
+                },
+                this.getMenu()));
+        TooltipBuilder.create().setLines(() -> {
+            List<Component> tooltipLines = new ArrayList<>();
+            EnchantmentTooltipHelper.gatherRerollTooltip(tooltipLines, this.minecraft.player, this.getMenu());
+            return tooltipLines;
+        }).build(rerollButton);
         this.tickChildren();
     }
 
@@ -144,16 +142,18 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                     108,
                     19);
         }
-        guiGraphics.blit(RenderType::guiTextured,
-                RerollButton.ENCHANTING_TABLE_REROLL_LOCATION,
-                this.getRerollButtonX(),
-                this.getRerollButtonY(),
-                0,
-                0,
-                38,
-                27,
-                256,
-                256);
+        if (!EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook()) {
+            guiGraphics.blit(RenderType::guiTextured,
+                    RerollButton.ENCHANTING_TABLE_REROLL_LOCATION,
+                    this.getRerollButtonX(),
+                    this.getRerollButtonY(),
+                    0,
+                    0,
+                    38,
+                    27,
+                    256,
+                    256);
+        }
         if (EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst()) {
             guiGraphics.blit(RenderType::guiTextured,
                     ENCHANTING_TABLE_LOCATION,
