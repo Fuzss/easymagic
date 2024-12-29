@@ -10,6 +10,7 @@ import net.minecraft.client.gui.screens.inventory.EnchantmentNames;
 import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
 
@@ -40,6 +41,11 @@ public class EnchantmentSlotButton extends ImageButton implements Tickable {
 
     protected int getCost() {
         return this.menu.costs[this.slotIndex];
+    }
+
+    @Override
+    public void playDownSound(SoundManager handler) {
+        // NO-OP
     }
 
     @Override

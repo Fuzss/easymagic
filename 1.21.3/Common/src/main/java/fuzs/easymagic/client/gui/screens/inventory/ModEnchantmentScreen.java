@@ -21,10 +21,8 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.Tickable;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.EnchantmentMenu;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
@@ -96,9 +94,6 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                         if (this.menu.clickMenuButton(this.minecraft.player, ModEnchantmentMenu.REROLL_DATA_SLOT)) {
                             this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId,
                                     ModEnchantmentMenu.REROLL_DATA_SLOT);
-                            // only play this locally as it can easily be spammed
-                            this.minecraft.getSoundManager()
-                                    .play(SimpleSoundInstance.forUI(SoundEvents.ENCHANTMENT_TABLE_USE, 1.0F));
                         }
                     }
                 },

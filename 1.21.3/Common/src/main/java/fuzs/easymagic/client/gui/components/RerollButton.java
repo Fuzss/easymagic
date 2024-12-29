@@ -10,8 +10,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 
 public class RerollButton extends SpritelessImageButton implements Tickable {
@@ -32,6 +35,12 @@ public class RerollButton extends SpritelessImageButton implements Tickable {
     public void tick() {
         this.visible = this.menu.canEnchantItem();
         this.active = this.menu.canUseReroll(this.menu.player);
+    }
+
+    @Override
+    public void playDownSound(SoundManager handler) {
+        // only play this locally as it can easily be spammed
+        handler.play(SimpleSoundInstance.forUI(SoundEvents.ENCHANTMENT_TABLE_USE, 1.0F));
     }
 
     @Override

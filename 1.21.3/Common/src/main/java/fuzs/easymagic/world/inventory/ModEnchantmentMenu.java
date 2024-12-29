@@ -290,7 +290,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        return QuickMoveRuleSet.of(this, this::moveItemStackTo, true)
+        return QuickMoveRuleSet.of(this, this::moveItemStackTo)
                 .addContainerRule(1)
                 .addContainerRule(REROLL_CATALYST_SLOT, (Slot slot) -> {
                     return EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst();
