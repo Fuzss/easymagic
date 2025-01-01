@@ -192,7 +192,7 @@ public final class QuickMoveRuleSet {
      * @return the rule set
      */
     public QuickMoveRuleSet addInventoryRule() {
-        return this.addInventoryRule(false);
+        return this.addInventoryRule(true);
     }
 
     /**
