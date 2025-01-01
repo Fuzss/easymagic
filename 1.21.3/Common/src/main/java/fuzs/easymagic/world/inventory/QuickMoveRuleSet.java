@@ -14,6 +14,8 @@ import java.util.function.Predicate;
 
 /**
  * A utility for handling {@link AbstractContainerMenu#quickMoveStack(Player, int)} more conveniently.
+ * <p>
+ * Note that the order of individual matters, as the rules are tested using the original registration order.
  */
 public final class QuickMoveRuleSet {
     private static final Predicate<Slot> IS_INVENTORY = (Slot slot) -> slot.container instanceof Inventory;
@@ -42,7 +44,7 @@ public final class QuickMoveRuleSet {
      * @return the rule set
      */
     public static QuickMoveRuleSet of(AbstractContainerMenu menu, Action action) {
-        return of(menu, action, false);
+        return of(menu, action, true);
     }
 
     /**
@@ -63,7 +65,7 @@ public final class QuickMoveRuleSet {
      *
      * @param player the player entity
      * @param index  the clicked slot index
-     * @return the remaining item stack (?)
+     * @return the original item stack or empty to prevent further quick move attempts
      */
     public ItemStack quickMoveStack(Player player, int index) {
 
@@ -84,10 +86,7 @@ public final class QuickMoveRuleSet {
                         if (!this.isLenient) {
                             return ItemStack.EMPTY;
                         }
-                    } else if (!this.isLenient) {
-                        break;
-                    }
-                    if (itemInSlot.isEmpty()) {
+                    } else {
                         break;
                     }
                 }
@@ -106,7 +105,20 @@ public final class QuickMoveRuleSet {
             slot.onTake(player, itemInSlot);
         }
 
-        return itemStack;
+        return this.isLenient ? ItemStack.EMPTY : itemStack;
+    }
+
+    /**
+     * Move an item from anywhere to a specific slot.
+     *
+     * @param indices the slot indices
+     * @return the rule set
+     */
+    public QuickMoveRuleSet addContainerRule(int... indices) {
+        for (int index : indices) {
+            this.addContainerRule(index);
+        }
+        return this;
     }
 
     /**
@@ -139,11 +151,10 @@ public final class QuickMoveRuleSet {
      * @return the rule set
      */
     public QuickMoveRuleSet addContainerRule(int index, boolean reverseDirection, Predicate<Slot> filter) {
-        this.addRule(new Rule(index, index + 1, reverseDirection, (Slot slot) -> {
+        return this.addRule(new Rule(index, index + 1, reverseDirection, (Slot slot) -> {
             Slot slotAtIndex = this.slots.get(index);
             return slotAtIndex.container != slot.container && slotAtIndex.mayPlace(slot.getItem()) && filter.test(slot);
         }));
-        return this;
     }
 
     /**
@@ -169,11 +180,10 @@ public final class QuickMoveRuleSet {
      * @return the rule set
      */
     public QuickMoveRuleSet addContainerRule(int startIndex, int endIndex) {
-        this.addRule(new Rule(startIndex, endIndex, false, (Slot slot) -> {
+        return this.addRule(new Rule(startIndex, endIndex, false, (Slot slot) -> {
             return slot.index >= this.getInclusiveStartIndex(IS_INVENTORY) &&
                     slot.index < this.getExclusiveEndIndex(IS_INVENTORY);
         }));
-        return this;
     }
 
     /**
@@ -192,13 +202,12 @@ public final class QuickMoveRuleSet {
      * @return the rule set
      */
     public QuickMoveRuleSet addInventoryRule(boolean reverseDirection) {
-        this.addRule(new Rule(this.getInclusiveStartIndex(IS_INVENTORY),
+        return this.addRule(new Rule(this.getInclusiveStartIndex(IS_INVENTORY),
                 this.getExclusiveEndIndex(IS_INVENTORY),
                 reverseDirection,
                 (Slot slot) -> {
                     return !(slot.container instanceof Inventory);
                 }));
-        return this;
     }
 
     /**
@@ -217,18 +226,18 @@ public final class QuickMoveRuleSet {
                     return slot.index >= this.getInclusiveStartIndex(IS_NOT_HOTBAR) &&
                             slot.index < this.getExclusiveEndIndex(IS_NOT_HOTBAR);
                 }));
-        this.addRule(new Rule(this.getInclusiveStartIndex(IS_NOT_HOTBAR),
+        return this.addRule(new Rule(this.getInclusiveStartIndex(IS_NOT_HOTBAR),
                 this.getExclusiveEndIndex(IS_NOT_HOTBAR),
                 false,
                 (Slot slot) -> {
                     return slot.index >= this.getInclusiveStartIndex(IS_HOTBAR) &&
                             slot.index < this.getExclusiveEndIndex(IS_HOTBAR);
                 }));
-        return this;
     }
 
-    private void addRule(Rule rule) {
+    private QuickMoveRuleSet addRule(Rule rule) {
         this.rules.add(rule);
+        return this;
     }
 
     private int getInclusiveStartIndex(Predicate<Slot> predicate) {
