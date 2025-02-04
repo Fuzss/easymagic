@@ -15,6 +15,6 @@ public class ModBlockTagsProvider extends AbstractTagProvider<Block> {
 
     @Override
     public void addTags(HolderLookup.Provider provider) {
-        this.add(ModRegistry.UNALTERED_ENCHANTING_TABLES_BLOCK_TAG);
+        this.tag(ModRegistry.UNALTERED_ENCHANTING_TABLES_BLOCK_TAG);
     }
 }

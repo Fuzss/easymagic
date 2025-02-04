@@ -1,7 +1,6 @@
 package fuzs.easymagic.world.inventory;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.datafixers.util.Pair;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.init.ModRegistry;
@@ -59,8 +58,8 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             }
 
             @Override
-            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                return Pair.of(InventoryMenu.BLOCK_ATLAS, EMPTY_SLOT_AMETHYST_SHARD);
+            public ResourceLocation getNoItemIcon() {
+                return EMPTY_SLOT_AMETHYST_SHARD;
             }
 
             @Override
@@ -86,8 +85,8 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             }
 
             @Override
-            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                return Pair.of(InventoryMenu.BLOCK_ATLAS, EMPTY_SLOT_LAPIS_LAZULI);
+            public ResourceLocation getNoItemIcon() {
+                return EMPTY_SLOT_LAPIS_LAZULI;
             }
         });
 

@@ -16,7 +16,7 @@ public class ModItemTagsProvider extends AbstractTagProvider<Item> {
 
     @Override
     public void addTags(HolderLookup.Provider provider) {
-        this.add(ModRegistry.ENCHANTING_CATALYSTS_ITEM_TAG).add(Items.LAPIS_LAZULI);
-        this.add(ModRegistry.REROLL_CATALYSTS_ITEM_TAG).add(Items.AMETHYST_SHARD);
+        this.tag(ModRegistry.ENCHANTING_CATALYSTS_ITEM_TAG).add(Items.LAPIS_LAZULI);
+        this.tag(ModRegistry.REROLL_CATALYSTS_ITEM_TAG).add(Items.AMETHYST_SHARD);
     }
 }

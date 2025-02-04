@@ -70,7 +70,8 @@ public class EnchantmentSlotButton extends ImageButton implements Tickable {
                     textOffsetLeft,
                     this.getY() + 2,
                     textOffsetRight,
-                    this.getRuneTextColor());
+                    this.getRuneTextColor(),
+                    false);
         } else {
             guiGraphics.blitSprite(RenderType::guiTextured,
                     this.enabledLevelSpriteLocation,
@@ -83,7 +84,8 @@ public class EnchantmentSlotButton extends ImageButton implements Tickable {
                     textOffsetLeft,
                     this.getY() + 2,
                     textOffsetRight,
-                    this.getRuneTextColor());
+                    this.getRuneTextColor(),
+                    false);
         }
 
         guiGraphics.drawString(font,
