@@ -7,6 +7,7 @@ import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.network.ClientboundCluesMessage;
 import fuzs.easymagic.util.ChiseledBookshelfHelper;
 import fuzs.easymagic.util.PlayerExperienceHelper;
+import fuzs.puzzleslib.api.container.v1.QuickMoveRuleSet;
 import fuzs.puzzleslib.api.core.v1.CommonAbstractions;
 import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
 import fuzs.puzzleslib.api.network.v3.PlayerSet;
@@ -31,9 +32,9 @@ import java.util.List;
 
 public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerListener {
     static final ResourceLocation EMPTY_SLOT_LAPIS_LAZULI = ResourceLocationHelper.withDefaultNamespace(
-            "item/empty_slot_lapis_lazuli");
+            "container/slot/lapis_lazuli");
     static final ResourceLocation EMPTY_SLOT_AMETHYST_SHARD = ResourceLocation.withDefaultNamespace(
-            "item/empty_slot_amethyst_shard");
+            "container/slot/amethyst_shard");
     static final int REROLL_CATALYST_SLOT = 38;
     public static final int REROLL_DATA_SLOT = 4;
 
@@ -290,13 +291,13 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         return QuickMoveRuleSet.of(this, this::moveItemStackTo)
-                .addContainerRule(1)
-                .addContainerRule(REROLL_CATALYST_SLOT, (Slot slot) -> {
+                .addContainerSlotRule(1)
+                .addContainerSlotRule(REROLL_CATALYST_SLOT, (Slot slot) -> {
                     return EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst();
                 })
-                .addContainerRule(0, (Slot slot) -> slot.getItem().isEnchantable())
-                .addInventoryRule()
-                .addHotbarRule()
+                .addContainerSlotRule(0, (Slot slot) -> slot.getItem().isEnchantable())
+                .addInventoryRules()
+                .addInventoryCompartmentRules()
                 .quickMoveStack(player, index);
     }
 }
