@@ -5,6 +5,7 @@ import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.easymagic.world.level.block.entity.EnchantmentTableWithInventoryBlockEntity;
 import fuzs.puzzleslib.api.block.v1.entity.TickingEntityBlock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
@@ -60,9 +61,8 @@ public class EnchantmentTableWithInventoryBlock extends EnchantingTableBlock imp
     }
 
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        Containers.dropContentsOnDestroy(state, newState, level, pos);
-        super.onRemove(state, level, pos, newState, isMoving);
+    protected void affectNeighborsAfterRemoval(BlockState blockState, ServerLevel serverLevel, BlockPos blockPos, boolean bl) {
+        Containers.updateNeighboursAfterDestroy(blockState, serverLevel, blockPos);
     }
 
     @Override
@@ -74,8 +74,9 @@ public class EnchantmentTableWithInventoryBlock extends EnchantingTableBlock imp
     public int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof Container container) {
             return Math.min(container.getItem(1).getCount(), 3);
+        } else {
+            return 0;
         }
-        return 0;
     }
 
     @Override

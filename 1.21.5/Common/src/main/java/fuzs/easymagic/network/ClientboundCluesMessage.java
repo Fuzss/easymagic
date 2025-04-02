@@ -20,9 +20,9 @@ public record ClientboundCluesMessage(int containerId,
                                       List<List<EnchantmentInstance>> slotData) implements ClientboundMessage<ClientboundCluesMessage> {
     public static final StreamCodec<RegistryFriendlyByteBuf, EnchantmentInstance> ENCHANTMENT_INSTANCE_STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.holderRegistry(Registries.ENCHANTMENT),
-            (EnchantmentInstance enchantmentInstance) -> enchantmentInstance.enchantment,
+            EnchantmentInstance::enchantment,
             ByteBufCodecs.VAR_INT,
-            (EnchantmentInstance enchantmentInstance) -> enchantmentInstance.level,
+            EnchantmentInstance::level,
             EnchantmentInstance::new);
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundCluesMessage> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT,

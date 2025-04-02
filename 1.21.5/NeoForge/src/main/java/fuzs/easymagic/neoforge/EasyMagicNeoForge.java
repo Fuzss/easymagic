@@ -1,8 +1,8 @@
 package fuzs.easymagic.neoforge;
 
 import fuzs.easymagic.EasyMagic;
-import fuzs.easymagic.data.ModBlockTagsProvider;
-import fuzs.easymagic.data.ModItemTagsProvider;
+import fuzs.easymagic.data.tags.ModBlockTagsProvider;
+import fuzs.easymagic.data.tags.ModItemTagsProvider;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
 import fuzs.puzzleslib.neoforge.api.data.v2.core.DataProviderHelper;

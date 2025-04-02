@@ -7,7 +7,7 @@ import fuzs.easymagic.client.util.EnchantmentTooltipHelper;
 import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
-import fuzs.puzzleslib.api.client.gui.v2.components.tooltip.TooltipBuilder;
+import fuzs.puzzleslib.api.client.gui.v2.tooltip.TooltipBuilder;
 import fuzs.puzzleslib.api.event.v1.core.EventResult;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;

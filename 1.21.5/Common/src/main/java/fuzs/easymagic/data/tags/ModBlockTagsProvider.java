@@ -1,4 +1,4 @@
-package fuzs.easymagic.data;
+package fuzs.easymagic.data.tags;
 
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.puzzleslib.api.data.v2.core.DataProviderContext;

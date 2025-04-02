@@ -8,9 +8,10 @@ import fuzs.easymagic.network.ClientboundCluesMessage;
 import fuzs.easymagic.util.ChiseledBookshelfHelper;
 import fuzs.easymagic.util.PlayerExperienceHelper;
 import fuzs.puzzleslib.api.container.v1.QuickMoveRuleSet;
-import fuzs.puzzleslib.api.core.v1.CommonAbstractions;
 import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
-import fuzs.puzzleslib.api.network.v3.PlayerSet;
+import fuzs.puzzleslib.api.item.v2.EnchantingHelper;
+import fuzs.puzzleslib.api.network.v4.MessageSender;
+import fuzs.puzzleslib.api.network.v4.PlayerSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
@@ -129,8 +130,9 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         int chiseledBookshelfBooks = 0;
         for (BlockPos offset : EnchantingTableBlock.BOOKSHELF_OFFSETS) {
             if (EnchantingTableBlock.isValidBookShelf(level, blockPos, offset)) {
-                enchantingPower += CommonAbstractions.INSTANCE.getEnchantPowerBonus(level.getBlockState(blockPos.offset(
-                        offset)), level, blockPos.offset(offset));
+                enchantingPower += EnchantingHelper.getEnchantPowerBonus(level.getBlockState(blockPos.offset(offset)),
+                        level,
+                        blockPos.offset(offset));
                 chiseledBookshelfBooks += ChiseledBookshelfHelper.findValidBooks(level, blockPos, offset);
             }
         }
@@ -182,7 +184,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     public void broadcastChanges() {
         super.broadcastChanges();
         // will not attempt sending anything on the client when the entity is not a server player
-        EasyMagic.NETWORK.sendMessage(PlayerSet.ofEntity(this.player),
+        MessageSender.broadcast(PlayerSet.ofEntity(this.player),
                 new ClientboundCluesMessage(this.containerId, this.clues));
     }
 

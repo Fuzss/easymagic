@@ -1,11 +1,9 @@
 package fuzs.easymagic.client.handler;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.mixin.client.accessor.ChiseledBookShelfBlockAccessor;
-import fuzs.puzzleslib.api.client.gui.v2.components.TooltipRenderHelper;
+import fuzs.puzzleslib.api.client.gui.v2.tooltip.TooltipRenderHelper;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -42,14 +40,11 @@ public class ChiseledBookshelfTooltipHandler {
                     if (gui.minecraft.level.getBlockEntity(hitResult.getBlockPos()) instanceof ChiseledBookShelfBlockEntity blockEntity) {
                         ItemStack itemStack = blockEntity.getItem(hitSlot.getAsInt());
                         if (!itemStack.isEmpty()) {
-                            RenderSystem.enableBlend();
-                            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR,
-                                    GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
-                                    GlStateManager.SourceFactor.ONE,
-                                    GlStateManager.DestFactor.ZERO);
-                            RenderSystem.disableDepthTest();
-                            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                            renderBookTooltip(guiGraphics, guiGraphics.guiWidth(), guiGraphics.guiHeight(), itemStack, gui.getFont());
+                            renderBookTooltip(guiGraphics,
+                                    guiGraphics.guiWidth(),
+                                    guiGraphics.guiHeight(),
+                                    itemStack,
+                                    gui.getFont());
                         }
                     }
                 }

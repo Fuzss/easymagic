@@ -3,7 +3,7 @@ package fuzs.easymagic.mixin;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.util.ChiseledBookshelfHelper;
-import fuzs.puzzleslib.api.core.v1.CommonAbstractions;
+import fuzs.puzzleslib.api.item.v2.EnchantingHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -23,7 +23,8 @@ abstract class EnchantingTableBlockMixin extends BaseEntityBlock {
 
     @Inject(method = "isValidBookShelf", at = @At("HEAD"), cancellable = true)
     private static void isValidBookShelf(Level level, BlockPos pos, BlockPos offset, CallbackInfoReturnable<Boolean> callback) {
-        if (CommonAbstractions.INSTANCE.getEnchantPowerBonus(level.getBlockState(pos.offset(offset)), level, pos.offset(offset)) == 0.0F) {
+        if (EnchantingHelper.getEnchantPowerBonus(level.getBlockState(pos.offset(offset)), level, pos.offset(offset)) ==
+                0.0F) {
             if (ChiseledBookshelfHelper.findValidBooks(level, pos, offset) == 0) {
                 callback.setReturnValue(false);
                 return;

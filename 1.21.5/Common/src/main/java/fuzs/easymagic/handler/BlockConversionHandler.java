@@ -11,14 +11,12 @@ import fuzs.puzzleslib.api.event.v1.RegistryEntryAddedCallback;
 import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
 import fuzs.puzzleslib.api.event.v1.entity.player.PlayerInteractEvents;
 import fuzs.puzzleslib.api.event.v1.server.TagsUpdatedCallback;
-import fuzs.puzzleslib.api.init.v3.registry.RegistryHelper;
 import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -52,21 +50,14 @@ public class BlockConversionHandler {
                 ResourceLocation resourceLocation = ResourceLocationHelper.fromNamespaceAndPath(modId,
                         id.getNamespace() + "/" + id.getPath());
                 registrar.accept(resourceLocation, () -> {
-                    BlockBehaviour.Properties properties = copyBlockProperties(block, resourceLocation);
+                    BlockBehaviour.Properties properties = BlockConversionHelper.copyBlockProperties(block,
+                            resourceLocation);
                     Block newBlock = factory.apply(properties);
                     BLOCK_CONVERSIONS.put(block, newBlock);
                     return newBlock;
                 });
             }
         };
-    }
-
-    @Deprecated(forRemoval = true)
-    public static BlockBehaviour.Properties copyBlockProperties(Block block, ResourceLocation resourceLocation) {
-        return BlockBehaviour.Properties.ofFullCopy(block)
-                .overrideLootTable(block.getLootTable())
-                .overrideDescription(block.getDescriptionId())
-                .setId(ResourceKey.create(Registries.BLOCK, resourceLocation));
     }
 
     public static BiMap<Block, Block> getBlockConversions() {
@@ -128,7 +119,7 @@ public class BlockConversionHandler {
                 return;
             }
         }
-        if (RegistryHelper.is(tagKey, oldBlock)) {
+        if (oldBlock.builtInRegistryHolder().is(tagKey)) {
             BlockConversionHelper.setBlockForItem(blockItem, oldBlock);
         } else {
             BlockConversionHelper.setBlockForItem(blockItem, newBlock);

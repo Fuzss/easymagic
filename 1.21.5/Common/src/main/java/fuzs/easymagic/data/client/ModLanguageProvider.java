@@ -5,6 +5,8 @@ import fuzs.easymagic.handler.BlockConversionHandler;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.puzzleslib.api.client.data.v2.AbstractLanguageProvider;
 import fuzs.puzzleslib.api.data.v2.core.DataProviderContext;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.block.Block;
 
 public class ModLanguageProvider extends AbstractLanguageProvider {
 
@@ -23,5 +25,10 @@ public class ModLanguageProvider extends AbstractLanguageProvider {
         builder.add(ModRegistry.ENCHANTING_CATALYSTS_ITEM_TAG, "Enchanting Catalysts");
         builder.add(ModRegistry.REROLL_CATALYSTS_ITEM_TAG, "Reroll Catalysts");
         builder.add(ModRegistry.UNALTERED_ENCHANTING_TABLES_BLOCK_TAG, "Unaltered Enchanting Tables");
+    }
+
+    @Override
+    protected boolean mustHaveTranslationKey(Holder.Reference<?> holder, String translationKey) {
+        return !(holder.value() instanceof Block) && super.mustHaveTranslationKey(holder, translationKey);
     }
 }

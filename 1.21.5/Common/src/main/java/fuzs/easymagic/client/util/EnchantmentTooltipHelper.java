@@ -5,7 +5,7 @@ import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.util.PlayerExperienceHelper;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
-import fuzs.puzzleslib.api.client.gui.v2.components.tooltip.ClientComponentSplitter;
+import fuzs.puzzleslib.api.client.gui.v2.tooltip.ClientComponentSplitter;
 import fuzs.puzzleslib.api.util.v1.ComponentHelper;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -50,11 +50,10 @@ public final class EnchantmentTooltipHelper {
 
     public static void gatherSlotEnchantmentsTooltip(List<EnchantmentInstance> slotData, Consumer<Component> tooltipAdder, HolderLookup.Provider registries) {
         Object2IntMap<Holder<Enchantment>> enchantments = slotData.stream()
-                .collect(Collectors.toMap((EnchantmentInstance enchantmentInstance) -> {
-                    return enchantmentInstance.enchantment;
-                }, (EnchantmentInstance enchantmentInstance) -> {
-                    return enchantmentInstance.level;
-                }, (o1, o2) -> o2, Object2IntLinkedOpenHashMap::new));
+                .collect(Collectors.toMap(EnchantmentInstance::enchantment,
+                        EnchantmentInstance::level,
+                        (o1, o2) -> o2,
+                        Object2IntLinkedOpenHashMap::new));
         HolderSet<Enchantment> holderSet = getTagOrEmpty(registries,
                 Registries.ENCHANTMENT,
                 EnchantmentTags.TOOLTIP_ORDER);
