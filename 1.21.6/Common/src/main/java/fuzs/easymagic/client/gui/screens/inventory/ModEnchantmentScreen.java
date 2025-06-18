@@ -19,7 +19,7 @@ import net.minecraft.client.gui.screens.inventory.EnchantmentNames;
 import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.Tickable;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -116,7 +116,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.blit(RenderType::guiTextured,
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED,
                 ENCHANTING_TABLE_LOCATION,
                 this.leftPos,
                 this.topPos,
@@ -126,11 +126,11 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                 this.imageHeight,
                 256,
                 256);
-        this.renderBook(guiGraphics, this.leftPos, this.topPos, partialTick);
+        this.renderBook(guiGraphics, this.leftPos, this.topPos);
         EnchantmentNames.getInstance().initSeed(this.menu.getEnchantmentSeed());
         // don't render anything but the background just like vanilla for enchanting slots
         for (int i = 0; i < 3; ++i) {
-            guiGraphics.blitSprite(RenderType::guiTextured,
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED,
                     ENCHANTMENT_SLOT_DISABLED_SPRITE,
                     this.leftPos + 60,
                     this.topPos + 14 + 19 * i,
@@ -138,7 +138,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                     19);
         }
         if (!EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook()) {
-            guiGraphics.blit(RenderType::guiTextured,
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED,
                     RerollButton.ENCHANTING_TABLE_REROLL_LOCATION,
                     this.getRerollButtonX(),
                     this.getRerollButtonY(),
@@ -150,7 +150,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                     256);
         }
         if (EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst()) {
-            guiGraphics.blit(RenderType::guiTextured,
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED,
                     ENCHANTING_TABLE_LOCATION,
                     this.leftPos + 4,
                     this.topPos + 46,
@@ -160,7 +160,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                     18,
                     256,
                     256);
-            guiGraphics.blit(RenderType::guiTextured,
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED,
                     ENCHANTING_TABLE_LOCATION,
                     this.leftPos + 22,
                     this.topPos + 46,
@@ -170,14 +170,19 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                     18,
                     256,
                     256);
-            guiGraphics.blitSprite(RenderType::guiTextured, SLOT_SPRITE, this.leftPos + 40, this.topPos + 46, 18, 18);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED,
+                    SLOT_SPRITE,
+                    this.leftPos + 40,
+                    this.topPos + 46,
+                    18,
+                    18);
         }
     }
 
     @Override
-    protected void renderBook(GuiGraphics guiGraphics, int x, int y, float partialTick) {
+    protected void renderBook(GuiGraphics guiGraphics, int x, int y) {
         if (EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook()) {
-            super.renderBook(guiGraphics, x, y, partialTick);
+            super.renderBook(guiGraphics, x, y);
         }
     }
 

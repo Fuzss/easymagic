@@ -1,5 +1,5 @@
 accessWidener   v2  named
-extendable  method  net/minecraft/client/gui/screens/inventory/EnchantmentScreen    renderBook  (Lnet/minecraft/client/gui/GuiGraphics;IIF)V
+extendable  method  net/minecraft/client/gui/screens/inventory/EnchantmentScreen    renderBook  (Lnet/minecraft/client/gui/GuiGraphics;II)V
 accessible  field   net/minecraft/client/gui/screens/inventory/EnchantmentScreen    ENABLED_LEVEL_SPRITES   [Lnet/minecraft/resources/ResourceLocation;
 accessible  field   net/minecraft/client/gui/screens/inventory/EnchantmentScreen    DISABLED_LEVEL_SPRITES  [Lnet/minecraft/resources/ResourceLocation;
 accessible  field   net/minecraft/client/gui/screens/inventory/EnchantmentScreen    ENCHANTMENT_SLOT_DISABLED_SPRITE    Lnet/minecraft/resources/ResourceLocation;

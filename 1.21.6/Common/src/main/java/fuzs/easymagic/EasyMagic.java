@@ -5,7 +5,7 @@ import fuzs.easymagic.config.CommonConfig;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.handler.BlockConversionHandler;
 import fuzs.easymagic.init.ModRegistry;
-import fuzs.easymagic.network.ClientboundCluesMessage;
+import fuzs.easymagic.network.ClientboundEnchantmentCluesMessage;
 import fuzs.easymagic.world.level.block.EnchantmentTableWithInventoryBlock;
 import fuzs.puzzleslib.api.config.v3.ConfigHolder;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
@@ -68,7 +68,7 @@ public class EasyMagic implements ModConstructor {
 
     @Override
     public void onRegisterPayloadTypes(PayloadTypesContext context) {
-        context.playToClient(ClientboundCluesMessage.class, ClientboundCluesMessage.STREAM_CODEC);
+        context.playToClient(ClientboundEnchantmentCluesMessage.class, ClientboundEnchantmentCluesMessage.STREAM_CODEC);
     }
 
     public static ResourceLocation id(String path) {

@@ -24,6 +24,8 @@ import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.EnchantingTableBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 public class EnchantmentTableWithInventoryBlockEntity extends EnchantingTableBlockEntity implements ListBackedContainer, MenuProvider, WorldlyContainer, TickingBlockEntity {
@@ -40,18 +42,18 @@ public class EnchantmentTableWithInventoryBlockEntity extends EnchantingTableBlo
     }
 
     @Override
-    public void loadAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
-        super.loadAdditional(compoundTag, registries);
-        this.code = LockCode.fromTag(compoundTag, registries);
+    public void loadAdditional(ValueInput compoundTag) {
+        super.loadAdditional(compoundTag);
+        this.code = LockCode.fromTag(compoundTag);
         this.items.clear();
-        ContainerHelper.loadAllItems(compoundTag, this.items, registries);
+        ContainerHelper.loadAllItems(compoundTag, this.items);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
-        super.saveAdditional(compoundTag, registries);
-        this.code.addToTag(compoundTag, registries);
-        ContainerHelper.saveAllItems(compoundTag, this.items, true, registries);
+    protected void saveAdditional(ValueOutput compoundTag) {
+        super.saveAdditional(compoundTag);
+        this.code.addToTag(compoundTag);
+        ContainerHelper.saveAllItems(compoundTag, this.items, true);
     }
 
     @Override

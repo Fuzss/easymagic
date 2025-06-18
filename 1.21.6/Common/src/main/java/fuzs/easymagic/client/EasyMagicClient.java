@@ -11,13 +11,10 @@ import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
 import fuzs.puzzleslib.api.client.core.v1.context.BlockEntityRenderersContext;
 import fuzs.puzzleslib.api.client.core.v1.context.BlockStateResolverContext;
 import fuzs.puzzleslib.api.client.core.v1.context.MenuScreensContext;
-import fuzs.puzzleslib.api.client.event.v1.ClientLifecycleEvents;
+import fuzs.puzzleslib.api.client.core.v1.context.RenderTypesContext;
 import fuzs.puzzleslib.api.client.event.v1.gui.RenderGuiEvents;
 import fuzs.puzzleslib.api.client.event.v1.gui.RenderTooltipCallback;
-import fuzs.puzzleslib.api.client.renderer.v1.RenderTypeHelper;
 import fuzs.puzzleslib.api.client.renderer.v1.model.ModelLoadingHelper;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.resources.model.BlockStateModelLoader;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -32,21 +29,6 @@ public class EasyMagicClient implements ClientModConstructor {
 
     @Override
     public void onConstructMod() {
-        registerLoadingHandlers();
-    }
-
-    private static void registerLoadingHandlers() {
-        ClientLifecycleEvents.STARTED.register((Minecraft minecraft) -> {
-            // run a custom implementation here, the appropriate method in client mod constructor runs together with other mods, so we might miss some entries
-            for (Map.Entry<Block, Block> entry : BlockConversionHandler.getBlockConversions().entrySet()) {
-                RenderType renderType = RenderTypeHelper.getRenderType(entry.getKey());
-                RenderTypeHelper.registerRenderType(entry.getValue(), renderType);
-            }
-        });
-    }
-
-    @Override
-    public void onClientSetup() {
         registerEventHandlers();
     }
 
@@ -81,12 +63,20 @@ public class EasyMagicClient implements ClientModConstructor {
 
     @Override
     public void onRegisterMenuScreens(MenuScreensContext context) {
-        context.registerMenuScreen(ModRegistry.ENCHANTMENT_MENU_TYPE.value(), ModEnchantmentScreen::new);
+        context.registerMenuScreen(ModRegistry.ENCHANTING_MENU_TYPE.value(), ModEnchantmentScreen::new);
     }
 
     @Override
     public void onRegisterBlockEntityRenderers(BlockEntityRenderersContext context) {
         context.registerBlockEntityRenderer(ModRegistry.ENCHANTING_TABLE_BLOCK_ENTITY_TYPE.value(),
                 ModEnchantTableRenderer::new);
+    }
+
+    @Override
+    public void onRegisterBlockRenderTypes(RenderTypesContext<Block> context) {
+        // this runs deferred by default, so we should have all entries from other mods available to us
+        for (Map.Entry<Block, Block> entry : BlockConversionHandler.getBlockConversions().entrySet()) {
+            context.registerChunkRenderType(entry.getValue(), context.getChunkRenderType(entry.getKey()));
+        }
     }
 }

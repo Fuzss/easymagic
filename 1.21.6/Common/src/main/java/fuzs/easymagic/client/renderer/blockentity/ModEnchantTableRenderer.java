@@ -7,7 +7,6 @@ import fuzs.easymagic.config.ClientConfig;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.EnchantTableRenderer;
-import net.minecraft.client.renderer.entity.ItemEntityRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
@@ -136,7 +135,7 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
             poseStack.pushPose();
             poseStack.translate(0.5F, 1.0F, 0.5F);
             float hoverOffset = Mth.sin((blockEntity.time + partialTick) / 10.0F) * 0.1F + 0.1F;
-            AABB aABB = calculateModelBoundingBox(this.itemStackRenderState);
+            AABB aABB = this.itemStackRenderState.getModelBoundingBox();
             float modelYScale = -((float) aABB.minY) + 0.0625F;
             float openness = Mth.lerp(partialTick, blockEntity.oOpen, blockEntity.open);
             poseStack.translate(0.0, hoverOffset + modelYScale * openness - 0.15F * (1.0F - openness), 0.0);
@@ -146,13 +145,6 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
             this.itemStackRenderState.render(poseStack, bufferSource, packedLight, packedOverlay);
             poseStack.popPose();
         }
-    }
-
-    @Deprecated
-    private static AABB calculateModelBoundingBox(ItemStackRenderState itemStackRenderState) {
-        AABB.Builder builder = new AABB.Builder();
-        itemStackRenderState.visitExtents(builder::include);
-        return builder.build();
     }
 
     private void renderHoveringItemList(List<ItemStack> itemStacks, float age, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, boolean rotateItems, Level level, int posData) {

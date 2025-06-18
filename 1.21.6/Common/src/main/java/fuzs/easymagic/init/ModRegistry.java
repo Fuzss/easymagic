@@ -20,9 +20,9 @@ public class ModRegistry {
             "enchanting_table",
             EnchantmentTableWithInventoryBlockEntity::new,
             Collections::emptySet);
-    public static final Holder.Reference<MenuType<ModEnchantmentMenu>> ENCHANTMENT_MENU_TYPE = REGISTRIES.registerMenuType(
+    public static final Holder.Reference<MenuType<ModEnchantmentMenu>> ENCHANTING_MENU_TYPE = REGISTRIES.registerMenuType(
             "enchanting",
-            () -> ModEnchantmentMenu::new);
+            ModEnchantmentMenu::new);
 
     static final TagFactory TAGS = TagFactory.make(EasyMagic.MOD_ID);
     public static final TagKey<Item> ENCHANTING_CATALYSTS_ITEM_TAG = TAGS.registerItemTag("enchanting_catalysts");

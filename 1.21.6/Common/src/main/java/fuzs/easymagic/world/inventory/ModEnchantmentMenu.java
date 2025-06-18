@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.init.ModRegistry;
-import fuzs.easymagic.network.ClientboundCluesMessage;
+import fuzs.easymagic.network.ClientboundEnchantmentCluesMessage;
 import fuzs.easymagic.util.ChiseledBookshelfHelper;
 import fuzs.easymagic.util.PlayerExperienceHelper;
 import fuzs.puzzleslib.api.container.v1.QuickMoveRuleSet;
@@ -42,8 +42,8 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     public final Player player;
     public final List<List<EnchantmentInstance>> clues = Arrays.asList(List.of(), List.of(), List.of());
 
-    public ModEnchantmentMenu(int id, Inventory playerInventory) {
-        this(id, playerInventory, new SimpleContainer(3), ContainerLevelAccess.NULL);
+    public ModEnchantmentMenu(int id, Inventory inventory) {
+        this(id, inventory, new SimpleContainer(3), ContainerLevelAccess.NULL);
     }
 
     public ModEnchantmentMenu(int id, Inventory inventory, Container container, ContainerLevelAccess access) {
@@ -103,7 +103,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
 
     @Override
     public MenuType<?> getType() {
-        return ModRegistry.ENCHANTMENT_MENU_TYPE.value();
+        return ModRegistry.ENCHANTING_MENU_TYPE.value();
     }
 
     @Override
@@ -113,8 +113,8 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             if (!itemStack.isEmpty() && itemStack.isEnchantable()) {
                 this.access.execute((Level level, BlockPos pos) -> {
                     int enchantingPower = EasyMagic.CONFIG.get(ServerConfig.class).maxEnchantingPower == 0 ? 15 :
-                            (this.getEnchantingPower(level, pos) * 15) /
-                                    EasyMagic.CONFIG.get(ServerConfig.class).maxEnchantingPower;
+                            (this.getEnchantingPower(level, pos) * 15)
+                                    / EasyMagic.CONFIG.get(ServerConfig.class).maxEnchantingPower;
                     this.random.setSeed(this.enchantmentSeed.get());
                     this.updateLevelsAndClues(level.registryAccess(), itemStack, enchantingPower);
                     this.broadcastChanges();
@@ -185,7 +185,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         super.broadcastChanges();
         // will not attempt sending anything on the client when the entity is not a server player
         MessageSender.broadcast(PlayerSet.ofEntity(this.player),
-                new ClientboundCluesMessage(this.containerId, this.clues));
+                new ClientboundEnchantmentCluesMessage(this.containerId, this.clues));
     }
 
     @Override
@@ -211,8 +211,8 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
     @Override
     public boolean clickMenuButton(Player player, int data) {
         if (data == REROLL_DATA_SLOT) {
-            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments && this.canEnchantItem() &&
-                    this.canUseReroll(player)) {
+            if (EasyMagic.CONFIG.get(ServerConfig.class).rerollEnchantments && this.canEnchantItem()
+                    && this.canUseReroll(player)) {
                 this.access.execute((Level level, BlockPos pos) -> {
                     this.enchantmentSeed.set(player.getRandom().nextInt());
                     player.enchantmentSeed = this.enchantmentSeed.get();
@@ -264,8 +264,8 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         } else {
             int rerollExperiencePointsCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost;
             int rerollCatalystCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollCatalystCost;
-            return PlayerExperienceHelper.getTotalExperience(player) >= rerollExperiencePointsCost &&
-                    this.getRerollCatalystCount() >= rerollCatalystCost;
+            return PlayerExperienceHelper.getTotalExperience(player) >= rerollExperiencePointsCost
+                    && this.getRerollCatalystCount() >= rerollCatalystCost;
         }
     }
 

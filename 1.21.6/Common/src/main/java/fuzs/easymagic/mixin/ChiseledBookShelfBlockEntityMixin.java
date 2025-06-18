@@ -1,5 +1,6 @@
 package fuzs.easymagic.mixin;
 
+import fuzs.easymagic.util.ValueSerializationHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -11,6 +12,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.ChiseledBookShelfBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -40,6 +42,8 @@ abstract class ChiseledBookShelfBlockEntityMixin extends BlockEntity {
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return ContainerHelper.saveAllItems(super.getUpdateTag(registries), this.items, true, registries);
+        return ValueSerializationHelper.save(this.problemPath(), registries, (ValueOutput valueOutput) -> {
+            ContainerHelper.saveAllItems(valueOutput, this.items, true);
+        });
     }
 }

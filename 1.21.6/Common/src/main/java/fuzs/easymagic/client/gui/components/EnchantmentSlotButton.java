@@ -8,11 +8,12 @@ import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.EnchantmentNames;
 import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.Tickable;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ARGB;
 
 public class EnchantmentSlotButton extends ImageButton implements Tickable {
     private static final WidgetSprites WIDGET_SPRITES = new WidgetSprites(EnchantmentScreen.ENCHANTMENT_SLOT_SPRITE,
@@ -35,8 +36,8 @@ public class EnchantmentSlotButton extends ImageButton implements Tickable {
     @Override
     public void tick() {
         this.visible = this.getCost() != 0;
-        this.active = this.menu.player.getAbilities().instabuild ||
-                this.menu.getGoldCount() >= this.slotIndex + 1 && this.menu.player.experienceLevel >= this.getCost();
+        this.active = this.menu.player.getAbilities().instabuild
+                || this.menu.getGoldCount() >= this.slotIndex + 1 && this.menu.player.experienceLevel >= this.getCost();
     }
 
     protected int getCost() {
@@ -59,7 +60,7 @@ public class EnchantmentSlotButton extends ImageButton implements Tickable {
         FormattedText formattedText = EnchantmentNames.getInstance().getRandomName(font, textOffsetRight);
 
         if (!this.isActive()) {
-            guiGraphics.blitSprite(RenderType::guiTextured,
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED,
                     this.disabledLevelSpriteLocation,
                     this.getX() + 1,
                     this.getY() + 1,
@@ -70,10 +71,10 @@ public class EnchantmentSlotButton extends ImageButton implements Tickable {
                     textOffsetLeft,
                     this.getY() + 2,
                     textOffsetRight,
-                    this.getRuneTextColor(),
+                    ARGB.opaque(this.getRuneTextColor()),
                     false);
         } else {
-            guiGraphics.blitSprite(RenderType::guiTextured,
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED,
                     this.enabledLevelSpriteLocation,
                     this.getX() + 1,
                     this.getY() + 1,
@@ -84,7 +85,7 @@ public class EnchantmentSlotButton extends ImageButton implements Tickable {
                     textOffsetLeft,
                     this.getY() + 2,
                     textOffsetRight,
-                    this.getRuneTextColor(),
+                    ARGB.opaque(this.getRuneTextColor()),
                     false);
         }
 
@@ -92,7 +93,7 @@ public class EnchantmentSlotButton extends ImageButton implements Tickable {
                 string,
                 textOffsetLeft + textOffsetRight,
                 this.getY() + 2 + 7,
-                this.getCostTextColor());
+                ARGB.opaque(this.getCostTextColor()));
     }
 
     private int getRuneTextColor() {
