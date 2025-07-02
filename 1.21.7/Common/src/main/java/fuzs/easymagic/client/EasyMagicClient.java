@@ -8,11 +8,7 @@ import fuzs.easymagic.client.renderer.blockentity.ModEnchantTableRenderer;
 import fuzs.easymagic.handler.BlockConversionHandler;
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
-import fuzs.puzzleslib.api.client.core.v1.context.BlockEntityRenderersContext;
-import fuzs.puzzleslib.api.client.core.v1.context.BlockStateResolverContext;
-import fuzs.puzzleslib.api.client.core.v1.context.MenuScreensContext;
-import fuzs.puzzleslib.api.client.core.v1.context.RenderTypesContext;
-import fuzs.puzzleslib.api.client.event.v1.gui.RenderGuiEvents;
+import fuzs.puzzleslib.api.client.core.v1.context.*;
 import fuzs.puzzleslib.api.client.event.v1.gui.RenderTooltipCallback;
 import fuzs.puzzleslib.api.client.renderer.v1.model.ModelLoadingHelper;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
@@ -33,7 +29,6 @@ public class EasyMagicClient implements ClientModConstructor {
     }
 
     private static void registerEventHandlers() {
-        RenderGuiEvents.AFTER.register(ChiseledBookshelfTooltipHandler::onAfterRenderGui);
         RenderTooltipCallback.EVENT.register(ModEnchantmentScreen::onRenderTooltip);
     }
 
@@ -78,5 +73,12 @@ public class EasyMagicClient implements ClientModConstructor {
         for (Map.Entry<Block, Block> entry : BlockConversionHandler.getBlockConversions().entrySet()) {
             context.registerChunkRenderType(entry.getValue(), context.getChunkRenderType(entry.getKey()));
         }
+    }
+
+    @Override
+    public void onRegisterGuiLayers(GuiLayersContext context) {
+        context.registerGuiLayer(GuiLayersContext.HELD_ITEM_TOOLTIP,
+                EasyMagic.id("chiseled_bookshelf_tooltip"),
+                ChiseledBookshelfTooltipHandler::render);
     }
 }

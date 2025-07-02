@@ -7,7 +7,6 @@ import fuzs.puzzleslib.api.client.gui.v2.tooltip.TooltipRenderHelper;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.world.entity.player.Player;
@@ -26,10 +25,11 @@ import java.util.OptionalInt;
 
 public class ChiseledBookshelfTooltipHandler {
 
-    public static void onAfterRenderGui(Gui gui, GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
-        if (!canRenderTooltip(gui.minecraft)) return;
-        BlockHitResult hitResult = (BlockHitResult) gui.minecraft.hitResult;
-        BlockState blockState = gui.minecraft.level.getBlockState(hitResult.getBlockPos());
+    public static void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (!canRenderTooltip(minecraft)) return;
+        BlockHitResult hitResult = (BlockHitResult) minecraft.hitResult;
+        BlockState blockState = minecraft.level.getBlockState(hitResult.getBlockPos());
         if (blockState.getBlock() instanceof ChiseledBookShelfBlock) {
             OptionalInt hitSlot = ((ChiseledBookShelfBlockAccessor) blockState.getBlock()).easymagic$callGetHitSlot(
                     hitResult,
@@ -37,14 +37,14 @@ public class ChiseledBookshelfTooltipHandler {
             if (hitSlot.isPresent()) {
                 BooleanProperty property = ChiseledBookShelfBlock.SLOT_OCCUPIED_PROPERTIES.get(hitSlot.getAsInt());
                 if (blockState.getValue(property)) {
-                    if (gui.minecraft.level.getBlockEntity(hitResult.getBlockPos()) instanceof ChiseledBookShelfBlockEntity blockEntity) {
+                    if (minecraft.level.getBlockEntity(hitResult.getBlockPos()) instanceof ChiseledBookShelfBlockEntity blockEntity) {
                         ItemStack itemStack = blockEntity.getItem(hitSlot.getAsInt());
                         if (!itemStack.isEmpty()) {
                             renderBookTooltip(guiGraphics,
                                     guiGraphics.guiWidth(),
                                     guiGraphics.guiHeight(),
                                     itemStack,
-                                    gui.getFont());
+                                    minecraft.font);
                         }
                     }
                 }
@@ -53,17 +53,16 @@ public class ChiseledBookshelfTooltipHandler {
     }
 
     private static boolean canRenderTooltip(Minecraft minecraft) {
-        if (EasyMagic.CONFIG.get(ClientConfig.class).chiseledBookshelfTooltip ==
-                ClientConfig.ChiseledBookshelfTooltip.DISABLED) {
+        if (EasyMagic.CONFIG.get(ClientConfig.class).chiseledBookshelfTooltip
+                == ClientConfig.ChiseledBookshelfTooltip.DISABLED) {
             return false;
         }
         if (!minecraft.options.hideGui && minecraft.options.getCameraType().isFirstPerson()) {
-            if (minecraft.gameMode != null && minecraft.gameMode.getPlayerMode() != GameType.SPECTATOR &&
-                    minecraft.cameraEntity instanceof Player player) {
+            if (minecraft.gameMode != null && minecraft.gameMode.getPlayerMode() != GameType.SPECTATOR
+                    && minecraft.cameraEntity instanceof Player player) {
                 if (minecraft.hitResult != null && minecraft.hitResult.getType() == HitResult.Type.BLOCK) {
-                    return player.isShiftKeyDown() ||
-                            EasyMagic.CONFIG.get(ClientConfig.class).chiseledBookshelfTooltip ==
-                                    ClientConfig.ChiseledBookshelfTooltip.ENABLED;
+                    return player.isShiftKeyDown() || EasyMagic.CONFIG.get(ClientConfig.class).chiseledBookshelfTooltip
+                            == ClientConfig.ChiseledBookshelfTooltip.ENABLED;
                 }
             }
         }
@@ -74,8 +73,8 @@ public class ChiseledBookshelfTooltipHandler {
     private static void renderBookTooltip(GuiGraphics guiGraphics, int screenWidth, int screenHeight, ItemStack itemStack, Font font) {
         List<ClientTooltipComponent> components = TooltipRenderHelper.getTooltip(itemStack, TooltipFlag.NORMAL);
         int posX = screenWidth / 2 - 12 + 22 + EasyMagic.CONFIG.get(ClientConfig.class).chiseledBookshelfTooltipOffsetX;
-        int posY = screenHeight / 2 + 12 - getFullTooltipHeight(components, font) / 2 +
-                EasyMagic.CONFIG.get(ClientConfig.class).chiseledBookshelfTooltipOffsetY;
+        int posY = screenHeight / 2 + 12 - getFullTooltipHeight(components, font) / 2 + EasyMagic.CONFIG.get(
+                ClientConfig.class).chiseledBookshelfTooltipOffsetY;
         TooltipRenderHelper.renderTooltipComponents(guiGraphics, posX, posY, components, null);
     }
 
