@@ -1,0 +1,10 @@
+{
+    "container.enchant.experience.many": "%s pontos de experiência",
+    "container.enchant.experience.one": "1 ponto de experiência",
+    "container.enchant.reroll": "Re-rolar encantamentos",
+    "container.invalidBlock": "Não é possível abrir. Quebre e substitua para usar.",
+    "tag.block.easymagic.unaltered_enchanting_tables": "Mesas de encantamento não alteradas",
+    "tag.item.easymagic.enchanting_catalysts": "Catalisadores de encantamento",
+    "tag.item.easymagic.reroll_catalysts": "Catalisadores de re-rolagem"
+  }
+  
