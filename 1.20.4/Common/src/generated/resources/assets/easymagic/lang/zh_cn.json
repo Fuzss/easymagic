@@ -1,0 +1,6 @@
+{
+  "container.enchant.experience.many": "%s 点经验值",
+  "container.enchant.experience.one": "1 点经验值",
+  "container.enchant.reroll": "刷新附魔",
+  "container.invalidBlock": "无法打开附魔台。破坏再次放置以重试。"
+}
