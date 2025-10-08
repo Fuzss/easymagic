@@ -45,19 +45,20 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
     @Override
     public void extractRenderState(EnchantingTableBlockEntity blockEntity, EnchantTableRenderState renderState, float partialTick, Vec3 cameraPosition, @Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
         super.extractRenderState(blockEntity, renderState, partialTick, cameraPosition, breakProgress);
-        List<ItemStackRenderState> items = ((ModEnchantTableRenderState) renderState).items;
-        items.forEach(ItemStackRenderState::clear);
+        ((ModEnchantTableRenderState) renderState).items = new ArrayList<>();
         ItemDisplayContext itemDisplayContext = this.getItemDisplayContext();
         if (itemDisplayContext != null) {
             List<ItemStack> itemList = this.getItemList((Container) blockEntity);
             int position = (int) blockEntity.getBlockPos().asLong();
             for (int i = 0; i < itemList.size(); i++) {
-                this.itemModelResolver.updateForTopItem(items.get(i),
+                ItemStackRenderState itemStackRenderState = new ItemStackRenderState();
+                this.itemModelResolver.updateForTopItem(itemStackRenderState,
                         itemList.get(i),
                         itemDisplayContext,
                         blockEntity.getLevel(),
                         null,
                         position + i);
+                ((ModEnchantTableRenderState) renderState).items.add(itemStackRenderState);
             }
         }
     }
@@ -108,13 +109,13 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
      */
     private void submitFlatItemList(ModEnchantTableRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector) {
         // randomise item placement depending on position
-        int positionOffset = Math.abs(renderState.blockPos.getX() + renderState.blockPos.getZ()) % 4;
+        int position = Math.abs(renderState.blockPos.getX() + renderState.blockPos.getZ()) % 4;
         for (int i = 0, j = 0; i < renderState.items.size() && j < 4; ++i) {
             ItemStackRenderState itemStackRenderState = renderState.items.get(i);
             if (!itemStackRenderState.isEmpty()) {
                 poseStack.pushPose();
                 poseStack.translate(0.5, 0.76171875, 0.5);
-                Direction direction = Direction.from2DDataValue((j + positionOffset) % 4);
+                Direction direction = Direction.from2DDataValue((j + position) % 4);
                 float horizontalAngle = -direction.toYRot();
                 poseStack.mulPose(Axis.YP.rotationDegrees(horizontalAngle));
                 poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
@@ -132,7 +133,7 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
     }
 
     private void submitFloatingItemStack(ModEnchantTableRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector) {
-        if (renderState.open > 0.0F && !renderState.items.getFirst().isEmpty()) {
+        if (renderState.open > 0.0F && !renderState.items.isEmpty() && !renderState.items.getFirst().isEmpty()) {
             poseStack.pushPose();
             poseStack.translate(0.5F, 1.0F, 0.5F);
             float hoverOffset = Mth.sin(renderState.time / 10.0F) * 0.1F + 0.1F;
@@ -159,27 +160,29 @@ public class ModEnchantTableRenderer extends EnchantTableRenderer {
      * Runic Altar</a> rendering code, thanks!
      */
     private void submitFloatingItemList(ModEnchantTableRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector, boolean rotateItems) {
-        int nonEmptyItems = (int) renderState.items.subList(1, renderState.items.size())
-                .stream()
-                .filter(Predicate.not(ItemStackRenderState::isEmpty))
-                .count();
-        float angle = 360.0F / nonEmptyItems;
-        for (int i = 1, j = 0; i < renderState.items.size(); ++i) {
-            ItemStackRenderState itemStackRenderState = renderState.items.get(i);
-            if (!itemStackRenderState.isEmpty()) {
-                poseStack.pushPose();
-                poseStack.translate(0.5F, 1.0F, 0.5F);
-                poseStack.mulPose(Axis.YP.rotationDegrees(j * angle + renderState.time));
-                poseStack.translate(0.75F, 0.0F, 0.25F);
-                poseStack.mulPose(Axis.YP.rotationDegrees(rotateItems ? renderState.time % 360.0F : 90.0F));
-                poseStack.translate(0.0, 0.075 * Math.sin((renderState.time + j * 10.0) / 5.0), 0.0F);
-                itemStackRenderState.submit(poseStack,
-                        nodeCollector,
-                        renderState.lightCoords,
-                        OverlayTexture.NO_OVERLAY,
-                        0);
-                poseStack.popPose();
-                j++;
+        if (!renderState.items.isEmpty()) {
+            int nonEmptyItems = (int) renderState.items.subList(1, renderState.items.size())
+                    .stream()
+                    .filter(Predicate.not(ItemStackRenderState::isEmpty))
+                    .count();
+            float angle = 360.0F / nonEmptyItems;
+            for (int i = 1, j = 0; i < renderState.items.size(); ++i) {
+                ItemStackRenderState itemStackRenderState = renderState.items.get(i);
+                if (!itemStackRenderState.isEmpty()) {
+                    poseStack.pushPose();
+                    poseStack.translate(0.5F, 1.0F, 0.5F);
+                    poseStack.mulPose(Axis.YP.rotationDegrees(j * angle + renderState.time));
+                    poseStack.translate(0.75F, 0.0F, 0.25F);
+                    poseStack.mulPose(Axis.YP.rotationDegrees(rotateItems ? renderState.time % 360.0F : 90.0F));
+                    poseStack.translate(0.0, 0.075 * Math.sin((renderState.time + j * 10.0) / 5.0), 0.0F);
+                    itemStackRenderState.submit(poseStack,
+                            nodeCollector,
+                            renderState.lightCoords,
+                            OverlayTexture.NO_OVERLAY,
+                            0);
+                    poseStack.popPose();
+                    j++;
+                }
             }
         }
     }
