@@ -2,7 +2,6 @@ package fuzs.easymagic.client.handler;
 
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ClientConfig;
-import fuzs.easymagic.mixin.client.accessor.ChiseledBookShelfBlockAccessor;
 import fuzs.puzzleslib.api.client.gui.v2.tooltip.TooltipRenderHelper;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -14,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.ChiseledBookShelfBlock;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.ChiseledBookShelfBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -30,10 +30,8 @@ public class ChiseledBookshelfTooltipHandler {
         if (!canRenderTooltip(minecraft)) return;
         BlockHitResult hitResult = (BlockHitResult) minecraft.hitResult;
         BlockState blockState = minecraft.level.getBlockState(hitResult.getBlockPos());
-        if (blockState.getBlock() instanceof ChiseledBookShelfBlock) {
-            OptionalInt hitSlot = ((ChiseledBookShelfBlockAccessor) blockState.getBlock()).easymagic$callGetHitSlot(
-                    hitResult,
-                    blockState);
+        if (blockState.getBlock() instanceof ChiseledBookShelfBlock block) {
+            OptionalInt hitSlot = block.getHitSlot(hitResult, blockState.getValue(HorizontalDirectionalBlock.FACING));
             if (hitSlot.isPresent()) {
                 BooleanProperty property = ChiseledBookShelfBlock.SLOT_OCCUPIED_PROPERTIES.get(hitSlot.getAsInt());
                 if (blockState.getValue(property)) {
@@ -59,7 +57,7 @@ public class ChiseledBookshelfTooltipHandler {
         }
         if (!minecraft.options.hideGui && minecraft.options.getCameraType().isFirstPerson()) {
             if (minecraft.gameMode != null && minecraft.gameMode.getPlayerMode() != GameType.SPECTATOR
-                    && minecraft.cameraEntity instanceof Player player) {
+                    && minecraft.getCameraEntity() instanceof Player player) {
                 if (minecraft.hitResult != null && minecraft.hitResult.getType() == HitResult.Type.BLOCK) {
                     return player.isShiftKeyDown() || EasyMagic.CONFIG.get(ClientConfig.class).chiseledBookshelfTooltip
                             == ClientConfig.ChiseledBookshelfTooltip.ENABLED;

@@ -82,7 +82,7 @@ public final class EnchantmentTooltipHelper {
         getEnchantmentDescriptionKey(holder).ifPresent(translationKey -> {
             Component descriptionComponent = Component.translatable(translationKey).withStyle(ChatFormatting.GRAY);
             ClientComponentSplitter.splitTooltipLines(descriptionComponent)
-                    .map(ComponentHelper::toComponent)
+                    .map(ComponentHelper::getAsComponent)
                     .forEach(tooltipAdder);
         });
     }

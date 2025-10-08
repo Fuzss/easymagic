@@ -5,6 +5,7 @@ import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
 import fuzs.easymagic.world.level.block.entity.EnchantmentTableWithInventoryBlockEntity;
 import fuzs.puzzleslib.api.block.v1.entity.TickingEntityBlock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
@@ -40,7 +41,7 @@ public class EnchantmentTableWithInventoryBlock extends EnchantingTableBlock imp
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         } else {
             if (level.getBlockEntity(pos) instanceof EnchantmentTableWithInventoryBlockEntity blockEntity) {
@@ -71,8 +72,8 @@ public class EnchantmentTableWithInventoryBlock extends EnchantingTableBlock imp
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos pos) {
-        if (level.getBlockEntity(pos) instanceof Container container) {
+    public int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos blockPos, Direction direction) {
+        if (level.getBlockEntity(blockPos) instanceof Container container) {
             return Math.min(container.getItem(1).getCount(), 3);
         } else {
             return 0;

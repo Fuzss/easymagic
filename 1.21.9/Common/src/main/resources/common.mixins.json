@@ -9,7 +9,6 @@
     "WorldGenRegionMixin"
   ],
   "client": [
-    "client.accessor.ChiseledBookShelfBlockAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

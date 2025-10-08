@@ -3,169 +3,184 @@ package fuzs.easymagic.client.renderer.blockentity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import fuzs.easymagic.EasyMagic;
+import fuzs.easymagic.client.renderer.blockentity.state.ModEnchantTableRenderState;
 import fuzs.easymagic.config.ClientConfig;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.EnchantTableRenderer;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.blockentity.state.CampfireRenderState;
+import net.minecraft.client.renderer.blockentity.state.EnchantTableRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.core.BlockPos;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.EnchantingTableBlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class ModEnchantTableRenderer extends EnchantTableRenderer {
-    private final ItemStackRenderState itemStackRenderState = new ItemStackRenderState();
-    public final ItemModelResolver itemModelResolver;
-    public final ItemRenderer itemRenderer;
+    private final ItemModelResolver itemModelResolver;
 
     public ModEnchantTableRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
-        this.itemRenderer = context.getItemRenderer();
-        this.itemModelResolver = context.getItemModelResolver();
+        this.itemModelResolver = context.itemModelResolver();
     }
 
     @Override
-    public void render(EnchantingTableBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, Vec3 cameraPosition) {
-        super.render(blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay, cameraPosition);
-        Level level = blockEntity.getLevel();
-        if (level != null) {
-            ItemStack itemStack = ((Container) blockEntity).getItem(0);
-            ItemStack enchantingCatalystItemStack = ((Container) blockEntity).getItem(1);
-            ItemStack rerollCatalystItemStack = ((Container) blockEntity).getItem(2);
-            int posData = (int) blockEntity.getBlockPos().asLong();
-            switch (EasyMagic.CONFIG.get(ClientConfig.class).renderEnchantingTableContents) {
-                case FLAT -> {
-                    List<ItemStack> itemStacks = collectItemStacks(itemStack,
-                            enchantingCatalystItemStack,
-                            rerollCatalystItemStack);
-                    this.renderFlatItemList(itemStacks,
-                            blockEntity.getBlockPos(),
-                            poseStack,
-                            bufferSource,
-                            packedLight,
-                            packedOverlay,
-                            level,
-                            posData);
-                }
-                case FLOATING -> {
-                    List<ItemStack> itemStacks = collectItemStacks(ItemStack.EMPTY,
-                            enchantingCatalystItemStack,
-                            rerollCatalystItemStack);
-                    this.renderHoveringItem(blockEntity,
-                            itemStack,
-                            partialTick,
-                            poseStack,
-                            bufferSource,
-                            packedLight,
-                            packedOverlay);
-                    this.renderHoveringItemList(itemStacks,
-                            blockEntity.time + partialTick,
-                            poseStack,
-                            bufferSource,
-                            packedLight,
-                            packedOverlay,
-                            true,
-                            level,
-                            posData);
-                }
+    public EnchantTableRenderState createRenderState() {
+        return new ModEnchantTableRenderState();
+    }
+
+    @Override
+    public void extractRenderState(EnchantingTableBlockEntity blockEntity, EnchantTableRenderState renderState, float partialTick, Vec3 cameraPosition, @Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+        super.extractRenderState(blockEntity, renderState, partialTick, cameraPosition, breakProgress);
+        List<ItemStackRenderState> items = ((ModEnchantTableRenderState) renderState).items;
+        items.forEach(ItemStackRenderState::clear);
+        ItemDisplayContext itemDisplayContext = this.getItemDisplayContext();
+        if (itemDisplayContext != null) {
+            List<ItemStack> itemList = this.getItemList((Container) blockEntity);
+            int position = (int) blockEntity.getBlockPos().asLong();
+            for (int i = 0; i < itemList.size(); i++) {
+                this.itemModelResolver.updateForTopItem(items.get(i),
+                        itemList.get(i),
+                        itemDisplayContext,
+                        blockEntity.getLevel(),
+                        null,
+                        position + i);
             }
         }
     }
 
-    private static List<ItemStack> collectItemStacks(ItemStack itemStack, ItemStack enchantingCatalystItemStack, ItemStack rerollCatalystItemStack) {
+    private @Nullable ItemDisplayContext getItemDisplayContext() {
+        return switch (EasyMagic.CONFIG.get(ClientConfig.class).renderEnchantingTableContents) {
+            case FLOATING -> ItemDisplayContext.GROUND;
+            case FLAT -> ItemDisplayContext.FIXED;
+            default -> null;
+        };
+    }
+
+    private List<ItemStack> getItemList(Container container) {
         List<ItemStack> itemStacks = new ArrayList<>();
-        itemStacks.add(itemStack);
+        itemStacks.add(container.getItem(0));
         for (int i = 0; i < 3; i++) {
-            if (i < enchantingCatalystItemStack.getCount()) {
-                itemStacks.add(enchantingCatalystItemStack);
+            if (i < container.getItem(1).getCount()) {
+                itemStacks.add(container.getItem(1));
             }
-            if (i < rerollCatalystItemStack.getCount()) {
-                itemStacks.add(rerollCatalystItemStack);
+
+            if (i < container.getItem(2).getCount()) {
+                itemStacks.add(container.getItem(2));
             }
         }
-        itemStacks.removeIf(ItemStack::isEmpty);
-        return itemStacks;
+
+        return itemStacks.stream().filter(Predicate.not(ItemStack::isEmpty)).map((ItemStack itemStack) -> {
+            return itemStack.copyWithCount(1);
+        }).toList();
     }
 
-    private void renderFlatItemList(List<ItemStack> itemStacks, BlockPos blockPos, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, Level level, int posData) {
+    @Override
+    public void submit(EnchantTableRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector, CameraRenderState cameraRenderState) {
+        super.submit(renderState, poseStack, nodeCollector, cameraRenderState);
+        switch (EasyMagic.CONFIG.get(ClientConfig.class).renderEnchantingTableContents) {
+            case FLAT -> {
+                this.submitFlatItemList((ModEnchantTableRenderState) renderState, poseStack, nodeCollector);
+            }
+            case FLOATING -> {
+                this.submitFloatingItemStack((ModEnchantTableRenderState) renderState, poseStack, nodeCollector);
+                this.submitFloatingItemList((ModEnchantTableRenderState) renderState, poseStack, nodeCollector);
+            }
+        }
+    }
+
+    /**
+     * @see net.minecraft.client.renderer.blockentity.CampfireRenderer#submit(CampfireRenderState, PoseStack,
+     *         SubmitNodeCollector, CameraRenderState)
+     */
+    private void submitFlatItemList(ModEnchantTableRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector) {
         // randomise item placement depending on position
-        int randomDirection = Math.abs(blockPos.getX() + blockPos.getZ()) % 4;
-        // render everything just like the campfire does
-        for (int i = 0; i < Math.min(4, itemStacks.size()); ++i) {
-            poseStack.pushPose();
-            poseStack.translate(0.5, 0.76171875, 0.5);
-            Direction direction = Direction.from2DDataValue((i + randomDirection) % 4);
-            float horizontalAngle = -direction.toYRot();
-            poseStack.mulPose(Axis.YP.rotationDegrees(horizontalAngle));
-            poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
-            poseStack.translate(-0.3125, -0.3125, 0.0);
-            poseStack.scale(0.375F, 0.375F, 0.375F);
-            ItemStack renderStack = itemStacks.get(i);
-            this.itemRenderer.renderStatic(renderStack,
-                    ItemDisplayContext.FIXED,
-                    packedLight,
-                    packedOverlay,
-                    poseStack,
-                    bufferSource,
-                    level,
-                    posData + i);
-            poseStack.popPose();
+        int positionOffset = Math.abs(renderState.blockPos.getX() + renderState.blockPos.getZ()) % 4;
+        for (int i = 0, j = 0; i < renderState.items.size() && j < 4; ++i) {
+            ItemStackRenderState itemStackRenderState = renderState.items.get(i);
+            if (!itemStackRenderState.isEmpty()) {
+                poseStack.pushPose();
+                poseStack.translate(0.5, 0.76171875, 0.5);
+                Direction direction = Direction.from2DDataValue((j + positionOffset) % 4);
+                float horizontalAngle = -direction.toYRot();
+                poseStack.mulPose(Axis.YP.rotationDegrees(horizontalAngle));
+                poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+                poseStack.translate(-0.3125, -0.3125, 0.0);
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+                itemStackRenderState.submit(poseStack,
+                        nodeCollector,
+                        renderState.lightCoords,
+                        OverlayTexture.NO_OVERLAY,
+                        0);
+                poseStack.popPose();
+                j++;
+            }
         }
     }
 
-    private void renderHoveringItem(EnchantingTableBlockEntity blockEntity, ItemStack itemStack, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        if (blockEntity.open != 0.0F || blockEntity.oOpen != 0.0F) {
-            this.itemModelResolver.updateForTopItem(this.itemStackRenderState,
-                    itemStack,
-                    ItemDisplayContext.GROUND,
-                    blockEntity.getLevel(),
-                    null,
-                    0);
+    private void submitFloatingItemStack(ModEnchantTableRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector) {
+        if (renderState.open > 0.0F && !renderState.items.getFirst().isEmpty()) {
             poseStack.pushPose();
             poseStack.translate(0.5F, 1.0F, 0.5F);
-            float hoverOffset = Mth.sin((blockEntity.time + partialTick) / 10.0F) * 0.1F + 0.1F;
-            AABB aABB = this.itemStackRenderState.getModelBoundingBox();
+            float hoverOffset = Mth.sin(renderState.time / 10.0F) * 0.1F + 0.1F;
+            AABB aABB = renderState.items.getFirst().getModelBoundingBox();
             float modelYScale = -((float) aABB.minY) + 0.0625F;
-            float openness = Mth.lerp(partialTick, blockEntity.oOpen, blockEntity.open);
+            float openness = renderState.open;
             poseStack.translate(0.0, hoverOffset + modelYScale * openness - 0.15F * (1.0F - openness), 0.0);
             float scale = openness * 0.8F + 0.2F;
             poseStack.scale(scale, scale, scale);
-            poseStack.mulPose(Axis.YP.rotation((blockEntity.time + partialTick) / 20.0F));
-            this.itemStackRenderState.render(poseStack, bufferSource, packedLight, packedOverlay);
+            poseStack.mulPose(Axis.YP.rotation(renderState.time / 20.0F));
+            renderState.items.getFirst()
+                    .submit(poseStack, nodeCollector, renderState.lightCoords, OverlayTexture.NO_OVERLAY, 0);
             poseStack.popPose();
         }
     }
 
-    private void renderHoveringItemList(List<ItemStack> itemStacks, float age, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, boolean rotateItems, Level level, int posData) {
-        // mostly copied from Botania's runic altar rendering code, thanks!
-        float itemRenderAngle = 360.0F / itemStacks.size();
-        for (int i = 0; i < itemStacks.size(); ++i) {
-            poseStack.pushPose();
-            poseStack.translate(0.5F, 1.0F, 0.5F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(i * itemRenderAngle + age));
-            poseStack.translate(0.75F, 0.0F, 0.25F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(rotateItems ? age % 360.0F : 90.0F));
-            poseStack.translate(0.0, 0.075 * Math.sin((age + i * 10.0) / 5.0), 0.0F);
-            this.itemRenderer.renderStatic(itemStacks.get(i),
-                    ItemDisplayContext.GROUND,
-                    packedLight,
-                    packedOverlay,
-                    poseStack,
-                    bufferSource,
-                    level,
-                    posData + i);
-            poseStack.popPose();
+    private void submitFloatingItemList(ModEnchantTableRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector) {
+        this.submitFloatingItemList(renderState, poseStack, nodeCollector, true);
+    }
+
+    /**
+     * Mostly copied from <a
+     * href="https://github.com/VazkiiMods/Botania/blob/1.19.x/Xplat/src/main/java/vazkii/botania/client/render/block_entity/RunicAltarBlockEntityRenderer.java">Botania's
+     * Runic Altar</a> rendering code, thanks!
+     */
+    private void submitFloatingItemList(ModEnchantTableRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector, boolean rotateItems) {
+        int nonEmptyItems = (int) renderState.items.subList(1, renderState.items.size())
+                .stream()
+                .filter(Predicate.not(ItemStackRenderState::isEmpty))
+                .count();
+        float angle = 360.0F / nonEmptyItems;
+        for (int i = 1, j = 0; i < renderState.items.size(); ++i) {
+            ItemStackRenderState itemStackRenderState = renderState.items.get(i);
+            if (!itemStackRenderState.isEmpty()) {
+                poseStack.pushPose();
+                poseStack.translate(0.5F, 1.0F, 0.5F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(j * angle + renderState.time));
+                poseStack.translate(0.75F, 0.0F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(rotateItems ? renderState.time % 360.0F : 90.0F));
+                poseStack.translate(0.0, 0.075 * Math.sin((renderState.time + j * 10.0) / 5.0), 0.0F);
+                itemStackRenderState.submit(poseStack,
+                        nodeCollector,
+                        renderState.lightCoords,
+                        OverlayTexture.NO_OVERLAY,
+                        0);
+                poseStack.popPose();
+                j++;
+            }
         }
     }
 }

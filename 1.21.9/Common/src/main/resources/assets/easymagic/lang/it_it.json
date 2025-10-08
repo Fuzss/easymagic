@@ -1,5 +1,8 @@
 {
+  "container.enchant.experience.many": "%s Punti Esperienza",
+  "container.enchant.experience.one": "1 Punto Esperienza",
   "container.enchant.reroll": "Cambia incantesimi",
-  "container.enchant.experience.one": "1 Punto esperienza",
-  "container.enchant.experience.many": "%s Punti esperienza"
+  "container.invalidBlock": "Impossibile aprire. Distruggi e sostituisci per usare.",
+  "tag.item.easymagic.enchanting_catalysts": "Catalizzatori per Incantesimi",
+  "tag.item.easymagic.reroll_catalysts": "Catalizzatori per Cambiare"
 }
