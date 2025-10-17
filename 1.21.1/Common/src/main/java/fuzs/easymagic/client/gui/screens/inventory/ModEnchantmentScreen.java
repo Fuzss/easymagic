@@ -7,12 +7,17 @@ import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.util.PlayerExperienceHelper;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
+import fuzs.puzzleslib.api.chat.v1.ComponentHelper;
+import fuzs.puzzleslib.api.client.gui.v2.components.tooltip.ClientComponentSplitter;
 import fuzs.puzzleslib.api.core.v1.ModLoaderEnvironment;
 import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.Holder;
+import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -228,9 +233,31 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
             } else {
                 slotTooltip.add(Component.translatable("container.enchant.clue", component));
             }
+
+            getEnchantmentDescriptionKey(data.enchantment).ifPresent(translationKey -> {
+                Component descriptionComponent = Component.translatable(translationKey).withStyle(ChatFormatting.GRAY);
+                ClientComponentSplitter.splitTooltipLines(descriptionComponent)
+                        .map(ComponentHelper::toComponent)
+                        .forEach(slotTooltip::add);
+            });
             hasValidEnchantment = true;
         }
         return hasValidEnchantment;
+    }
+
+    private static Optional<String> getEnchantmentDescriptionKey(Holder<Enchantment> enchantment) {
+        String translationKey = enchantment.unwrapKey().map(resourceKey -> {
+            return Util.makeDescriptionId(resourceKey.registry().getPath(), resourceKey.location());
+        }).orElse(null);
+        if (translationKey == null) {
+            return Optional.empty();
+        } else if (Language.getInstance().has(translationKey + ".desc")) {
+            return Optional.of(translationKey + ".desc");
+        } else if (Language.getInstance().has(translationKey + ".description")) {
+            return Optional.of(translationKey + ".description");
+        } else {
+            return Optional.empty();
+        }
     }
 
     private void gatherSlotCostsTooltip(int slot, List<Component> slotTooltip, boolean hasValidEnchantment) {
