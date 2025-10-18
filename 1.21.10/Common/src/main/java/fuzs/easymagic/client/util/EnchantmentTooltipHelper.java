@@ -79,8 +79,11 @@ public final class EnchantmentTooltipHelper {
         } else {
             tooltipAdder.accept(Component.translatable("container.enchant.clue", enchantmentComponent));
         }
-        getEnchantmentDescriptionKey(holder).ifPresent(translationKey -> {
-            Component descriptionComponent = Component.translatable(translationKey).withStyle(ChatFormatting.GRAY);
+
+        getEnchantmentDescriptionKey(holder).ifPresent((String translationKey) -> {
+            Component descriptionComponent = Component.literal(" \u25C6 ")
+                    .append(Component.translatable(translationKey))
+                    .withStyle(ChatFormatting.GRAY);
             ClientComponentSplitter.splitTooltipLines(descriptionComponent)
                     .map(ComponentHelper::getAsComponent)
                     .forEach(tooltipAdder);
