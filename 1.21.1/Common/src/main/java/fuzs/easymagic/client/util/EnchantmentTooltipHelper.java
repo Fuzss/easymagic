@@ -3,12 +3,10 @@ package fuzs.easymagic.client.util;
 import com.google.common.collect.Lists;
 import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ServerConfig;
-import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.util.PlayerExperienceHelper;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
-import fuzs.puzzleslib.api.client.gui.v2.tooltip.ClientComponentSplitter;
-import fuzs.puzzleslib.api.init.v3.registry.ResourceKeyHelper;
-import fuzs.puzzleslib.api.util.v1.ComponentHelper;
+import fuzs.puzzleslib.api.chat.v1.ComponentHelper;
+import fuzs.puzzleslib.api.client.gui.v2.components.tooltip.ClientComponentSplitter;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.ChatFormatting;
@@ -36,29 +34,25 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public final class EnchantmentTooltipHelper {
-    public static final String KEY_ONE_ENCHANT_CATALYST = getContainerTranslationKey("lapis.one");
-    public static final String KEY_MANY_ENCHANT_CATALYSTS = getContainerTranslationKey("lapis.many");
-    public static final String KEY_ONE_REROLL_CATALYST = getContainerTranslationKey("reroll.one");
-    public static final String KEY_MANY_REROLL_CATALYSTS = getContainerTranslationKey("reroll.many");
-    public static final String KEY_ONE_ENCHANTMENT_LEVEL = getContainerTranslationKey("level.one");
-    public static final String KEY_MANY_ENCHANTMENT_LEVELS = getContainerTranslationKey("level.many");
-    public static final String KEY_ONE_EXPERIENCE_POINT = getContainerTranslationKey("experience.one");
-    public static final String KEY_MANY_EXPERIENCE_POINTS = getContainerTranslationKey("experience.many");
-    public static final String KEY_REROLL = getContainerTranslationKey("reroll");
+    public static final String KEY_ONE_ENCHANT_CATALYST = "container.enchant.lapis.one";
+    public static final String KEY_MANY_ENCHANT_CATALYSTS = "container.enchant.lapis.many";
+    public static final String KEY_ONE_REROLL_CATALYST = "container.enchant.reroll.one";
+    public static final String KEY_MANY_REROLL_CATALYSTS = "container.enchant.reroll.many";
+    public static final String KEY_ONE_ENCHANTMENT_LEVEL = "container.enchant.level.one";
+    public static final String KEY_MANY_ENCHANTMENT_LEVELS = "container.enchant.level.many";
+    public static final String KEY_ONE_EXPERIENCE_POINT = "container.enchant.experience.one";
+    public static final String KEY_MANY_EXPERIENCE_POINTS = "container.enchant.experience.many";
+    public static final String KEY_REROLL = "container.enchant.reroll";
 
     private EnchantmentTooltipHelper() {
         // NO-OP
     }
 
-    private static String getContainerTranslationKey(String string) {
-        return ResourceKeyHelper.getTranslationKey(ModRegistry.ENCHANTING_MENU_TYPE.key()) + "." + string;
-    }
-
     public static void gatherSlotEnchantmentsTooltip(List<EnchantmentInstance> slotData, Consumer<Component> tooltipAdder, HolderLookup.Provider registries) {
         Object2IntMap<Holder<Enchantment>> enchantments = slotData.stream()
-                .collect(Collectors.toMap(EnchantmentInstance::enchantment,
-                        EnchantmentInstance::level,
-                        (o1, o2) -> o2,
+                .collect(Collectors.toMap((EnchantmentInstance enchantmentInstance) -> enchantmentInstance.enchantment,
+                        (EnchantmentInstance enchantmentInstance) -> enchantmentInstance.level,
+                        (Integer o1, Integer o2) -> o2,
                         Object2IntLinkedOpenHashMap::new));
         HolderSet<Enchantment> holderSet = getTagOrEmpty(registries,
                 Registries.ENCHANTMENT,
@@ -91,7 +85,7 @@ public final class EnchantmentTooltipHelper {
                     .append(Component.translatable(translationKey))
                     .withStyle(ChatFormatting.GRAY);
             ClientComponentSplitter.splitTooltipLines(descriptionComponent)
-                    .map(ComponentHelper::getAsComponent)
+                    .map(ComponentHelper::toComponent)
                     .forEach(tooltipAdder);
         });
     }
@@ -113,7 +107,7 @@ public final class EnchantmentTooltipHelper {
     }
 
     private static Optional<String> getEnchantmentDescriptionKey(Holder<Enchantment> enchantment) {
-        String translationKey = enchantment.unwrapKey().map(resourceKey -> {
+        String translationKey = enchantment.unwrapKey().map((ResourceKey<Enchantment> resourceKey) -> {
             return Util.makeDescriptionId(resourceKey.registry().getPath(), resourceKey.location());
         }).orElse(null);
         if (translationKey == null) {

@@ -137,6 +137,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                     108,
                     19);
         }
+
         if (!EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook()) {
             guiGraphics.blit(RenderPipelines.GUI_TEXTURED,
                     RerollButton.ENCHANTING_TABLE_REROLL_LOCATION,
@@ -149,6 +150,7 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
                     256,
                     256);
         }
+
         if (EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst()) {
             guiGraphics.blit(RenderPipelines.GUI_TEXTURED,
                     ENCHANTING_TABLE_LOCATION,

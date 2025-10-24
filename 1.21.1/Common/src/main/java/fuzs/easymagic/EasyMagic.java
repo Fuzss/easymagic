@@ -5,6 +5,7 @@ import fuzs.easymagic.config.CommonConfig;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.handler.BlockConversionHandler;
 import fuzs.easymagic.init.ModRegistry;
+import fuzs.easymagic.network.ClientboundEnchantmentCluesMessage;
 import fuzs.easymagic.world.level.block.EnchantmentTableWithInventoryBlock;
 import fuzs.puzzleslib.api.block.v1.BlockConversionHelper;
 import fuzs.puzzleslib.api.config.v3.ConfigHolder;
@@ -15,6 +16,7 @@ import fuzs.puzzleslib.api.event.v1.RegistryEntryAddedCallback;
 import fuzs.puzzleslib.api.event.v1.core.EventPhase;
 import fuzs.puzzleslib.api.event.v1.entity.player.PlayerInteractEvents;
 import fuzs.puzzleslib.api.event.v1.server.TagsUpdatedCallback;
+import fuzs.puzzleslib.api.network.v3.NetworkHandler;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
@@ -30,8 +32,14 @@ public class EasyMagic implements ModConstructor {
     public static final String MOD_NAME = "Easy Magic";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
 
-    public static final ConfigHolder CONFIG = ConfigHolder.builder(MOD_ID).client(ClientConfig.class).common(
-            CommonConfig.class).server(ServerConfig.class);
+    public static final ConfigHolder CONFIG = ConfigHolder.builder(MOD_ID)
+            .client(ClientConfig.class)
+            .common(CommonConfig.class)
+            .server(ServerConfig.class);
+    public static final NetworkHandler NETWORK = NetworkHandler.builder(MOD_ID)
+            .registerSerializer(ClientboundEnchantmentCluesMessage.class,
+                    ClientboundEnchantmentCluesMessage.STREAM_CODEC)
+            .registerClientbound(ClientboundEnchantmentCluesMessage.class);
 
     public static final Predicate<Block> BLOCK_PREDICATE = (Block block) -> {
         return block instanceof EnchantingTableBlock && !(block instanceof EnchantmentTableWithInventoryBlock);
@@ -44,19 +52,16 @@ public class EasyMagic implements ModConstructor {
     }
 
     private static void registerEventHandlers() {
-        RegistryEntryAddedCallback.registryEntryAdded(Registries.BLOCK).register(
-                BlockConversionHandler.onRegistryEntryAdded(BLOCK_PREDICATE, EnchantmentTableWithInventoryBlock::new,
-                        MOD_ID
-                ));
-        AddBlockEntityTypeBlocksCallback.EVENT.register(
-                BlockConversionHandler.onAddBlockEntityTypeBlocks(ModRegistry.ENCHANTING_TABLE_BLOCK_ENTITY_TYPE));
-        PlayerInteractEvents.USE_BLOCK.register(
-                BlockConversionHandler.onUseBlock(ModRegistry.UNALTERED_ENCHANTING_TABLES_BLOCK_TAG,
-                        () -> CONFIG.get(CommonConfig.class).disableVanillaEnchantingTable
-                ));
+        RegistryEntryAddedCallback.registryEntryAdded(Registries.BLOCK)
+                .register(BlockConversionHandler.onRegistryEntryAdded(BLOCK_PREDICATE,
+                        EnchantmentTableWithInventoryBlock::new,
+                        MOD_ID));
+        AddBlockEntityTypeBlocksCallback.EVENT.register(BlockConversionHandler.onAddBlockEntityTypeBlocks(ModRegistry.ENCHANTING_TABLE_BLOCK_ENTITY_TYPE));
+        PlayerInteractEvents.USE_BLOCK.register(BlockConversionHandler.onUseBlock(ModRegistry.UNALTERED_ENCHANTING_TABLES_BLOCK_TAG,
+                () -> CONFIG.get(CommonConfig.class).disableVanillaEnchantingTable));
         TagsUpdatedCallback.EVENT.register(EventPhase.FIRST,
-                BlockConversionHandler.onTagsUpdated(ModRegistry.UNALTERED_ENCHANTING_TABLES_BLOCK_TAG, BLOCK_PREDICATE)
-        );
+                BlockConversionHandler.onTagsUpdated(ModRegistry.UNALTERED_ENCHANTING_TABLES_BLOCK_TAG,
+                        BLOCK_PREDICATE));
     }
 
 

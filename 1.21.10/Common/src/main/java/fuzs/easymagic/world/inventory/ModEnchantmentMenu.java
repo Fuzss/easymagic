@@ -50,10 +50,8 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
         super(id, inventory, access);
         this.enchantSlots = container;
         this.player = inventory.player;
-
         // do these before the override slots, as remote slot list isn't reset properly and this will use the wrong index
         Slot slot = this.addSlot(new Slot(container, 2, 41, 47) {
-
             @Override
             public boolean mayPlace(ItemStack itemStack) {
                 return itemStack.is(ModRegistry.REROLL_CATALYSTS_ITEM_TAG);
@@ -69,18 +67,14 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
                 return EasyMagic.CONFIG.get(ServerConfig.class).dedicatedRerollCatalyst();
             }
         });
-
         //  manually set slot index as vanilla's AbstractContainerMenu::addSlot normally does that which we cannot use as we want to override default enchantment menu slots
         this.setSlot(0, new Slot(container, 0, slot.isActive() ? 5 : 15, 47) {
-
             @Override
             public int getMaxStackSize() {
                 return 1;
             }
         });
-
         this.setSlot(1, new Slot(container, 1, slot.isActive() ? 23 : 35, 47) {
-
             @Override
             public boolean mayPlace(ItemStack itemStack) {
                 return itemStack.is(ModRegistry.ENCHANTING_CATALYSTS_ITEM_TAG);
@@ -91,7 +85,6 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
                 return EMPTY_SLOT_LAPIS_LAZULI;
             }
         });
-
         this.addSlotListener(this);
     }
 
@@ -136,6 +129,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
                 chiseledBookshelfBooks += ChiseledBookshelfHelper.findValidBooks(level, blockPos, offset);
             }
         }
+
         return (int) enchantingPower + chiseledBookshelfBooks / 3;
     }
 
@@ -154,6 +148,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             if (this.costs[i] < i + 1) {
                 this.costs[i] = 0;
             }
+
             List<EnchantmentInstance> enchantmentList = this.getEnchantmentList(registries,
                     itemStack,
                     i,
@@ -162,6 +157,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             if (enchantmentList.isEmpty()) {
                 this.costs[i] = 0;
             }
+
             this.clues.set(i, this.createClue(enchantmentList));
         }
     }
@@ -225,6 +221,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
                                 this.enchantSlots.setItem(catalystSlot, ItemStack.EMPTY);
                             }
                         }
+
                         if (EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost > 0) {
                             if (EasyMagic.CONFIG.get(ServerConfig.class).rerollingTakesEnchantmentLevels) {
                                 player.giveExperienceLevels(-EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost);
@@ -285,6 +282,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
                 } else {
                     player.drop(itemStack, false);
                 }
+
                 this.setCarried(ItemStack.EMPTY);
             }
         }

@@ -55,6 +55,7 @@ public class ChiseledBookshelfTooltipHandler {
                 == ClientConfig.ChiseledBookshelfTooltip.DISABLED) {
             return false;
         }
+
         if (!minecraft.options.hideGui && minecraft.options.getCameraType().isFirstPerson()) {
             if (minecraft.gameMode != null && minecraft.gameMode.getPlayerMode() != GameType.SPECTATOR
                     && minecraft.getCameraEntity() instanceof Player player) {

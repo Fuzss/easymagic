@@ -1,6 +1,6 @@
 package fuzs.easymagic.mixin;
 
-import fuzs.easymagic.util.ValueSerializationHelper;
+import fuzs.puzzleslib.api.util.v1.ValueSerializationHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;

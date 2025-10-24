@@ -4,20 +4,18 @@ import fuzs.easymagic.EasyMagic;
 import fuzs.easymagic.config.ClientConfig;
 import fuzs.easymagic.config.ServerConfig;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
-import fuzs.puzzleslib.api.client.gui.v2.GuiGraphicsHelper;
 import fuzs.puzzleslib.api.client.gui.v2.components.SpritelessImageButton;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.Tickable;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.ARGB;
+import net.minecraft.util.FastColor;
 
 public class RerollButton extends SpritelessImageButton implements Tickable {
     public static final ResourceLocation ENCHANTING_TABLE_REROLL_LOCATION = EasyMagic.id(
@@ -56,8 +54,7 @@ public class RerollButton extends SpritelessImageButton implements Tickable {
     private void renderWidgetDecorations(GuiGraphics guiGraphics) {
         if (this.rerollExperiencePointsCost == 0 && this.rerollCatalystCost == 0) {
             // arrow circle
-            guiGraphics.blit(RenderPipelines.GUI_TEXTURED,
-                    ENCHANTING_TABLE_REROLL_LOCATION,
+            guiGraphics.blit(ENCHANTING_TABLE_REROLL_LOCATION,
                     this.getX() + 12,
                     this.getY() + 6,
                     64,
@@ -68,8 +65,7 @@ public class RerollButton extends SpritelessImageButton implements Tickable {
                     256);
         } else {
             // arrow circle
-            guiGraphics.blit(RenderPipelines.GUI_TEXTURED,
-                    ENCHANTING_TABLE_REROLL_LOCATION,
+            guiGraphics.blit(ENCHANTING_TABLE_REROLL_LOCATION,
                     this.getX() + 3,
                     this.getY() + 6,
                     64,
@@ -118,8 +114,7 @@ public class RerollButton extends SpritelessImageButton implements Tickable {
     }
 
     private void renderCostOrb(GuiGraphics guiGraphics, int posX, int posY, int textureX, int textureY, int cost, ChatFormatting color) {
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED,
-                ENCHANTING_TABLE_REROLL_LOCATION,
+        guiGraphics.blit(ENCHANTING_TABLE_REROLL_LOCATION,
                 posX,
                 posY,
                 textureX,
@@ -130,12 +125,24 @@ public class RerollButton extends SpritelessImageButton implements Tickable {
                 256);
         // render shadow on every side to avoid readability issues with colorful background
         Font font = Minecraft.getInstance().font;
-        GuiGraphicsHelper.drawInBatch8xOutline(guiGraphics,
+        drawInBatch8xOutline(guiGraphics,
                 font,
                 Component.literal(String.valueOf(cost)),
                 posX + 8,
                 posY + 3,
-                ARGB.opaque(color.getColor()),
-                ARGB.opaque(0));
+                FastColor.ABGR32.opaque(color.getColor()),
+                FastColor.ABGR32.opaque(0));
+    }
+
+    @Deprecated
+    public static void drawInBatch8xOutline(GuiGraphics guiGraphics, Font font, Component component, int posX, int posY, int color, int backgroundColor) {
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (i != 0 || j != 0) {
+                    guiGraphics.drawString(font, component, posX + i, posY + j, backgroundColor, false);
+                }
+            }
+        }
+        guiGraphics.drawString(font, component, posX, posY, color, false);
     }
 }

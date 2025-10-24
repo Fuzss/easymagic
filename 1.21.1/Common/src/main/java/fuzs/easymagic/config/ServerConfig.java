@@ -26,6 +26,10 @@ public class ServerConfig implements ConfigCore {
     @Config(description = {"Do chiseled bookshelves provide enchanting power to an enchanting table, one for every three contained books.", "NONE: Vanilla behavior, no power is provided.", "FACING: The bookshelf must face the enchanting table to provide any power.", "ALL: Chiseled bookshelves provide enchanting power regardless of where they are facing."})
     public ChiseledBookshelfPower chiseledBookshelfEnchantingPower = ChiseledBookshelfPower.FACING;
 
+    public boolean dedicatedRerollCatalyst() {
+        return this.rerollEnchantments && this.dedicatedRerollCatalyst;
+    }
+
     public enum EnchantmentHint {
         NONE, SINGLE, ALL
     }

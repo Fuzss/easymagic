@@ -32,7 +32,7 @@ public class EasyMagicClient implements ClientModConstructor {
 
     @Override
     public void onRegisterMenuScreens(MenuScreensContext context) {
-        context.registerMenuScreen(ModRegistry.ENCHANTMENT_MENU_TYPE.value(), ModEnchantmentScreen::new);
+        context.registerMenuScreen(ModRegistry.ENCHANTING_MENU_TYPE.value(), ModEnchantmentScreen::new);
     }
 
     @Override
