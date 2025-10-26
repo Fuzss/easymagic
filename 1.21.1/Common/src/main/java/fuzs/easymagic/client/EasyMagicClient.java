@@ -12,6 +12,7 @@ import fuzs.puzzleslib.api.client.core.v1.context.BlockEntityRenderersContext;
 import fuzs.puzzleslib.api.client.core.v1.context.MenuScreensContext;
 import fuzs.puzzleslib.api.client.event.v1.ModelEvents;
 import fuzs.puzzleslib.api.client.event.v1.gui.RenderGuiCallback;
+import fuzs.puzzleslib.api.client.event.v1.gui.RenderTooltipCallback;
 import fuzs.puzzleslib.api.core.v1.context.PackRepositorySourcesContext;
 import fuzs.puzzleslib.api.event.v1.LoadCompleteCallback;
 import fuzs.puzzleslib.api.resources.v1.DynamicPackResources;
@@ -28,6 +29,7 @@ public class EasyMagicClient implements ClientModConstructor {
         ModelEvents.MODIFY_UNBAKED_MODEL.register(BlockModelHandler::onModifyUnbakedModel);
         LoadCompleteCallback.EVENT.register(BlockModelHandler::onLoadComplete);
         RenderGuiCallback.EVENT.register(ChiseledBookshelfTooltipHandler::onRenderGui);
+        RenderTooltipCallback.EVENT.register(ModEnchantmentScreen::onRenderTooltip);
     }
 
     @Override
@@ -38,14 +40,13 @@ public class EasyMagicClient implements ClientModConstructor {
     @Override
     public void onRegisterBlockEntityRenderers(BlockEntityRenderersContext context) {
         context.registerBlockEntityRenderer(ModRegistry.ENCHANTING_TABLE_BLOCK_ENTITY_TYPE.value(),
-                ModEnchantTableRenderer::new
-        );
+                ModEnchantTableRenderer::new);
     }
 
     @Override
     public void onAddResourcePackFinders(PackRepositorySourcesContext context) {
         context.addRepositorySource(PackResourcesHelper.buildClientPack(EasyMagic.id("default_block_models"),
-                DynamicPackResources.create(DynamicModelProvider::new), true
-        ));
+                DynamicPackResources.create(DynamicModelProvider::new),
+                true));
     }
 }
