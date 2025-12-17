@@ -8,6 +8,6 @@ dependencies {
 
 multiloader {
     mixins {
-        mixin("ChiseledBookShelfBlockEntityMixin", "EnchantingTableBlockMixin", "WorldGenRegionMixin")
+        mixin("ChiseledBookShelfBlockEntityMixin", "EnchantingTableBlockMixin")
     }
 }

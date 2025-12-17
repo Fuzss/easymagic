@@ -8,13 +8,13 @@ import fuzs.easymagic.network.ClientboundEnchantmentCluesMessage;
 import fuzs.easymagic.util.ChiseledBookshelfHelper;
 import fuzs.easymagic.util.PlayerExperienceHelper;
 import fuzs.puzzleslib.api.container.v1.QuickMoveRuleSet;
-import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
+import net.minecraft.resources.Identifier;
 import fuzs.puzzleslib.api.item.v2.EnchantingHelper;
 import fuzs.puzzleslib.api.network.v4.MessageSender;
 import fuzs.puzzleslib.api.network.v4.PlayerSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -32,9 +32,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerListener {
-    static final ResourceLocation EMPTY_SLOT_LAPIS_LAZULI = ResourceLocationHelper.withDefaultNamespace(
+    static final Identifier EMPTY_SLOT_LAPIS_LAZULI = Identifier.withDefaultNamespace(
             "container/slot/lapis_lazuli");
-    static final ResourceLocation EMPTY_SLOT_AMETHYST_SHARD = ResourceLocation.withDefaultNamespace(
+    static final Identifier EMPTY_SLOT_AMETHYST_SHARD = Identifier.withDefaultNamespace(
             "container/slot/amethyst_shard");
     static final int REROLL_CATALYST_SLOT = 38;
     public static final int REROLL_DATA_SLOT = 4;
@@ -58,7 +58,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             }
 
             @Override
-            public ResourceLocation getNoItemIcon() {
+            public Identifier getNoItemIcon() {
                 return EMPTY_SLOT_AMETHYST_SHARD;
             }
 
@@ -81,7 +81,7 @@ public class ModEnchantmentMenu extends EnchantmentMenu implements ContainerList
             }
 
             @Override
-            public ResourceLocation getNoItemIcon() {
+            public Identifier getNoItemIcon() {
                 return EMPTY_SLOT_LAPIS_LAZULI;
             }
         });

@@ -20,9 +20,9 @@ import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.client.renderer.texture.TickableTexture;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.EnchantmentMenu;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
@@ -32,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class ModEnchantmentScreen extends EnchantmentScreen {
-    private static final ResourceLocation SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot");
+    private static final Identifier SLOT_SPRITE = Identifier.withDefaultNamespace("container/slot");
 
     private boolean noTooltipRendering;
 
@@ -48,8 +48,8 @@ public class ModEnchantmentScreen extends EnchantmentScreen {
 
     public void tickChildren() {
         for (GuiEventListener guiEventListener : this.children()) {
-            if (guiEventListener instanceof Tickable tickable) {
-                tickable.tick();
+            if (guiEventListener instanceof TickableTexture tickableTexture) {
+                tickableTexture.tick();
             }
         }
     }

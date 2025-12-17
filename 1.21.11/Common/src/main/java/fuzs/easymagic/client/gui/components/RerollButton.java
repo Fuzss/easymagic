@@ -11,16 +11,16 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.client.renderer.texture.TickableTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.ARGB;
 
-public class RerollButton extends SpritelessImageButton implements Tickable {
-    public static final ResourceLocation ENCHANTING_TABLE_REROLL_LOCATION = EasyMagic.id(
+public class RerollButton extends SpritelessImageButton implements TickableTexture {
+    public static final Identifier ENCHANTING_TABLE_REROLL_LOCATION = EasyMagic.id(
             "textures/gui/container/enchanting_table_reroll.png");
 
     private final int rerollExperiencePointsCost = EasyMagic.CONFIG.get(ServerConfig.class).rerollExperiencePointsCost;
@@ -46,14 +46,14 @@ public class RerollButton extends SpritelessImageButton implements Tickable {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (!EasyMagic.CONFIG.get(ClientConfig.class).keepEnchantmentScreenBook()) {
-            super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
-            this.renderWidgetDecorations(guiGraphics);
+            super.renderContents(guiGraphics, mouseX, mouseY, partialTick);
+            this.renderContentDecorations(guiGraphics);
         }
     }
 
-    private void renderWidgetDecorations(GuiGraphics guiGraphics) {
+    private void renderContentDecorations(GuiGraphics guiGraphics) {
         if (this.rerollExperiencePointsCost == 0 && this.rerollCatalystCost == 0) {
             // arrow circle
             guiGraphics.blit(RenderPipelines.GUI_TEXTURED,

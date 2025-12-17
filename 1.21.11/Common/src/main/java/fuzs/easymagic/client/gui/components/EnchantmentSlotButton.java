@@ -9,23 +9,23 @@ import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.EnchantmentNames;
 import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.client.renderer.texture.TickableTexture;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.FormattedText;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 
-public class EnchantmentSlotButton extends ImageButton implements Tickable {
+public class EnchantmentSlotButton extends ImageButton implements TickableTexture {
     private static final WidgetSprites WIDGET_SPRITES = new WidgetSprites(EnchantmentScreen.ENCHANTMENT_SLOT_SPRITE,
             EnchantmentScreen.ENCHANTMENT_SLOT_DISABLED_SPRITE,
             EnchantmentScreen.ENCHANTMENT_SLOT_HIGHLIGHTED_SPRITE);
 
-    private final ResourceLocation disabledLevelSpriteLocation;
-    private final ResourceLocation enabledLevelSpriteLocation;
+    private final Identifier disabledLevelSpriteLocation;
+    private final Identifier enabledLevelSpriteLocation;
     private final int slotIndex;
     private final ModEnchantmentMenu menu;
 
-    public EnchantmentSlotButton(int x, int y, OnPress onPress, ResourceLocation disabledLevelSpriteLocation, ResourceLocation enabledLevelSpriteLocation, int slotIndex, ModEnchantmentMenu menu) {
+    public EnchantmentSlotButton(int x, int y, OnPress onPress, Identifier disabledLevelSpriteLocation, Identifier enabledLevelSpriteLocation, int slotIndex, ModEnchantmentMenu menu) {
         super(x, y, 108, 19, WIDGET_SPRITES, onPress);
         this.disabledLevelSpriteLocation = disabledLevelSpriteLocation;
         this.enabledLevelSpriteLocation = enabledLevelSpriteLocation;
@@ -50,15 +50,13 @@ public class EnchantmentSlotButton extends ImageButton implements Tickable {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
-
+    public void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.renderContents(guiGraphics, mouseX, mouseY, partialTick);
         Font font = Minecraft.getInstance().font;
         String string = String.valueOf(this.getCost());
         int textOffsetLeft = this.getX() + 20;
         int textOffsetRight = 86 - font.width(string);
         FormattedText formattedText = EnchantmentNames.getInstance().getRandomName(font, textOffsetRight);
-
         if (!this.isActive()) {
             guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED,
                     this.disabledLevelSpriteLocation,

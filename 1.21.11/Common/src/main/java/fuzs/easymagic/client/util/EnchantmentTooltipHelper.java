@@ -12,7 +12,6 @@ import fuzs.puzzleslib.api.util.v1.ComponentHelper;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
@@ -25,10 +24,11 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.Util;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,12 +36,12 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public final class EnchantmentTooltipHelper {
-    public static final String KEY_ONE_ENCHANT_CATALYST = getContainerTranslationKey("lapis.one");
-    public static final String KEY_MANY_ENCHANT_CATALYSTS = getContainerTranslationKey("lapis.many");
+    public static final String KEY_ONE_ENCHANT_CATALYST = "container.enchant.lapis.one";
+    public static final String KEY_MANY_ENCHANT_CATALYSTS = "container.enchant.lapis.many";
     public static final String KEY_ONE_REROLL_CATALYST = getContainerTranslationKey("reroll.one");
     public static final String KEY_MANY_REROLL_CATALYSTS = getContainerTranslationKey("reroll.many");
-    public static final String KEY_ONE_ENCHANTMENT_LEVEL = getContainerTranslationKey("level.one");
-    public static final String KEY_MANY_ENCHANTMENT_LEVELS = getContainerTranslationKey("level.many");
+    public static final String KEY_ONE_ENCHANTMENT_LEVEL = "container.enchant.level.one";
+    public static final String KEY_MANY_ENCHANTMENT_LEVELS = "container.enchant.level.many";
     public static final String KEY_ONE_EXPERIENCE_POINT = getContainerTranslationKey("experience.one");
     public static final String KEY_MANY_EXPERIENCE_POINTS = getContainerTranslationKey("experience.many");
     public static final String KEY_REROLL = getContainerTranslationKey("reroll");
@@ -58,7 +58,7 @@ public final class EnchantmentTooltipHelper {
         Object2IntMap<Holder<Enchantment>> enchantments = slotData.stream()
                 .collect(Collectors.toMap(EnchantmentInstance::enchantment,
                         EnchantmentInstance::level,
-                        (o1, o2) -> o2,
+                        (Integer o1, Integer o2) -> o2,
                         Object2IntLinkedOpenHashMap::new));
         HolderSet<Enchantment> holderSet = getTagOrEmpty(registries,
                 Registries.ENCHANTMENT,
@@ -101,7 +101,7 @@ public final class EnchantmentTooltipHelper {
      * {@link net.minecraft.world.item.enchantment.ItemEnchantments#getTagOrEmpty(HolderLookup.Provider, ResourceKey,
      * TagKey)}.
      */
-    private static <T> HolderSet<T> getTagOrEmpty(@Nullable HolderLookup.Provider registries, ResourceKey<Registry<T>> registryKey, TagKey<T> key) {
+    private static <T> HolderSet<T> getTagOrEmpty(HolderLookup.@Nullable Provider registries, ResourceKey<Registry<T>> registryKey, TagKey<T> key) {
         if (registries != null) {
             Optional<HolderSet.Named<T>> optional = registries.lookupOrThrow(registryKey).get(key);
             if (optional.isPresent()) {
@@ -113,8 +113,8 @@ public final class EnchantmentTooltipHelper {
     }
 
     private static Optional<String> getEnchantmentDescriptionKey(Holder<Enchantment> enchantment) {
-        String translationKey = enchantment.unwrapKey().map(resourceKey -> {
-            return Util.makeDescriptionId(resourceKey.registry().getPath(), resourceKey.location());
+        String translationKey = enchantment.unwrapKey().map((ResourceKey<Enchantment> resourceKey) -> {
+            return Util.makeDescriptionId(resourceKey.registry().getPath(), resourceKey.identifier());
         }).orElse(null);
         if (translationKey == null) {
             return Optional.empty();

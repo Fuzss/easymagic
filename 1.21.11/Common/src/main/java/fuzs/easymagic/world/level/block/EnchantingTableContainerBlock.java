@@ -2,7 +2,7 @@ package fuzs.easymagic.world.level.block;
 
 import fuzs.easymagic.init.ModRegistry;
 import fuzs.easymagic.world.inventory.ModEnchantmentMenu;
-import fuzs.easymagic.world.level.block.entity.EnchantmentTableWithInventoryBlockEntity;
+import fuzs.easymagic.world.level.block.entity.EnchantingTableContainerBlockEntity;
 import fuzs.puzzleslib.api.block.v1.entity.TickingEntityBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,11 +20,11 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
-public class EnchantmentTableWithInventoryBlock extends EnchantingTableBlock implements TickingEntityBlock<EnchantmentTableWithInventoryBlockEntity> {
+public class EnchantingTableContainerBlock extends EnchantingTableBlock implements TickingEntityBlock<EnchantingTableContainerBlockEntity> {
 
-    public EnchantmentTableWithInventoryBlock(BlockBehaviour.Properties properties) {
+    public EnchantingTableContainerBlock(BlockBehaviour.Properties properties) {
         super(properties);
     }
 
@@ -44,13 +44,14 @@ public class EnchantmentTableWithInventoryBlock extends EnchantingTableBlock imp
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         } else {
-            if (level.getBlockEntity(pos) instanceof EnchantmentTableWithInventoryBlockEntity blockEntity) {
+            if (level.getBlockEntity(pos) instanceof EnchantingTableContainerBlockEntity blockEntity) {
                 player.openMenu(blockEntity);
                 if (player.containerMenu instanceof ModEnchantmentMenu) {
                     // items might still be in inventory slots, so this needs to update so that enchantment buttons are shown
                     player.containerMenu.slotsChanged(blockEntity);
                 }
             }
+
             return InteractionResult.CONSUME;
         }
     }
@@ -81,7 +82,7 @@ public class EnchantmentTableWithInventoryBlock extends EnchantingTableBlock imp
     }
 
     @Override
-    public BlockEntityType<? extends EnchantmentTableWithInventoryBlockEntity> getBlockEntityType() {
+    public BlockEntityType<? extends EnchantingTableContainerBlockEntity> getBlockEntityType() {
         return ModRegistry.ENCHANTING_TABLE_BLOCK_ENTITY_TYPE.value();
     }
 }
