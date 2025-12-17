@@ -1,0 +1,11 @@
+{
+  "container.invalidBlock": "Unable to open. Break and replace to use.",
+  "menu.easymagic.enchanting.experience.many": "%s Experience Points",
+  "menu.easymagic.enchanting.experience.one": "1 Experience Point",
+  "menu.easymagic.enchanting.reroll": "Reroll enchantments",
+  "menu.easymagic.enchanting.reroll.many": "%s Amethyst Shards",
+  "menu.easymagic.enchanting.reroll.one": "1 Amethyst Shard",
+  "tag.block.easymagic.unaltered_enchanting_tables": "Unaltered Enchanting Tables",
+  "tag.item.easymagic.enchanting_catalysts": "Enchanting Catalysts",
+  "tag.item.easymagic.reroll_catalysts": "Reroll Catalysts"
+}
